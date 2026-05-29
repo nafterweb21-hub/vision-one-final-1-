@@ -261,12 +261,7 @@ export default function PurchaseRequisitionEditPage() {
       }
 
       const saved = await res.json();
-      if (isNew) {
-        router.push(`/dashboard/purchasing/purchase-requisition/${saved.id}`);
-      } else {
-        router.push(`/dashboard/purchasing/purchase-requisition?toast=updated`);
-      }
-      router.refresh();
+      router.push(`/dashboard/saved?module=Purchase Requisition&id=${saved.prNo || saved.id}&viewUrl=/dashboard/purchasing/purchase-requisition/${saved.id}&backUrl=/dashboard/purchasing/purchase-requisition`);
     } catch (e: any) {
       setError(e.message);
     } finally {

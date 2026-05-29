@@ -205,7 +205,7 @@ export default function GoodsReturnFormPage({ params }: { params: Promise<{ id: 
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Failed to create Goods Return");
-        router.push(`/dashboard/purchasing/goods-return?toast=created`);
+        router.push(`/dashboard/saved?module=Goods Return&id=${data.rtnNo || data.id || ''}&viewUrl=/dashboard/purchasing/goods-return/${data.id}&backUrl=/dashboard/purchasing/goods-return`);
       } else {
         const res = await fetch(`/api/purchasing/goods-return/${id}`, {
           method: "PUT",
@@ -214,7 +214,7 @@ export default function GoodsReturnFormPage({ params }: { params: Promise<{ id: 
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Failed to update Goods Return");
-        router.push(`/dashboard/purchasing/goods-return?toast=updated`);
+        router.push(`/dashboard/saved?module=Goods Return&id=${existing?.rtnNo || id}&viewUrl=/dashboard/purchasing/goods-return/${id}&backUrl=/dashboard/purchasing/goods-return`);
       }
     } catch (e: any) {
       setErrorMsg(e.message);
@@ -230,7 +230,7 @@ export default function GoodsReturnFormPage({ params }: { params: Promise<{ id: 
     try {
       const res = await submitGoodsReturn(id);
       if (!res.success) throw new Error(res.error);
-      router.push(`/dashboard/purchasing/goods-return?toast=updated`);
+      router.push(`/dashboard/saved?module=Goods Return (Submitted)&id=${existing?.rtnNo || id}&viewUrl=/dashboard/purchasing/goods-return/${id}&backUrl=/dashboard/purchasing/goods-return`);
     } catch (e: any) {
       setErrorMsg(e.message);
     } finally {

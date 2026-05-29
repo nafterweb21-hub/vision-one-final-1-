@@ -173,7 +173,8 @@ export default function SubconReturnTrackingFormPage() {
         const d = await res.json().catch(() => ({}));
         throw new Error(d.error || "Failed to save form");
       }
-      router.push(`/dashboard/purchasing/subcon-return-tracking?toast=${isNew ? "created" : "updated"}`);
+      const saved = await res.json();
+      router.push(`/dashboard/saved?module=Subcon Return Tracking&id=${saved.srtNo || saved.id || srtNo}&viewUrl=/dashboard/purchasing/subcon-return-tracking/${saved.id || params.id}&backUrl=/dashboard/purchasing/subcon-return-tracking`);
     } catch (err: any) {
       setErrorMsg(err.message);
     } finally {

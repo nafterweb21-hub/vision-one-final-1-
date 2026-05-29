@@ -163,11 +163,11 @@ export default function GoodsReceiveFormPage({ params }: { params: Promise<{ id:
       if (isNew) {
         const res = await createGoodsReceive(payload);
         if (!res.success) throw new Error(res.error);
-        router.push(`/dashboard/purchasing/goods-receive?toast=created`);
+        router.push(`/dashboard/saved?module=Goods Receive&id=${res.id}&viewUrl=/dashboard/purchasing/goods-receive/${res.id}&backUrl=/dashboard/purchasing/goods-receive`);
       } else {
         const res = await updateGoodsReceive(id, payload);
         if (!res.success) throw new Error(res.error);
-        router.push(`/dashboard/purchasing/goods-receive?toast=updated`);
+        router.push(`/dashboard/saved?module=Goods Receive&id=${existing?.grNo || id}&viewUrl=/dashboard/purchasing/goods-receive/${id}&backUrl=/dashboard/purchasing/goods-receive`);
       }
     } catch (e: any) {
       setErrorMsg(e.message);
@@ -185,7 +185,7 @@ export default function GoodsReceiveFormPage({ params }: { params: Promise<{ id:
     try {
       const res = await submitGoodsReceive(id);
       if (!res.success) throw new Error(res.error);
-      router.push(`/dashboard/purchasing/goods-receive?toast=updated`);
+      router.push(`/dashboard/saved?module=Goods Receive (Submitted)&id=${existing?.grNo || id}&viewUrl=/dashboard/purchasing/goods-receive/${id}&backUrl=/dashboard/purchasing/goods-receive`);
     } catch (e: any) {
       setErrorMsg(e.message);
     } finally {

@@ -105,7 +105,7 @@ export default function NewSubconRequestFormPage() {
       }
 
       const created = await res.json();
-      router.push(`/dashboard/purchasing/subcon-request-form?toast=created`);
+      router.push(`/dashboard/saved?module=Subcon Request&id=${created.srfNo || created.id}&viewUrl=/dashboard/purchasing/subcon-request-form/${created.id}&backUrl=/dashboard/purchasing/subcon-request-form`);
     } catch (err: any) {
       alert(err.message);
       setSaving(false);

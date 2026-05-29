@@ -93,7 +93,7 @@ export default function DeliveryOrderFormPage() {
       const resData = await res.json();
       if (!res.ok) throw new Error(resData.error || "Failed to save Delivery Order");
       
-      router.push("/dashboard/sales/delivery-order");
+      router.push(`/dashboard/saved?module=Delivery Order&id=${resData.doNo || resData.id || ''}&viewUrl=/dashboard/sales/delivery-order/form?id=${resData.id}&backUrl=/dashboard/sales/delivery-order`);
     } catch (err: any) {
       setErrorMsg(err.message);
     } finally {
@@ -109,7 +109,7 @@ export default function DeliveryOrderFormPage() {
       const res = await fetch(`/api/sales/delivery-order/${id}/submit`, { method: "POST" });
       const resData = await res.json();
       if (!res.ok) throw new Error(resData.error || "Failed to submit");
-      router.push("/dashboard/sales/delivery-order");
+      router.push(`/dashboard/saved?module=Delivery Order (Submitted)&id=${resData.doNo || resData.id || ''}&viewUrl=/dashboard/sales/delivery-order/form?id=${resData.id}&backUrl=/dashboard/sales/delivery-order`);
     } catch (err: any) {
       setErrorMsg(err.message);
     } finally {

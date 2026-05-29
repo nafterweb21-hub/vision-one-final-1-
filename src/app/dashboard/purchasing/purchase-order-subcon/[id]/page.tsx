@@ -350,12 +350,7 @@ export default function PurchaseOrderSubconEditPage() {
       }
 
       const saved = await res.json();
-      if (isNew) {
-        router.push(`/dashboard/purchasing/purchase-order-subcon/${saved.id}`);
-      } else {
-        router.push(`/dashboard/purchasing/purchase-order-subcon?toast=updated`);
-      }
-      router.refresh();
+      router.push(`/dashboard/saved?module=Purchase Order Subcon&id=${saved.poNo || saved.id}&viewUrl=/dashboard/purchasing/purchase-order-subcon/${saved.id}&backUrl=/dashboard/purchasing/purchase-order-subcon`);
     } catch (e: any) {
       setError(e.message);
     } finally {

@@ -403,12 +403,7 @@ export default function PurchaseOrderEditPage() {
       }
 
       const saved = await res.json();
-      if (isNew) {
-        router.push(`/dashboard/purchasing/purchase-order/${saved.id}`);
-      } else {
-        router.push(`/dashboard/purchasing/purchase-order?toast=updated`);
-      }
-      router.refresh();
+      router.push(`/dashboard/saved?module=Purchase Order&id=${saved.poNo || saved.id}&viewUrl=/dashboard/purchasing/purchase-order/${saved.id}&backUrl=/dashboard/purchasing/purchase-order`);
     } catch (e: any) {
       setError(e.message);
     } finally {

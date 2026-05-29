@@ -243,7 +243,8 @@ export default function SalesOrderFormPage({ params }: PageProps) {
         throw new Error(data.error || "Failed to save");
       }
 
-      router.push("/dashboard/sales/sales-order");
+      const saved = await res.json();
+      router.push(`/dashboard/saved?module=Sales Order&id=${saved.orderNo || saved.id}&viewUrl=/dashboard/sales/sales-order/${saved.id}&backUrl=/dashboard/sales/sales-order`);
     } catch (err: any) {
       setErrorMsg(err.message);
     } finally {

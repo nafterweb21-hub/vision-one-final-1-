@@ -173,7 +173,7 @@ export default function CertificateOfConformityFormPage() {
       const resData = await res.json();
       if (!res.ok) throw new Error(resData.error || "Failed to save COC");
       
-      router.push("/dashboard/qc/coc");
+      router.push(`/dashboard/saved?module=Certificate Of Conformity&id=${resData.cocNo || resData.id || ''}&viewUrl=/dashboard/qc/coc/form?id=${resData.id}&backUrl=/dashboard/qc/coc`);
     } catch (err: any) {
       setErrorMsg(err.message);
     } finally {
