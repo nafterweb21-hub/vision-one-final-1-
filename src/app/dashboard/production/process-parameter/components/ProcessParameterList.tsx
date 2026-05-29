@@ -7,7 +7,16 @@ import { confirmBulkProcessParameters } from "@/app/dashboard/production/process
 export default function ProcessParameterList({ timesheets, employees, elcometers }: any) {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [confirmedById, setConfirmedById] = useState("");
+  const [activeTab, setActiveTab] = useState("Welding"); // "Welding", "Spray Painting", "Machining", "Machining - Tool List"
   const [elcometerName, setElcometerName] = useState("");
+
+  const filteredTimesheets = timesheets.filter((ts: any) => {
+    if (activeTab === "Welding") return ts.weldingParameter;
+    if (activeTab === "Spray Painting") return ts.sprayParameter;
+    if (activeTab === "Machining") return ts.machiningParameter;
+    if (activeTab === "Machining - Tool List") return ts.machiningParameter && ts.machiningParameter.toolLists?.length > 0;
+    return true;
+  });
 
   const toggleSelect = (id: string) => {
     setSelectedIds(prev => 
@@ -16,12 +25,19 @@ export default function ProcessParameterList({ timesheets, employees, elcometers
   };
 
   const toggleAll = () => {
-    if (selectedIds.length === timesheets.length) {
+    if (selectedIds.length === filteredTimesheets.length) {
       setSelectedIds([]);
     } else {
-      setSelectedIds(timesheets.map((ts: any) => ts.id));
+      setSelectedIds(filteredTimesheets.map((ts: any) => ts.id));
     }
   };
+
+  const tabs = [
+    { id: "Welding", label: "Process Parameter Confirmation – Welding" },
+    { id: "Spray Painting", label: "Process Parameter Confirmation – Spray Painting" },
+    { id: "Machining", label: "Process Parameter Confirmation – Machining" },
+    { id: "Machining - Tool List", label: "Process Parameter Confirmation – Machining – Tool List" },
+  ];
 
   const handleConfirm = async () => {
     if (selectedIds.length === 0) return alert("Please select at least one record to confirm.");
@@ -54,6 +70,26 @@ export default function ProcessParameterList({ timesheets, employees, elcometers
 
   return (
     <div>
+      {/* Tabs */}
+      <div className="flex border-b border-slate-200 bg-white px-2 pt-2 overflow-x-auto">
+        {tabs.map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => {
+              setActiveTab(tab.id);
+              setSelectedIds([]);
+            }}
+            className={`px-4 py-3 text-sm font-medium border-b-2 whitespace-nowrap transition-colors ${
+              activeTab === tab.id 
+                ? "border-blue-600 text-blue-600" 
+                : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
       <div className="p-4 bg-slate-50 border-b border-slate-200 flex flex-wrap gap-4 items-end">
         <div className="flex flex-col">
           <label className="text-xs font-semibold text-slate-600 mb-1">Confirm By <span className="text-red-500">*</span></label>
@@ -99,7 +135,7 @@ export default function ProcessParameterList({ timesheets, employees, elcometers
               <th className="px-4 py-3 w-10">
                 <input 
                   type="checkbox" 
-                  checked={selectedIds.length > 0 && selectedIds.length === timesheets.length}
+                  checked={selectedIds.length > 0 && selectedIds.length === filteredTimesheets.length}
                   onChange={toggleAll}
                   className="rounded border-slate-300"
                 />
@@ -113,7 +149,13 @@ export default function ProcessParameterList({ timesheets, employees, elcometers
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-200">
-            {timesheets.map((ts: any) => {
+            {filteredTimesheets.length === 0 ? (
+              <tr>
+                <td colSpan={7} className="px-6 py-8 text-center text-slate-500">
+                  No pending records for this process.
+                </td>
+              </tr>
+            ) : filteredTimesheets.map((ts: any) => {
               let type = "";
               let status = "Pending";
               if (ts.weldingParameter) {

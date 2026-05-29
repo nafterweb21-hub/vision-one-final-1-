@@ -1,6 +1,7 @@
 "use client";
 
 import { confirmProcessParameter } from "../actions";
+import Link from "next/link";
 
 export default function MachiningForm({ timesheet, parameter, employees }: any) {
   const wo = timesheet.routingProcess?.inProcess?.workOrder;
@@ -95,12 +96,41 @@ export default function MachiningForm({ timesheet, parameter, employees }: any) 
           <ReadOnlyField label="23. Remark" value={parameter.remark} className="md:col-span-2 mt-2" />
         </div>
 
-        <div className="flex justify-end pt-4 border-t border-slate-200">
+        <div className="flex flex-wrap items-center justify-end gap-3 pt-4 border-t border-slate-200">
+          <Link
+            href="/dashboard/production/process-parameter"
+            className="px-4 py-2 border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 transition-colors text-sm font-medium"
+          >
+            Cancel / Back
+          </Link>
+          <button
+            type="button"
+            onClick={() => window.print()}
+            className="px-4 py-2 border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 transition-colors text-sm font-medium"
+          >
+            Print / Export
+          </button>
+          <button
+            type="reset"
+            className="px-4 py-2 border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 transition-colors text-sm font-medium"
+          >
+            Reset
+          </button>
           <button
             type="submit"
-            className="px-6 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+            name="actionName"
+            value="reject"
+            className="px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors shadow-sm text-sm"
           >
-            Submit
+            Reject
+          </button>
+          <button
+            type="submit"
+            name="actionName"
+            value="approve"
+            className="px-6 py-2 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 transition-colors shadow-sm text-sm"
+          >
+            Approve
           </button>
         </div>
       </form>

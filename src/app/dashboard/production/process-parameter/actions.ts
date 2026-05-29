@@ -9,13 +9,14 @@ export async function confirmProcessParameter(formData: FormData) {
   const id = formData.get("id") as string;
   const confirmedById = formData.get("confirmedById") as string;
   const elcometerName = formData.get("elcometerName") as string | null;
+  const actionName = formData.get("actionName") as string;
 
   if (!id || !confirmedById || !type) {
     throw new Error("Missing required fields");
   }
 
   const updateData: any = {
-    status: "Confirmed",
+    status: actionName === "reject" ? "Rejected" : "Confirmed",
     confirmedById,
     confirmedDate: new Date(),
   };
