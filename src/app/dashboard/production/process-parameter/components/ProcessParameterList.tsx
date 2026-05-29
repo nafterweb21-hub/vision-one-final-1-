@@ -88,7 +88,7 @@ export default function ProcessParameterList({ timesheets, employees, elcometers
           disabled={selectedIds.length === 0}
           className="ml-auto px-4 py-1.5 bg-blue-600 text-white text-sm font-medium rounded shadow-sm hover:bg-blue-700 disabled:opacity-50 transition-colors"
         >
-          Confirm Selected ({selectedIds.length})
+          Submit ({selectedIds.length})
         </button>
       </div>
 

@@ -225,7 +225,7 @@ export default function ParameterDetailDrawer({
                     className="inline-flex items-center gap-1.5 px-4 py-2 border border-indigo-200 text-indigo-600 rounded-lg hover:bg-indigo-50 text-sm font-semibold transition-colors"
                   >
                     <Edit size={16} />
-                    Modify Parameters
+                    Update
                   </button>
                 )}
               </div>
@@ -245,7 +245,7 @@ export default function ParameterDetailDrawer({
                       className="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 text-sm font-semibold transition-colors"
                     >
                       <Save size={16} />
-                      {isPending ? "Saving..." : "Save Changes"}
+                      {isPending ? "Saving..." : "Save"}
                     </button>
                   </>
                 ) : (
@@ -253,7 +253,7 @@ export default function ParameterDetailDrawer({
                     onClick={() => setOpen(false)}
                     className="px-4 py-2 border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-100 text-sm font-medium transition-colors"
                   >
-                    Close
+                    Cancel
                   </button>
                 )}
               </div>
