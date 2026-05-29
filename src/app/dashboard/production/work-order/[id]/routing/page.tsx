@@ -31,13 +31,81 @@ export default async function WorkOrderRoutingPage({
             orderBy: { sn: "asc" },
             include: {
               mainProcess: { select: { process: true } },
-              routingProcess: { select: { routingProcess: true } },
+              routingProcess: { select: { routingProcess: true, welding: true, sprayPainting: true, machining: true } },
+              productionTimesheets: {
+                include: {
+                  weldingParameter: {
+                    include: {
+                      weldingMachine: true,
+                      typeOfJoint: true,
+                      materialTypes: true,
+                      weldingTypes: true,
+                      confirmedBy: true,
+                    }
+                  },
+                  sprayParameter: {
+                    include: {
+                      elcometer: true,
+                      confirmedBy: true,
+                    }
+                  },
+                  machiningParameter: {
+                    include: {
+                      machine: true,
+                      toolLists: true,
+                      confirmedBy: true,
+                    }
+                  }
+                }
+              }
             },
           },
         },
       },
     },
   });
+
+  const employees = await prisma.employee.findMany({
+    where: { status: "ACTIVE" },
+    select: { id: true, name: true, code: true },
+    orderBy: { name: "asc" },
+  });
+
+  const [weldingMachines, machiningMachines, elcometers, joints, materialTypes, weldingTypes] = await Promise.all([
+    prisma.machineProfile.findMany({
+      where: { status: "Active", machineCategory: "Welding Machine" },
+      orderBy: { machineCode: "asc" },
+    }),
+    prisma.machineProfile.findMany({
+      where: { status: "Active", machineCategory: "Machine" },
+      orderBy: { serialNo: "asc" },
+    }),
+    prisma.elcometerProfile.findMany({
+      where: { status: "Active" },
+      orderBy: { serialNo: "asc" },
+    }),
+    prisma.jointProfile.findMany({
+      where: { status: "Active" },
+      orderBy: { joint: "asc" },
+    }),
+    prisma.materialType.findMany({
+      where: { status: "Active" },
+      orderBy: { type: "asc" },
+    }),
+    prisma.weldingTypeProfile.findMany({
+      where: { status: "Active" },
+      orderBy: { type: "asc" },
+    }),
+  ]);
+
+  const supportData = {
+    weldingMachines: JSON.parse(JSON.stringify(weldingMachines)),
+    machiningMachines: JSON.parse(JSON.stringify(machiningMachines)),
+    elcometers: JSON.parse(JSON.stringify(elcometers)),
+    joints: JSON.parse(JSON.stringify(joints)),
+    materialTypes: JSON.parse(JSON.stringify(materialTypes)),
+    weldingTypes: JSON.parse(JSON.stringify(weldingTypes)),
+  };
 
   if (!workOrder) notFound();
 
@@ -171,13 +239,21 @@ export default async function WorkOrderRoutingPage({
                           <th className="px-3 py-2 font-semibold">Routing Process</th>
                           <th className="px-3 py-2 font-semibold">Target Date</th>
                           <th className="px-3 py-2 font-semibold text-center">Fully Recv?</th>
+                          <th className="px-3 py-2 font-semibold text-center">Process Parameter</th>
                           <th className="px-3 py-2 font-semibold">Status</th>
                           <th className="px-3 py-2 font-semibold text-right">Actions</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
                         {ip.routingProcesses.map((rp: any) => (
-                          <RoutingProcessRow key={rp.id} rp={rp} woStatus={workOrder.status} />
+                          <RoutingProcessRow 
+                            key={rp.id} 
+                            rp={rp} 
+                            woStatus={workOrder.status} 
+                            employees={employees}
+                            supportData={supportData}
+                            workOrderNo={id}
+                          />
                         ))}
                       </tbody>
                     </table>

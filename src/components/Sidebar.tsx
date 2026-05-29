@@ -199,7 +199,7 @@ export default function Sidebar({ userEmail, userRole, isAdmin }: SidebarProps) 
                 <span>Certificate Of Conformity</span>
               </Link>
             )}
-            <Link href="/dashboard/production/process-parameter-confirmation" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/production/process-parameter-confirmation")}>
+            <Link href="/dashboard/production/process-parameter" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/production/process-parameter")}>
               <SquareSplitHorizontal size={16} className="text-slate-600" fill="currentColor" />
               <span>Process Parameter Confirmation</span>
             </Link>

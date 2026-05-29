@@ -3,10 +3,14 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { markRoutingProcessStatus } from "../actions";
+import ParameterDetailDrawer from "./ParameterDetailDrawer";
 
 type Props = {
   rp: any;
   woStatus: string;
+  employees?: any[];
+  supportData?: any;
+  workOrderNo?: string;
 };
 
 function fmtDate(d?: string | Date | null) {
@@ -22,7 +26,13 @@ const STATUS_BADGE: Record<string, string> = {
   Completed: "bg-emerald-100 text-emerald-700",
 };
 
-export default function RoutingProcessRow({ rp, woStatus }: Props) {
+export default function RoutingProcessRow({
+  rp,
+  woStatus,
+  employees = [],
+  supportData = {},
+  workOrderNo = "",
+}: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState("");
@@ -38,6 +48,11 @@ export default function RoutingProcessRow({ rp, woStatus }: Props) {
     });
   }
 
+  // Find all timesheets that have process parameters
+  const paramsTimesheets = rp.productionTimesheets?.filter(
+    (ts: any) => ts.weldingParameter || ts.sprayParameter || ts.machiningParameter
+  ) || [];
+
   return (
     <tr className="hover:bg-slate-50/60">
       <td className="px-3 py-2 text-slate-600">{rp.sn}</td>
@@ -51,6 +66,25 @@ export default function RoutingProcessRow({ rp, woStatus }: Props) {
           <span className="text-xs text-emerald-700">Yes</span>
         ) : (
           <span className="text-xs text-slate-400">-</span>
+        )}
+      </td>
+      <td className="px-3 py-2 text-center">
+        {paramsTimesheets.length > 0 ? (
+          paramsTimesheets.map((ts: any) => (
+            <div key={ts.id} className="inline-block m-0.5">
+              <ParameterDetailDrawer
+                welding={ts.weldingParameter ? JSON.parse(JSON.stringify(ts.weldingParameter)) : null}
+                spray={ts.sprayParameter ? JSON.parse(JSON.stringify(ts.sprayParameter)) : null}
+                machining={ts.machiningParameter ? JSON.parse(JSON.stringify(ts.machiningParameter)) : null}
+                employees={employees}
+                workOrderNo={workOrderNo}
+                editable={editable}
+                supportData={supportData}
+              />
+            </div>
+          ))
+        ) : (
+          <span className="text-slate-400 text-xs">-</span>
         )}
       </td>
       <td className="px-3 py-2">
