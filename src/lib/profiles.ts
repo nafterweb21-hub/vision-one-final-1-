@@ -187,6 +187,24 @@ export async function toggleProfileItemStatus(type: string, id: string) {
   });
 }
 
+export async function deleteProfileItem(type: string, id: string) {
+  const meta = PROFILE_REGISTRY[type];
+  if (!meta) throw new Error(`Invalid profile type: ${type}`);
+
+  const model = getPrismaModel(meta.modelName);
+
+  const existing = await model.findUnique({ where: { id } });
+  if (!existing) throw new Error(`Item with id '${id}' not found`);
+
+  if (type === "currency" && existing.isDefault === true) {
+    throw new Error("Cannot delete the default currency. Please assign another currency as default first.");
+  }
+
+  return await model.delete({
+    where: { id },
+  });
+}
+
 // Convert numbers, decimals, and booleans correctly
 function prepareDataForDB(type: string, data: any): any {
   const result = { ...data };
