@@ -26,7 +26,7 @@ export default async function DashboardLayout({
         <div className="absolute bottom-[-10%] left-[-5%] w-[500px] h-[500px] rounded-full bg-blue-200/20 blur-[100px] pointer-events-none z-0" />
 
         {/* Dynamic page contents scrollable */}
-        <main className="flex-1 overflow-y-auto relative z-10 w-full px-4 pt-24 pb-12 sm:px-8 md:px-12 lg:px-16">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden relative z-10 w-full px-4 pt-24 pb-12 sm:px-8 md:px-12 lg:px-16">
           <div className="mx-auto max-w-7xl">
             {children}
           </div>

@@ -62,9 +62,8 @@ export async function createProcessProfileAction(formData: FormData) {
       costPerMinute,
       remark,
     });
-    
     revalidatePath("/dashboard/master-profile/process-profile");
-    return { success: true, data };
+    return { success: true, data: JSON.parse(JSON.stringify(data)) };
   } catch (error: any) {
     return { success: false, error: error.message || "Failed to create process profile" };
   }
@@ -88,9 +87,8 @@ export async function updateProcessProfileAction(id: string, formData: FormData)
       costPerMinute,
       remark,
     });
-    
     revalidatePath("/dashboard/master-profile/process-profile");
-    return { success: true, data };
+    return { success: true, data: JSON.parse(JSON.stringify(data)) };
   } catch (error: any) {
     return { success: false, error: error.message || "Failed to update process profile" };
   }

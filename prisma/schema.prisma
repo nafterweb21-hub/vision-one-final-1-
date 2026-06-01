@@ -111,6 +111,7 @@ model Currency {
   quotations     Quotation[]
   salesOrders    SalesOrder[]
   invoices       Invoice[]
+  receipts       Receipt[]
 }
 
 model Employee {
@@ -148,6 +149,7 @@ model Employee {
   user                                          User?                           @relation("EmployeeUser")
   qcWorkOrders                                  WorkOrder[]                     @relation("WorkOrderQc")
   preparedInvoices                              Invoice[]                       @relation("InvoicePreparedBy")
+  receipts                                      Receipt[]                       @relation("ReceiptCreator")
 }
 
 model TaxProfile {
@@ -182,6 +184,10 @@ model CustomerProfile {
   salesOrders    SalesOrder[]
   workOrders     WorkOrder[]
   invoices       Invoice[]
+  receipts       Receipt[]
+  gstin          String?
+  pan            String?
+  placeOfSupply  String?
 }
 
 model CustomerContactPerson {
@@ -753,6 +759,8 @@ model CompanyProfile {
   purchaseRequisitions  PurchaseRequisition[]
   subconReturnTrackings SubconReturnTracking[]
   invoices              Invoice[]
+  receipts              Receipt[]
+  msmeNo                String?
 }
 
 model Quotation {
@@ -1245,6 +1253,8 @@ model Invoice {
   status          String   @default("Draft") // Draft, Submitted, Old Version, Void
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+  poNo            String?
+  vehicleNumber   String?
 
   company       CompanyProfile        @relation(fields: [companyId], references: [id])
   customer      CustomerProfile       @relation(fields: [customerId], references: [id])
@@ -1258,6 +1268,7 @@ model Invoice {
   items          InvoiceItem[]
   deliveryOrders InvoiceDeliveryOrder[]
   quotation      Quotation?
+  receipts       Receipt[]
 }
 
 model InvoiceItem {
@@ -1272,6 +1283,7 @@ model InvoiceItem {
   unitPrice   Decimal
   amount      Decimal
   remark      String?
+  hsnCode     String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -1290,6 +1302,31 @@ model InvoiceDeliveryOrder {
   deliveryOrder DeliveryOrder @relation(fields: [deliveryOrderId], references: [id], onDelete: Restrict)
 
   @@id([invoiceId, deliveryOrderId])
+}
+
+model Receipt {
+  id             String   @id @default(cuid())
+  receiptNo      String   @unique // RCPTYYXXXXX
+  receiptDate    DateTime
+  companyId      String
+  customerId     String
+  invoiceId      String
+  paymentMethod  String // Bank Transfer, Cheque, Cash, Others
+  chequeRefNo    String?
+  amountReceived Decimal
+  currencyId     String
+  exchangeRate   Decimal
+  remark         String?
+  creatorId      String
+  status         String   @default("Draft") // Draft, Void, Confirmed
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  company  CompanyProfile  @relation(fields: [companyId], references: [id])
+  customer CustomerProfile @relation(fields: [customerId], references: [id])
+  invoice  Invoice         @relation(fields: [invoiceId], references: [id])
+  currency Currency        @relation(fields: [currencyId], references: [id])
+  creator  Employee        @relation("ReceiptCreator", fields: [creatorId], references: [id])
 }
 
 enum UserRole {
