@@ -264,6 +264,15 @@ model PaintingMethodProfile {
   cocs      CertificateOfConformity[]
 }
 
+model IncotermProfile {
+  id        String   @id @default(cuid())
+  incoterm  String   @unique
+  remark    String?
+  status    String   @default("Active")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model MainProcess {
   id                 String              @id @default(cuid())
   process            String              @unique

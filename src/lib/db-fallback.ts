@@ -283,3 +283,135 @@ export async function toggleProcessProfileStatus(id: string, status: string) {
 export async function voidProcessProfile(id: string) {
   return prisma.processProfile.update({ where: { id }, data: { status: "Void" } });
 }
+
+// ===== Welding Types =====
+export async function getWeldingTypes() {
+  return prisma.weldingTypeProfile.findMany({ orderBy: { type: "asc" } });
+}
+
+export async function saveWeldingType(data: {
+  id?: string;
+  type: string;
+  remark: string | null;
+  status: string;
+}) {
+  if (data.id) {
+    return prisma.weldingTypeProfile.update({
+      where: { id: data.id },
+      data: { remark: data.remark, status: data.status },
+    });
+  }
+  const dup = await prisma.weldingTypeProfile.findUnique({ where: { type: data.type } });
+  if (dup) throw new Error(`Welding Type "${data.type}" already exists.`);
+
+  return prisma.weldingTypeProfile.create({
+    data: { type: data.type, remark: data.remark, status: data.status },
+  });
+}
+
+export async function toggleWeldingTypeStatus(id: string, status: string) {
+  return prisma.weldingTypeProfile.update({ where: { id }, data: { status } });
+}
+
+export async function voidWeldingType(id: string) {
+  return prisma.weldingTypeProfile.update({ where: { id }, data: { status: "Void" } });
+}
+
+// ===== Joint Profiles =====
+export async function getJointProfiles() {
+  return prisma.jointProfile.findMany({ orderBy: { joint: "asc" } });
+}
+
+export async function saveJointProfile(data: {
+  id?: string;
+  joint: string;
+  remark: string | null;
+  status: string;
+}) {
+  if (data.id) {
+    return prisma.jointProfile.update({
+      where: { id: data.id },
+      data: { remark: data.remark, status: data.status },
+    });
+  }
+  const dup = await prisma.jointProfile.findUnique({ where: { joint: data.joint } });
+  if (dup) throw new Error(`Joint "${data.joint}" already exists.`);
+
+  return prisma.jointProfile.create({
+    data: { joint: data.joint, remark: data.remark, status: data.status },
+  });
+}
+
+export async function toggleJointProfileStatus(id: string, status: string) {
+  return prisma.jointProfile.update({ where: { id }, data: { status } });
+}
+
+export async function voidJointProfile(id: string) {
+  return prisma.jointProfile.update({ where: { id }, data: { status: "Void" } });
+}
+
+// ===== Painting Method Profiles =====
+export async function getPaintingMethodProfiles() {
+  return prisma.paintingMethodProfile.findMany({ orderBy: { method: "asc" } });
+}
+
+export async function savePaintingMethodProfile(data: {
+  id?: string;
+  method: string;
+  remark: string | null;
+  status: string;
+}) {
+  if (data.id) {
+    return prisma.paintingMethodProfile.update({
+      where: { id: data.id },
+      data: { remark: data.remark, status: data.status },
+    });
+  }
+  const dup = await prisma.paintingMethodProfile.findUnique({ where: { method: data.method } });
+  if (dup) throw new Error(`Method "${data.method}" already exists.`);
+
+  return prisma.paintingMethodProfile.create({
+    data: { method: data.method, remark: data.remark, status: data.status },
+  });
+}
+
+export async function togglePaintingMethodStatus(id: string, status: string) {
+  return prisma.paintingMethodProfile.update({ where: { id }, data: { status } });
+}
+
+export async function voidPaintingMethodProfile(id: string) {
+  return prisma.paintingMethodProfile.update({ where: { id }, data: { status: "Void" } });
+}
+
+// ===== Incoterm Profiles =====
+export async function getIncotermProfiles() {
+  return prisma.incotermProfile.findMany({ orderBy: { incoterm: "asc" } });
+}
+
+export async function saveIncotermProfile(data: {
+  id?: string;
+  incoterm: string;
+  remark: string | null;
+  status: string;
+}) {
+  if (data.id) {
+    return prisma.incotermProfile.update({
+      where: { id: data.id },
+      data: { remark: data.remark, status: data.status },
+    });
+  }
+  const dup = await prisma.incotermProfile.findUnique({ where: { incoterm: data.incoterm } });
+  if (dup) throw new Error(`Incoterm "${data.incoterm}" already exists.`);
+
+  return prisma.incotermProfile.create({
+    data: { incoterm: data.incoterm, remark: data.remark, status: data.status },
+  });
+}
+
+export async function toggleIncotermStatus(id: string, status: string) {
+  return prisma.incotermProfile.update({ where: { id }, data: { status } });
+}
+
+export async function voidIncotermProfile(id: string) {
+  return prisma.incotermProfile.update({ where: { id }, data: { status: "Void" } });
+}
