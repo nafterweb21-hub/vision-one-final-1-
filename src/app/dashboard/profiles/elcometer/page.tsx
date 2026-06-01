@@ -15,6 +15,7 @@ import {
   Gauge,
   ArrowLeft,
   Edit2,
+  Trash2,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -226,6 +227,30 @@ export default function ElcometerProfilePage() {
       if (!res.ok) {
         const err = await res.json();
         throw new Error(err.error || "Failed to toggle status");
+      }
+      fetchItems();
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : "An error occurred");
+    }
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Delete item
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  const handleDelete = async (item: ElcometerItem) => {
+    if (!confirm(`Are you sure you want to delete this Elcometer (${item.serialNo})?`)) {
+      return;
+    }
+    try {
+      const res = await fetch("/api/profiles/elcometer", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: item.id }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Failed to delete");
       }
       fetchItems();
     } catch (e: unknown) {
@@ -659,6 +684,14 @@ export default function ElcometerProfilePage() {
                       >
                         <Power size={12} />
                         {item.status === "Active" ? "Deactivate" : "Activate"}
+                      </button>
+                      <button
+                        onClick={() => handleDelete(item)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border border-rose-200 hover:bg-rose-100 text-rose-700 transition-all active:scale-95 cursor-pointer"
+                        title="Delete Record"
+                      >
+                        <Trash2 size={12} />
+                        Delete
                       </button>
                     </td>
                   </tr>
