@@ -119,6 +119,10 @@ export async function updateEmployee(id: string, data: Partial<EmployeeInput>): 
 }
 
 export async function deleteEmployee(id: string): Promise<Employee> {
-  const emp = await prisma.employee.delete({ where: { id } });
+  const emp = await prisma.employee.update({
+    where: { id },
+    data: { status: "INACTIVE" },
+  });
   return toEmployee(emp);
 }
+

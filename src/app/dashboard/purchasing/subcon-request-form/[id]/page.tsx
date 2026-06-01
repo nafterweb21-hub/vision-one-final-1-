@@ -93,7 +93,7 @@ export default function SubconRequestFormDetailPage({ params }: { params: { id: 
         throw new Error(data.error || "Failed to update Subcon Request Form");
       }
 
-      router.push("/dashboard/purchasing/subcon-request-form?toast=updated");
+      router.push(`/dashboard/saved?module=Subcon Request&id=${srf.srfNo || params.id}&viewUrl=/dashboard/purchasing/subcon-request-form/${params.id}&backUrl=/dashboard/purchasing/subcon-request-form`);
     } catch (err: any) {
       alert(err.message);
       setSaving(false);

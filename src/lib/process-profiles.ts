@@ -81,9 +81,8 @@ export async function toggleProcessProfileStatus(id: string, status: string) {
 }
 
 export async function deleteProcessProfile(id: string) {
-  return prisma.processProfile.update({
+  return prisma.processProfile.delete({
     where: { id },
-    data: { status: "Void" },
   });
 }
 

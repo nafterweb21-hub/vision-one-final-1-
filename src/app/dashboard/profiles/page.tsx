@@ -747,6 +747,66 @@ const MASTER_CATEGORIES = [
           { name: "Failure Mode", type: "Text (Immutable)", mand: "Yes" },
           { name: "Remark", type: "Multi-text", mand: "No" }
         ]
+      },
+      {
+        id: "welding-type",
+        name: "Welding Type Profile",
+        active: true,
+        href: "/dashboard/profiles/welding-types",
+        desc: "Maintains list of welding types.",
+        rules: [
+          "Information in this profile will be used in work order - welding.",
+          "Welding type can be created directly from operation module."
+        ],
+        fields: [
+          { name: "Type", type: "Text (Immutable)", mand: "Yes" },
+          { name: "Remark", type: "Multi-text", mand: "No" }
+        ]
+      },
+      {
+        id: "joint-profile",
+        name: "Joint Profile",
+        active: true,
+        href: "/dashboard/profiles/joint-profiles",
+        desc: "Maintains list of joint types.",
+        rules: [
+          "Information in this profile will be used in work order - welding.",
+          "Joint can be created directly from operation module."
+        ],
+        fields: [
+          { name: "Joint", type: "Text (Immutable)", mand: "Yes" },
+          { name: "Remark", type: "Multi-text", mand: "No" }
+        ]
+      },
+      {
+        id: "painting-method",
+        name: "Painting Method Profile",
+        active: true,
+        href: "/dashboard/profiles/painting-method",
+        desc: "Maintains list of painting methods.",
+        rules: [
+          "Information from this profile will be used in Certificate of Conformity (COC).",
+          "Painting method can be created directly from COC module."
+        ],
+        fields: [
+          { name: "Painting Method", type: "Text (Immutable)", mand: "Yes" },
+          { name: "Remark", type: "Multi-text", mand: "No" }
+        ]
+      },
+      {
+        id: "incoterm",
+        name: "Incoterm Profile",
+        active: true,
+        href: "/dashboard/profiles/incoterm",
+        desc: "Maintains list of incoterms.",
+        rules: [
+          "Incoterm will be used in sales order.",
+          "Incoterm can be created directly from sales order."
+        ],
+        fields: [
+          { name: "Incoterm", type: "Text (Immutable)", mand: "Yes" },
+          { name: "Remark", type: "Multi-text", mand: "No" }
+        ]
       }
     ]
   }

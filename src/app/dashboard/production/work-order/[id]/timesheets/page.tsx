@@ -66,6 +66,33 @@ export default async function WorkOrderTimesheetsPage({
     orderBy: { name: "asc" },
   });
 
+  const [weldingMachines, machiningMachines, elcometers, joints, materialTypes, weldingTypes] = await Promise.all([
+    prisma.machineProfile.findMany({
+      where: { status: "Active", machineCategory: "Welding Machine" },
+      orderBy: { machineCode: "asc" },
+    }),
+    prisma.machineProfile.findMany({
+      where: { status: "Active", machineCategory: "Machine" },
+      orderBy: { serialNo: "asc" },
+    }),
+    prisma.elcometerProfile.findMany({
+      where: { status: "Active" },
+      orderBy: { serialNo: "asc" },
+    }),
+    prisma.jointProfile.findMany({
+      where: { status: "Active" },
+      orderBy: { joint: "asc" },
+    }),
+    prisma.materialType.findMany({
+      where: { status: "Active" },
+      orderBy: { type: "asc" },
+    }),
+    prisma.weldingTypeProfile.findMany({
+      where: { status: "Active" },
+      orderBy: { type: "asc" },
+    }),
+  ]);
+
   const rows = workOrder.inProcesses.flatMap((ip: any) =>
     ip.routingProcesses.flatMap((rp: any) => {
       let runningSum = 0;
@@ -222,6 +249,17 @@ export default async function WorkOrderTimesheetsPage({
                         welding={ts.weldingParameter ? JSON.parse(JSON.stringify(ts.weldingParameter)) : null}
                         spray={ts.sprayParameter ? JSON.parse(JSON.stringify(ts.sprayParameter)) : null}
                         machining={ts.machiningParameter ? JSON.parse(JSON.stringify(ts.machiningParameter)) : null}
+                        employees={employees}
+                        workOrderNo={id}
+                        editable={editable}
+                        supportData={{
+                          weldingMachines: JSON.parse(JSON.stringify(weldingMachines)),
+                          machiningMachines: JSON.parse(JSON.stringify(machiningMachines)),
+                          elcometers: JSON.parse(JSON.stringify(elcometers)),
+                          joints: JSON.parse(JSON.stringify(joints)),
+                          materialTypes: JSON.parse(JSON.stringify(materialTypes)),
+                          weldingTypes: JSON.parse(JSON.stringify(weldingTypes)),
+                        }}
                       />
                     </td>
                     <td className="px-4 py-3 text-right">

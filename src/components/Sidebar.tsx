@@ -43,6 +43,14 @@ import {
   BarChart,
   TrendingUp,
   ShoppingCart,
+  Settings2,
+  Layers,
+  Globe,
+  Package,
+  Flame,
+  Link2,
+  Cpu,
+  Gauge,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -191,7 +199,7 @@ export default function Sidebar({ userEmail, userRole, isAdmin }: SidebarProps) 
                 <span>Certificate Of Conformity</span>
               </Link>
             )}
-            <Link href="#" onClick={() => setIsOpen(false)} className={linkClass("#process-parameter")}>
+            <Link href="/dashboard/production/process-parameter" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/production/process-parameter")}>
               <SquareSplitHorizontal size={16} className="text-slate-600" fill="currentColor" />
               <span>Process Parameter Confirmation</span>
             </Link>
@@ -367,6 +375,60 @@ export default function Sidebar({ userEmail, userRole, isAdmin }: SidebarProps) 
               <Link href="/dashboard/profiles/material-categories" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/profiles/material-categories")}>
                 <Box size={16} className="text-amber-800" fill="currentColor" />
                 <span>Material Category Profile</span>
+              </Link>
+            )}
+            {allow("/dashboard/master-profile/process-profile") && (
+              <Link href="/dashboard/master-profile/process-profile" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/master-profile/process-profile")}>
+                <Settings2 size={16} className="text-slate-500" />
+                <span>Process Profile</span>
+              </Link>
+            )}
+            {allow("/dashboard/master-profile/main-process") && (
+              <Link href="/dashboard/master-profile/main-process" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/master-profile/main-process")}>
+                <Layers size={16} className="text-indigo-500" />
+                <span>Main Process Profile</span>
+              </Link>
+            )}
+            {allow("/dashboard/profiles/incoterm") && (
+              <Link href="/dashboard/profiles/incoterm" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/profiles/incoterm")}>
+                <Globe size={16} className="text-blue-500" />
+                <span>Incoterm Profile</span>
+              </Link>
+            )}
+            {allow("/dashboard/master-profile/material-type") && (
+              <Link href="/dashboard/master-profile/material-type" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/master-profile/material-type")}>
+                <Package size={16} className="text-amber-600" />
+                <span>Material Type Profile</span>
+              </Link>
+            )}
+            {allow("/dashboard/master-profile/welding-type") && (
+              <Link href="/dashboard/master-profile/welding-type" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/master-profile/welding-type")}>
+                <Flame size={16} className="text-orange-500" />
+                <span>Welding Type Profile</span>
+              </Link>
+            )}
+            {allow("/dashboard/master-profile/joint") && (
+              <Link href="/dashboard/master-profile/joint" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/master-profile/joint")}>
+                <Link2 size={16} className="text-slate-600" />
+                <span>Joint Profile</span>
+              </Link>
+            )}
+            {allow("/dashboard/profiles/machine") && (
+              <Link href="/dashboard/profiles/machine" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/profiles/machine")}>
+                <Cpu size={16} className="text-slate-500" />
+                <span>Machine Profile</span>
+              </Link>
+            )}
+            {allow("/dashboard/profiles/elcometer") && (
+              <Link href="/dashboard/profiles/elcometer" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/profiles/elcometer")}>
+                <Gauge size={16} className="text-red-500" />
+                <span>Elcometer Profile</span>
+              </Link>
+            )}
+            {allow("/dashboard/master-profile/failure-mode") && (
+              <Link href="/dashboard/master-profile/failure-mode" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/master-profile/failure-mode")}>
+                <AlertTriangle size={16} className="text-red-600" />
+                <span>Failure Mode Profile</span>
               </Link>
             )}
           </div>

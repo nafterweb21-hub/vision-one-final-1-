@@ -66,12 +66,14 @@ export async function POST(request: Request) {
     // Clean up empty string IDs to null where applicable for relations
     const cleanId = (id: any) => (id === "" ? null : id);
 
+    const status = orderData.status || "Draft";
+
     const order = await prisma.salesOrder.create({
       data: {
         ...orderData,
         orderNo,
         revision: 0,
-        status: "Draft",
+        status: status,
         date: new Date(orderData.date),
         taxTypeId: cleanId(orderData.taxTypeId),
         contactPersonId: cleanId(orderData.contactPersonId),
@@ -87,7 +89,7 @@ export async function POST(request: Request) {
         remark: orderData.remark || null,
         uploadUrl: orderData.uploadUrl || null,
         items: {
-          create: (items || []).map((item: any) => ({
+          create: (items || []).map((item: any, i: number) => ({
             partId: item.partId,
             quantity: item.quantity || 0,
             unitPrice: item.unitPrice || 0,
@@ -105,14 +107,25 @@ export async function POST(request: Request) {
                 noRoutingProcess: item.noRoutingProcess || false,
                 remark: null,
                 uploadUrl: null
-              }]).map((b: any) => ({
-                quantity: Number(b.quantity) || 0,
-                deliveryDate: new Date(b.deliveryDate),
-                noRoutingProcess: b.noRoutingProcess || false,
-                workOrderNo: null,
-                remark: b.remark || null,
-                uploadUrl: b.uploadUrl || null,
-              }))
+              }]).map((b: any, bIndex: number) => {
+                let woNo = null;
+                if (status === "Confirmed") {
+                  const itemNumber = String(i + 1).padStart(3, "0");
+                  const batchNumber = String(bIndex + 1).padStart(2, "0");
+                  const isSingleBatch = (item.batches || []).length <= 1;
+                  woNo = isSingleBatch 
+                    ? `WO-${orderNo}-${itemNumber}` 
+                    : `WO-${orderNo}-${itemNumber}-${batchNumber}`;
+                }
+                return {
+                  quantity: Number(b.quantity) || 0,
+                  deliveryDate: new Date(b.deliveryDate),
+                  noRoutingProcess: b.noRoutingProcess || false,
+                  workOrderNo: woNo,
+                  remark: b.remark || null,
+                  uploadUrl: b.uploadUrl || null,
+                };
+              })
             }
           })),
         },

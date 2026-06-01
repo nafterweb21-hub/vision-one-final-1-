@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
     
     if (supplier) {
       whereClause.supplier = {
-        vendorName: { contains: supplier, mode: "insensitive" }
+        supplierName: { contains: supplier, mode: "insensitive" }
       };
     }
     
@@ -106,8 +106,8 @@ export async function GET(req: NextRequest) {
 
     const reportData = [];
 
-    for (const po of purchaseOrders) {
-      const filteredItems = po.items.filter(item => {
+    for (const po of purchaseOrders as any[]) {
+      const filteredItems = po.items.filter((item: any) => {
         let keep = true;
         
         if (itemDescription && !item.description?.toLowerCase().includes(itemDescription.toLowerCase())) keep = false;

@@ -4,6 +4,7 @@ import {
   createProfileItem,
   updateProfileItem,
   toggleProfileItemStatus,
+  deleteProfileItem,
   PROFILE_REGISTRY,
 } from "@/lib/profiles";
 
@@ -118,6 +119,36 @@ export async function PATCH(
     console.error(error);
     return NextResponse.json(
       { error: error.message || "Failed to toggle profile item status" },
+      { status: 400 }
+    );
+  }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ type: string }> }
+) {
+  try {
+    const { type } = await params;
+    const errorRes = validateType(type);
+    if (errorRes) return errorRes;
+
+    const body = await request.json();
+    const { id } = body;
+
+    if (!id) {
+      return NextResponse.json(
+        { error: "Missing required 'id' for deletion" },
+        { status: 400 }
+      );
+    }
+
+    await deleteProfileItem(type, id);
+    return NextResponse.json({ success: true });
+  } catch (error: any) {
+    console.error(error);
+    return NextResponse.json(
+      { error: error.message || "Failed to delete profile item" },
       { status: 400 }
     );
   }

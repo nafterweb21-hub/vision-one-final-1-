@@ -100,12 +100,13 @@ export default function NcrForm({ initialData, formData }: { initialData?: any, 
     };
 
     try {
+      let saved: any;
       if (isEditing) {
-        await updateNcr(initialData.id, payload);
+        saved = await updateNcr(initialData.id, payload);
       } else {
-        await createNcr(payload);
+        saved = await createNcr(payload);
       }
-      router.push("/dashboard/qc/ncr");
+      router.push(`/dashboard/saved?module=NCR&id=${saved.ncrNo || saved.id}&viewUrl=/dashboard/qc/ncr/${saved.id}&backUrl=/dashboard/qc/ncr`);
     } catch (err: any) {
       setError(err.message || "Failed to save NCR");
     } finally {

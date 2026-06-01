@@ -231,12 +231,7 @@ export default function QuotationEditPage() {
         throw new Error(err.error || "Save failed");
       }
       const saved = await res.json();
-      if (isNew) {
-        router.push(`/dashboard/sales/quotation/${saved.id}`);
-      } else {
-        router.push(`/dashboard/sales/quotation?toast=updated`);
-      }
-      router.refresh();
+      router.push(`/dashboard/saved?module=Quotation&id=${saved.quotationNo || saved.id}&viewUrl=/dashboard/sales/quotation/${saved.id}&backUrl=/dashboard/sales/quotation`);
     } catch (e: any) {
       setError(e.message);
     } finally {
