@@ -468,6 +468,12 @@ export default function Sidebar({ userEmail, userRole, isAdmin }: SidebarProps) 
                 <span>Failure Mode Profile</span>
               </Link>
             )}
+            {allow("/dashboard/profiles/finished-good") && (
+              <Link href="/dashboard/profiles/finished-good" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/profiles/finished-good")}>
+                <Box size={16} className="text-emerald-600" />
+                <span>Finished Good Profile</span>
+              </Link>
+            )}
           </div>
 
           {/* REPORT */}
