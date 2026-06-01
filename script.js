@@ -1,0 +1,1 @@
+const { PrismaClient } = require('@prisma/client'); const prisma = new PrismaClient(); async function main() { console.log('Main Processes:', await prisma.mainProcess.findMany()); console.log('Process Profiles:', await prisma.processProfile.findMany()); } main().finally(() => prisma.$disconnect());

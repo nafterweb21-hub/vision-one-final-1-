@@ -1,4 +1,6 @@
 "use client";
+import { customConfirm } from "@/lib/customConfirm";
+import { toast as hotToast } from "react-hot-toast";
 
 import { useEffect, useState, useMemo } from "react";
 import {
@@ -212,7 +214,7 @@ export default function FinishedGoodProfilePage() {
 
   const handleToggleStatus = async (item: FinishedGoodItem) => {
     const actionText = item.status === "Active" ? "deactivate" : "activate";
-    if (!confirm(`Are you sure you want to ${actionText} this Finished Good (${item.description})?`)) {
+    if (!await customConfirm(`Are you sure you want to ${actionText} this Finished Good (${item.description})?`)) {
       return;
     }
     try {
@@ -227,12 +229,12 @@ export default function FinishedGoodProfilePage() {
       }
       fetchItems();
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : "An error occurred");
+      hotToast.error(e instanceof Error ? e.message : "An error occurred");
     }
   };
 
   const handleDelete = async (item: FinishedGoodItem) => {
-    if (!confirm(`Are you sure you want to delete this Finished Good (${item.description})?`)) {
+    if (!await customConfirm(`Are you sure you want to delete this Finished Good (${item.description})?`)) {
       return;
     }
     try {
@@ -247,7 +249,7 @@ export default function FinishedGoodProfilePage() {
       }
       fetchItems();
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : "An error occurred");
+      hotToast.error(e instanceof Error ? e.message : "An error occurred");
     }
   };
 

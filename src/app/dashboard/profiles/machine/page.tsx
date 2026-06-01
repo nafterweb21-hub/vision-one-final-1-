@@ -1,4 +1,5 @@
 "use client";
+import { toast as hotToast } from "react-hot-toast";
 
 import { useEffect, useState, useMemo } from "react";
 import {
@@ -336,7 +337,7 @@ export default function MachineProfilePage() {
       await processToggleStatus(deactivateTarget.id);
       setDeactivateTarget(null);
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : "An error occurred during deactivation.");
+      hotToast.error(err instanceof Error ? err.message : "An error occurred during deactivation.");
     } finally {
       setIsDeactivating(false);
     }

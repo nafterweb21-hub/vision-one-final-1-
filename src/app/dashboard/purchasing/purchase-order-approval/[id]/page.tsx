@@ -1,4 +1,6 @@
 "use client";
+import { customConfirm } from "@/lib/customConfirm";
+import { toast as hotToast } from "react-hot-toast";
 
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -143,11 +145,11 @@ export default function PurchaseOrderApprovalDetailPage() {
 
   const handleAction = async (action: "approve" | "reject") => {
     if (action === "reject" && !approvalRemark.trim()) {
-      alert("Please provide an approval remark for rejection.");
+      hotToast.error("Please provide an approval remark for rejection.");
       return;
     }
     
-    if (!confirm(`Are you sure you want to ${action} this Purchase Order?`)) {
+    if (!await customConfirm(`Are you sure you want to ${action} this Purchase Order?`)) {
       return;
     }
 
@@ -170,7 +172,7 @@ export default function PurchaseOrderApprovalDetailPage() {
       router.push("/dashboard/purchasing/purchase-order-approval");
       router.refresh();
     } catch (e: any) {
-      alert(e.message);
+      hotToast.error(e.message);
       setSubmitting(false);
     }
   };

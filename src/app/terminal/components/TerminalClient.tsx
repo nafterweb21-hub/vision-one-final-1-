@@ -1,4 +1,5 @@
 "use client";
+import { toast as hotToast } from "react-hot-toast";
 
 import { useMemo, useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -113,7 +114,7 @@ export default function TerminalClient({ support, loggedInEmployee, initialSessi
         setSelectedSessionId("");
         setProducedCount(0);
       } else {
-        alert("Failed to complete session: " + res.error);
+        hotToast.error("Failed to complete session: " + res.error);
       }
     });
   }
@@ -432,7 +433,7 @@ export default function TerminalClient({ support, loggedInEmployee, initialSessi
                         className="bg-cyan-500 text-white p-3 rounded-xl hover:bg-cyan-400 transition-colors"
                         onClick={() => {
                           if (sessionNote.trim()) {
-                            alert("Log entry noted! (Saving will be implemented soon)");
+                            hotToast.error("Log entry noted! (Saving will be implemented soon)");
                             setSessionNote("");
                           }
                         }}

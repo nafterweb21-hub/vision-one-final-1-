@@ -1,4 +1,6 @@
 "use client";
+import { customConfirm } from "@/lib/customConfirm";
+import { toast as hotToast } from "react-hot-toast";
 
 import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
@@ -81,7 +83,7 @@ export default function SubconRequestFormListPage() {
     });
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      alert(err.error || `Failed: ${action}`);
+      hotToast.error(err.error || `Failed: ${action}`);
       return null;
     }
     return res.json();
@@ -89,15 +91,15 @@ export default function SubconRequestFormListPage() {
 
   async function onSubmit() {
     if (!selected) return;
-    if (selected.status !== "Draft") return alert("Only Draft can be Submitted");
+    if (selected.status !== "Draft") return hotToast.error("Only Draft can be Submitted");
     await callAction(selected.id, "submit");
     fetchRows();
   }
 
   async function onVoid() {
     if (!selected) return;
-    if (selected.status === "Void") return alert("Already voided");
-    if (!confirm(`Void Subcon Request Form ${selected.srfNo}?`)) return;
+    if (selected.status === "Void") return hotToast.error("Already voided");
+    if (!await customConfirm(`Void Subcon Request Form ${selected.srfNo}?`)) return;
     await callAction(selected.id, "void");
     fetchRows();
   }

@@ -1,4 +1,5 @@
 "use client";
+import { toast as hotToast } from "react-hot-toast";
 
 import { use, useEffect, useState } from "react";
 import {
@@ -123,7 +124,7 @@ export default function ProfilePage({
         throw new Error(err.error || "Failed to toggle status");
       }
       fetchItems();
-    } catch (e: any) { alert(e.message); }
+    } catch (e: any) { hotToast.error(e.message); }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

@@ -1,4 +1,5 @@
 "use client";
+import { toast as hotToast } from "react-hot-toast";
 
 import React, { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
@@ -145,7 +146,7 @@ export default function SubconReturnTrackingFormPage() {
     setErrorMsg("");
     try {
       if (selectedSrfData && Number(data.returnedQty) > Number(selectedSrfData.acknowledgedQuantity)) {
-         alert("Total quantity from Subcon Return Tracking cannot be more than quantity from Subcon Request Form.");
+         hotToast.error("Total quantity from Subcon Return Tracking cannot be more than quantity from Subcon Request Form.");
          setLoading(false);
          return;
       }

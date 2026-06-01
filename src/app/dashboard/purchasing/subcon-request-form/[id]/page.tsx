@@ -1,4 +1,6 @@
 "use client";
+import { customConfirm } from "@/lib/customConfirm";
+import { toast as hotToast } from "react-hot-toast";
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
@@ -95,13 +97,13 @@ export default function SubconRequestFormDetailPage({ params }: { params: { id: 
 
       router.push(`/dashboard/saved?module=Subcon Request&id=${srf.srfNo || params.id}&viewUrl=/dashboard/purchasing/subcon-request-form/${params.id}&backUrl=/dashboard/purchasing/subcon-request-form`);
     } catch (err: any) {
-      alert(err.message);
+      hotToast.error(err.message);
       setSaving(false);
     }
   };
 
   const handleDelete = async () => {
-    if (!confirm("Are you sure you want to delete this Subcon Request Form?")) return;
+    if (!await customConfirm("Are you sure you want to delete this Subcon Request Form?")) return;
     
     try {
       const res = await fetch(`/api/purchasing/subcon-request-form/${params.id}`, {
@@ -113,7 +115,7 @@ export default function SubconRequestFormDetailPage({ params }: { params: { id: 
       }
       router.push("/dashboard/purchasing/subcon-request-form");
     } catch (err: any) {
-      alert(err.message);
+      hotToast.error(err.message);
     }
   };
 
@@ -130,7 +132,7 @@ export default function SubconRequestFormDetailPage({ params }: { params: { id: 
       }
       fetchSrf();
     } catch (err: any) {
-      alert(err.message);
+      hotToast.error(err.message);
     }
   };
 

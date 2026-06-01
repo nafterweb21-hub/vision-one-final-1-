@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { customConfirm } from "@/lib/customConfirm";
 type Role =
   | "ADMIN"
   | "SALES"
@@ -39,7 +40,6 @@ export default function UsersClient({ currentUserId }: { currentUserId: string }
   const [roleFilter, setRoleFilter] = useState<"ALL" | Role>("ALL");
   const [statusFilter, setStatusFilter] = useState<"ALL" | "ACTIVE" | "INACTIVE">("ALL");
 
-  const [toDelete, setToDelete] = useState<User | null>(null);
   const [deleting, setDeleting] = useState(false);
 
   const [toast, setToast] = useState<{ type: "success" | "error"; msg: string } | null>(null);
@@ -74,18 +74,17 @@ export default function UsersClient({ currentUserId }: { currentUserId: string }
     fetchEmployees();
   }, [fetchUsers, fetchEmployees]);
 
-  const handleDelete = async () => {
-    if (!toDelete) return;
+  const handleDelete = async (u: User) => {
+    if (!await customConfirm(`Permanently delete ${u.email}? This cannot be undone.`)) return;
     setDeleting(true);
-    const res = await fetch(`/api/admin/users/${toDelete.id}`, { method: "DELETE" });
+    const res = await fetch(`/api/admin/users/${u.id}`, { method: "DELETE" });
     setDeleting(false);
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
       showToast("error", data.error || "Failed to delete user.");
       return;
     }
-    showToast("success", `Deleted ${toDelete.email}.`);
-    setToDelete(null);
+    showToast("success", `Deleted ${u.email}.`);
     fetchUsers();
   };
 
@@ -235,8 +234,8 @@ export default function UsersClient({ currentUserId }: { currentUserId: string }
                         Edit
                       </Link>
                       <button
-                        onClick={() => setToDelete(u)}
-                        disabled={u.id === currentUserId}
+                        onClick={() => handleDelete(u)}
+                        disabled={u.id === currentUserId || deleting}
                         className="rounded-lg border border-rose-200 px-3 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-40"
                       >
                         Delete
@@ -250,39 +249,7 @@ export default function UsersClient({ currentUserId }: { currentUserId: string }
         )}
       </div>
 
-      {/* Delete confirmation */}
-      {toDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div
-            className="absolute inset-0 bg-blue-950/60 backdrop-blur-md"
-            onClick={() => !deleting && setToDelete(null)}
-          />
-          <div className="relative w-full max-w-md rounded-2xl border border-blue-200 bg-white p-6 shadow-2xl">
-            <h3 className="text-lg font-bold text-blue-900">Delete user</h3>
-            <p className="mt-2 text-sm text-blue-600">
-              Permanently delete{" "}
-              <span className="font-semibold text-blue-900">{toDelete.email}</span>? This cannot be
-              undone.
-            </p>
-            <div className="mt-6 flex justify-end gap-3">
-              <button
-                onClick={() => setToDelete(null)}
-                disabled={deleting}
-                className="rounded-xl border border-blue-200 px-4 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleDelete}
-                disabled={deleting}
-                className="rounded-xl bg-gradient-to-tr from-rose-500 to-red-600 px-5 py-2 text-sm font-semibold text-white hover:from-rose-600 hover:to-red-700 disabled:opacity-60"
-              >
-                {deleting ? "Deleting..." : "Delete"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+
     </div>
   );
 }

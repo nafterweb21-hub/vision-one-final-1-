@@ -1,4 +1,6 @@
 "use client";
+import { customConfirm } from "@/lib/customConfirm";
+import { toast as hotToast } from "react-hot-toast";
 
 import React, { useState, useEffect, useTransition } from "react";
 import Link from "next/link";
@@ -54,14 +56,14 @@ export default function SupplierProfilePage() {
       if (res.success) {
         loadSuppliers();
       } else {
-        alert(res.error || "Failed to change status.");
+        hotToast.error(res.error || "Failed to change status.");
       }
     });
   };
 
   const handleDeleteSupplier = async (id: string) => {
     if (
-      window.confirm(
+      await customConfirm(
         "Are you sure you want to delete this supplier? This will also delete all associated addresses and contact persons."
       )
     ) {
@@ -70,7 +72,7 @@ export default function SupplierProfilePage() {
         if (res.success) {
           loadSuppliers();
         } else {
-          alert(res.error || "Failed to delete supplier.");
+          hotToast.error(res.error || "Failed to delete supplier.");
         }
       });
     }

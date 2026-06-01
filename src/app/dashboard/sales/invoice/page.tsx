@@ -1,4 +1,6 @@
 "use client";
+import { customConfirm } from "@/lib/customConfirm";
+import { toast as hotToast } from "react-hot-toast";
 
 import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
@@ -68,14 +70,14 @@ export default function InvoiceListPage() {
 
   const onEdit = () => {
     if (!selected) return;
-    if (selected.status !== "Draft") return alert("Only Draft can be edited");
+    if (selected.status !== "Draft") return hotToast.error("Only Draft can be edited");
     router.push(`/dashboard/sales/invoice/form?id=${selected.id}`);
   };
 
   const onVoid = async () => {
     if (!selected) return;
-    if (selected.status === "Void" || selected.status === "Old Version") return alert("Cannot void this invoice");
-    if (!confirm(`Void invoice ${selected.invoiceNo}?`)) return;
+    if (selected.status === "Void" || selected.status === "Old Version") return hotToast.error("Cannot void this invoice");
+    if (!await customConfirm(`Void invoice ${selected.invoiceNo}?`)) return;
     setActionLoading(true);
     await voidInvoice(selected.id);
     await fetchInvoicesList();
@@ -85,8 +87,8 @@ export default function InvoiceListPage() {
 
   const onSubmit = async () => {
     if (!selected) return;
-    if (selected.status !== "Draft") return alert("Only Draft can be submitted");
-    if (!confirm(`Submit invoice ${selected.invoiceNo}?`)) return;
+    if (selected.status !== "Draft") return hotToast.error("Only Draft can be submitted");
+    if (!await customConfirm(`Submit invoice ${selected.invoiceNo}?`)) return;
     setActionLoading(true);
     await submitInvoice(selected.id);
     await fetchInvoicesList();
@@ -96,12 +98,12 @@ export default function InvoiceListPage() {
 
   const onRevise = async () => {
     if (!selected) return;
-    if (selected.status !== "Submitted") return alert("Only Submitted invoices can be revised");
-    if (!confirm(`Create a new revision of ${selected.invoiceNo}?`)) return;
+    if (selected.status !== "Submitted") return hotToast.error("Only Submitted invoices can be revised");
+    if (!await customConfirm(`Create a new revision of ${selected.invoiceNo}?`)) return;
     setActionLoading(true);
     const invRes = await getInvoice(selected.id);
     if (!invRes.success) {
-      alert("Failed to load invoice details");
+      hotToast.error("Failed to load invoice details");
       setActionLoading(false);
       return;
     }
@@ -109,18 +111,18 @@ export default function InvoiceListPage() {
     if (res.success && res.data) {
       router.push(`/dashboard/sales/invoice/form?id=${res.data.id}`);
     } else {
-      alert(res.error || "Failed to revise invoice");
+      hotToast.error(res.error || "Failed to revise invoice");
       setActionLoading(false);
     }
   };
 
   const onCopy = async () => {
     if (!selected) return;
-    if (!confirm(`Copy invoice ${selected.invoiceNo}?`)) return;
+    if (!await customConfirm(`Copy invoice ${selected.invoiceNo}?`)) return;
     setActionLoading(true);
     const invRes = await getInvoice(selected.id);
     if (!invRes.success) {
-      alert("Failed to load invoice details");
+      hotToast.error("Failed to load invoice details");
       setActionLoading(false);
       return;
     }
@@ -137,14 +139,14 @@ export default function InvoiceListPage() {
     if (res.success && res.data) {
       router.push(`/dashboard/sales/invoice/form?id=${res.data.id}`);
     } else {
-      alert(res.error || "Failed to copy invoice");
+      hotToast.error(res.error || "Failed to copy invoice");
       setActionLoading(false);
     }
   };
 
   const onPrint = () => {
     if (!selected) return;
-    if (selected.status !== "Submitted") return alert("Only Submitted invoices can be printed");
+    if (selected.status !== "Submitted") return hotToast.error("Only Submitted invoices can be printed");
     window.open(`/print/invoice/${selected.id}`, "_blank");
   };
 

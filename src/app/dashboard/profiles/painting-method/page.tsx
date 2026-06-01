@@ -1,4 +1,6 @@
 "use client";
+import { customConfirm } from "@/lib/customConfirm";
+import { toast as hotToast } from "react-hot-toast";
 
 import React, { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -88,13 +90,13 @@ export default function materialTypesPage() {
       );
       triggerToast(`Painting Method status successfully set to ${nextStatus}.`);
     } catch (err: any) {
-      alert(err.message || "Could not toggle status.");
+      hotToast.error(err.message || "Could not toggle status.");
     }
   };
 
   // Void a type (No delete - Void only)
   const handleVoidMethod = async (id: string) => {
-    if (!confirm("Are you sure you want to VOID this Painting Method? Voided records cannot be restored and running audit logs are permanently maintained.")) {
+    if (!await customConfirm("Are you sure you want to VOID this Painting Method? Voided records cannot be restored and running audit logs are permanently maintained.")) {
       return;
     }
 
@@ -110,7 +112,7 @@ export default function materialTypesPage() {
       );
       triggerToast("Painting Method voided successfully.");
     } catch (err: any) {
-      alert(err.message || "Failed to void painting method.");
+      hotToast.error(err.message || "Failed to void painting method.");
     }
   };
 

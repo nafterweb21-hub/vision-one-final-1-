@@ -1,4 +1,5 @@
 "use client";
+import { customConfirm } from "@/lib/customConfirm";
 
 import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -102,7 +103,7 @@ export default function DeliveryOrderFormPage() {
   };
 
   const handleSubmit = async () => {
-    if (!confirm("Are you sure you want to submit? This action cannot be undone.")) return;
+    if (!await customConfirm("Are you sure you want to submit? This action cannot be undone.")) return;
     setLoading(true);
     setErrorMsg("");
     try {

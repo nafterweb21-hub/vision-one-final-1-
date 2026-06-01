@@ -1,4 +1,6 @@
 "use client";
+import { customConfirm } from "@/lib/customConfirm";
+import { toast as hotToast } from "react-hot-toast";
 
 import React, { useState, useEffect, useTransition } from "react";
 import Link from "next/link";
@@ -99,14 +101,14 @@ export default function FinishedGoodProfilePage() {
       if (res.success) {
         loadData();
       } else {
-        alert(res.error || "Failed to toggle status.");
+        hotToast.error(res.error || "Failed to toggle status.");
       }
     });
   };
 
   const handleDeleteProfile = async (id: string) => {
     if (
-      window.confirm(
+      await customConfirm(
         "Are you sure you want to delete this Finished Good Profile? This action cannot be undone."
       )
     ) {
@@ -115,7 +117,7 @@ export default function FinishedGoodProfilePage() {
         if (res.success) {
           loadData();
         } else {
-          alert(res.error || "Failed to delete finished good profile.");
+          hotToast.error(res.error || "Failed to delete finished good profile.");
         }
       });
     }
