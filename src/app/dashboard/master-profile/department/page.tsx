@@ -1,4 +1,6 @@
 "use client";
+import { customConfirm } from "@/lib/customConfirm";
+import { toast as hotToast } from "react-hot-toast";
 
 import React, { useState, useEffect, useTransition } from "react";
 import Link from "next/link";
@@ -48,19 +50,19 @@ export default function DepartmentProfilePage() {
       if (res.success) {
         loadData();
       } else {
-        alert(res.error || "Failed to change status.");
+        hotToast.error(res.error || "Failed to change status.");
       }
     });
   };
 
   const handleDelete = async (id: string) => {
-    if (window.confirm("Are you sure you want to delete this department?")) {
+    if (await customConfirm("Are you sure you want to delete this department?")) {
       startTransition(async () => {
         const res = await deleteDepartmentProfile(id);
         if (res.success) {
           loadData();
         } else {
-          alert(res.error || "Failed to delete department.");
+          hotToast.error(res.error || "Failed to delete department.");
         }
       });
     }

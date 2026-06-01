@@ -1,4 +1,6 @@
 "use client";
+import { customConfirm } from "@/lib/customConfirm";
+import { toast as hotToast } from "react-hot-toast";
 
 import { useEffect, useState, useMemo } from "react";
 import {
@@ -215,7 +217,7 @@ export default function ElcometerProfilePage() {
 
   const handleToggleStatus = async (item: ElcometerItem) => {
     const actionText = item.status === "Active" ? "deactivate" : "activate";
-    if (!confirm(`Are you sure you want to ${actionText} this Elcometer (${item.serialNo})?`)) {
+    if (!await customConfirm(`Are you sure you want to ${actionText} this Elcometer (${item.serialNo})?`)) {
       return;
     }
     try {
@@ -230,7 +232,7 @@ export default function ElcometerProfilePage() {
       }
       fetchItems();
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : "An error occurred");
+      hotToast.error(e instanceof Error ? e.message : "An error occurred");
     }
   };
 
@@ -239,7 +241,7 @@ export default function ElcometerProfilePage() {
   // ─────────────────────────────────────────────────────────────────────────────
 
   const handleDelete = async (item: ElcometerItem) => {
-    if (!confirm(`Are you sure you want to delete this Elcometer (${item.serialNo})?`)) {
+    if (!await customConfirm(`Are you sure you want to delete this Elcometer (${item.serialNo})?`)) {
       return;
     }
     try {
@@ -254,7 +256,7 @@ export default function ElcometerProfilePage() {
       }
       fetchItems();
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : "An error occurred");
+      hotToast.error(e instanceof Error ? e.message : "An error occurred");
     }
   };
 

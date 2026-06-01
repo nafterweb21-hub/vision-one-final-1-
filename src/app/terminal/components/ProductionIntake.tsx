@@ -1,3 +1,4 @@
+import { toast as hotToast } from "react-hot-toast";
 import { useState, useMemo, useTransition, useEffect } from "react";
 import { ArrowLeft, Monitor, Camera, QrCode, Search, Calendar, Clock, Send, Package, ChevronDown } from "lucide-react";
 import CameraScanner from "./CameraScanner";
@@ -221,7 +222,7 @@ export default function ProductionIntake({ isOpen, onClose, support, onSuccess, 
                           lookup(decodedText);
                         } catch (err) {
                           console.error("Error decoding file:", err);
-                          alert("Could not find a valid QR/Barcode in this image.");
+                          hotToast.error("Could not find a valid QR/Barcode in this image.");
                         }
                         // Reset input so the same file can be selected again
                         e.target.value = "";

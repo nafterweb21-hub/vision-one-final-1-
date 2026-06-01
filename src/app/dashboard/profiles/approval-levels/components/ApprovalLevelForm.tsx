@@ -1,4 +1,5 @@
 "use client";
+import { toast as hotToast } from "react-hot-toast";
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -68,7 +69,7 @@ export default function ApprovalLevelForm({ editingProfile, users }: ApprovalLev
     const availableUser = users.find((u) => !selectedUserIds.includes(u.id)) || users[0];
     
     if (!availableUser) {
-      alert("No system users available.");
+      hotToast.error("No system users available.");
       return;
     }
 
@@ -85,7 +86,7 @@ export default function ApprovalLevelForm({ editingProfile, users }: ApprovalLev
   const handleApproverUserChange = (idx: number, userId: string) => {
     const alreadySelected = formApprovers.some((a, i) => a.userId === userId && i !== idx);
     if (alreadySelected) {
-      alert("Specification Rule: Approval Person must be unique in each value band.");
+      hotToast.error("Specification Rule: Approval Person must be unique in each value band.");
       return;
     }
 

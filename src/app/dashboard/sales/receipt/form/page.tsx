@@ -1,4 +1,5 @@
 "use client";
+import { toast as hotToast } from "react-hot-toast";
 
 import React, { useState, useEffect, useMemo, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -137,13 +138,13 @@ function ReceiptFormContent() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (status !== "Draft") {
-      alert("Only Draft receipts can be saved.");
+      hotToast.error("Only Draft receipts can be saved.");
       return;
     }
 
     if (selectedInvoice) {
       if (Number(formData.amountReceived) > Number(selectedInvoice.balanceDue)) {
-        alert("Amount Received cannot exceed the Invoice Balance Due.");
+        hotToast.error("Amount Received cannot exceed the Invoice Balance Due.");
         return;
       }
     }

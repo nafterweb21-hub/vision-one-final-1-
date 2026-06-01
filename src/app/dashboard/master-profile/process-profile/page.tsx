@@ -1,4 +1,5 @@
 "use client";
+import { toast as hotToast } from "react-hot-toast";
 
 import React, { useState, useEffect, useTransition } from "react";
 import Link from "next/link";
@@ -56,7 +57,7 @@ export default function ProcessProfilePage() {
       if (res.success) {
         loadData();
       } else {
-        alert(res.error || "Failed to change status.");
+        hotToast.error(res.error || "Failed to change status.");
       }
     });
   };
@@ -70,7 +71,7 @@ export default function ProcessProfilePage() {
         setProfileToDelete(null);
         loadData();
       } else {
-        alert(res.error || "Failed to delete process profile.");
+        hotToast.error(res.error || "Failed to delete process profile.");
       }
       setIsDeleting(false);
     });

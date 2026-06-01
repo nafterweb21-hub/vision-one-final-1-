@@ -1,4 +1,5 @@
 "use client";
+import { customConfirm } from "@/lib/customConfirm";
 
 import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -182,7 +183,7 @@ export default function CertificateOfConformityFormPage() {
   };
 
   const handleCheck = async () => {
-    if (!confirm("Are you sure you want to mark this COC as checked and request approval?")) return;
+    if (!await customConfirm("Are you sure you want to mark this COC as checked and request approval?")) return;
     setLoading(true);
     setErrorMsg("");
     try {
@@ -202,7 +203,7 @@ export default function CertificateOfConformityFormPage() {
   };
 
   const handleApprove = async () => {
-    if (!confirm("Are you sure you want to approve this COC?")) return;
+    if (!await customConfirm("Are you sure you want to approve this COC?")) return;
     setLoading(true);
     setErrorMsg("");
     try {

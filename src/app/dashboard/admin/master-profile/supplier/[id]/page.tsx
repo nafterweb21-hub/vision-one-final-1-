@@ -1,4 +1,6 @@
 "use client";
+import { customConfirm } from "@/lib/customConfirm";
+import { toast as hotToast } from "react-hot-toast";
 
 import React, { useState, useEffect, useTransition, use } from "react";
 import Link from "next/link";
@@ -119,7 +121,7 @@ export default function ManageSupplierPage({ params }: PageProps) {
           setSupplierDetail(updated.data as SupplierFullDetail);
         }
       } else {
-        alert(res.error || "Failed to update remarks.");
+        hotToast.error(res.error || "Failed to update remarks.");
       }
     });
   };
@@ -205,7 +207,7 @@ export default function ManageSupplierPage({ params }: PageProps) {
           setSupplierDetail(updated.data as SupplierFullDetail);
         }
       } else {
-        alert(res.error || "Failed to toggle status.");
+        hotToast.error(res.error || "Failed to toggle status.");
       }
     });
   };
@@ -219,13 +221,13 @@ export default function ManageSupplierPage({ params }: PageProps) {
           setSupplierDetail(updated.data as SupplierFullDetail);
         }
       } else {
-        alert(res.error || "Failed to set default contact.");
+        hotToast.error(res.error || "Failed to set default contact.");
       }
     });
   };
 
   const handleDeleteContact = async (id: string) => {
-    if (window.confirm("Are you sure you want to delete this contact person?")) {
+    if (await customConfirm("Are you sure you want to delete this contact person?")) {
       startTransition(async () => {
         const res = await deleteContactPerson(id);
         if (res.success) {
@@ -234,7 +236,7 @@ export default function ManageSupplierPage({ params }: PageProps) {
             setSupplierDetail(updated.data as SupplierFullDetail);
           }
         } else {
-          alert(res.error || "Failed to delete contact.");
+          hotToast.error(res.error || "Failed to delete contact.");
         }
       });
     }
@@ -298,7 +300,7 @@ export default function ManageSupplierPage({ params }: PageProps) {
           setSupplierDetail(updated.data as SupplierFullDetail);
         }
       } else {
-        alert(res.error || "Failed to toggle status.");
+        hotToast.error(res.error || "Failed to toggle status.");
       }
     });
   };
@@ -312,13 +314,13 @@ export default function ManageSupplierPage({ params }: PageProps) {
           setSupplierDetail(updated.data as SupplierFullDetail);
         }
       } else {
-        alert(res.error || "Failed to set default address.");
+        hotToast.error(res.error || "Failed to set default address.");
       }
     });
   };
 
   const handleDeleteAddress = async (id: string) => {
-    if (window.confirm("Are you sure you want to delete this address?")) {
+    if (await customConfirm("Are you sure you want to delete this address?")) {
       startTransition(async () => {
         const res = await deleteAddress(id);
         if (res.success) {
@@ -327,7 +329,7 @@ export default function ManageSupplierPage({ params }: PageProps) {
             setSupplierDetail(updated.data as SupplierFullDetail);
           }
         } else {
-          alert(res.error || "Failed to delete address.");
+          hotToast.error(res.error || "Failed to delete address.");
         }
       });
     }

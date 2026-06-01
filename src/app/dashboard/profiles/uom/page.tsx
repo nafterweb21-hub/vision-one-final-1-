@@ -1,4 +1,5 @@
 "use client";
+import { toast as hotToast } from "react-hot-toast";
 
 import { useEffect, useState, useMemo } from "react";
 import {
@@ -215,7 +216,7 @@ export default function UomProfilePage() {
       }
       fetchItems();
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : "An error occurred");
+      hotToast.error(e instanceof Error ? e.message : "An error occurred");
     }
   };
 

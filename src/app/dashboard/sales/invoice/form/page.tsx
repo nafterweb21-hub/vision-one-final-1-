@@ -1,4 +1,5 @@
 "use client";
+import { customConfirm } from "@/lib/customConfirm";
 
 import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -296,7 +297,7 @@ export default function InvoiceFormPage() {
   };
 
   const handleSubmit = async () => {
-    if (!confirm("Are you sure you want to submit? This action cannot be undone.")) return;
+    if (!await customConfirm("Are you sure you want to submit? This action cannot be undone.")) return;
     setLoading(true);
     setErrorMsg("");
     try {
@@ -311,7 +312,7 @@ export default function InvoiceFormPage() {
   };
 
   const handleRevise = async () => {
-    if (!confirm("Are you sure you want to create a new revision? This will mark the current invoice as 'Old Version'.")) return;
+    if (!await customConfirm("Are you sure you want to create a new revision? This will mark the current invoice as 'Old Version'.")) return;
     setLoading(true);
     setErrorMsg("");
     try {
@@ -326,7 +327,7 @@ export default function InvoiceFormPage() {
   };
 
   const handleVoid = async () => {
-    if (!confirm("Are you sure you want to VOID this invoice?")) return;
+    if (!await customConfirm("Are you sure you want to VOID this invoice?")) return;
     setLoading(true);
     setErrorMsg("");
     try {

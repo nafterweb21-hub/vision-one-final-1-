@@ -1,4 +1,6 @@
 "use client";
+import { customConfirm } from "@/lib/customConfirm";
+import { toast as hotToast } from "react-hot-toast";
 
 import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
@@ -83,20 +85,20 @@ export default function GoodsReceiveListPage() {
 
   async function onSubmit() {
     if (!selected) return;
-    if (selected.status !== "Draft") return alert("Only Draft can be Submitted");
-    if (!confirm(`Submit Goods Receive ${selected.grNo}?`)) return;
+    if (selected.status !== "Draft") return hotToast.error("Only Draft can be Submitted");
+    if (!await customConfirm(`Submit Goods Receive ${selected.grNo}?`)) return;
     const res = await submitGoodsReceive(selected.id);
-    if (!res.success) return alert(res.error || "Failed to submit");
+    if (!res.success) return hotToast.error(res.error || "Failed to submit");
     fetchRows();
     setSelectedId(null);
   }
 
   async function onVoid() {
     if (!selected) return;
-    if (selected.status === "Void") return alert("Already voided");
-    if (!confirm(`Void Goods Receive ${selected.grNo}?`)) return;
+    if (selected.status === "Void") return hotToast.error("Already voided");
+    if (!await customConfirm(`Void Goods Receive ${selected.grNo}?`)) return;
     const res = await voidGoodsReceive(selected.id);
-    if (!res.success) return alert(res.error || "Failed to void");
+    if (!res.success) return hotToast.error(res.error || "Failed to void");
     fetchRows();
     setSelectedId(null);
   }

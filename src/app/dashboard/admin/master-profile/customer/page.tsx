@@ -1,4 +1,6 @@
 "use client";
+import { customConfirm } from "@/lib/customConfirm";
+import { toast as hotToast } from "react-hot-toast";
 
 import React, { useState, useEffect, useTransition } from "react";
 import {
@@ -133,7 +135,7 @@ export default function CustomerProfilePage() {
       setCustomerDetail(res.data as CustomerFullDetail);
       setRemarksEdit(res.data.remarks || "");
     } else {
-      alert(res.error || "Failed to load customer details.");
+      hotToast.error(res.error || "Failed to load customer details.");
     }
   };
 
@@ -196,7 +198,7 @@ export default function CustomerProfilePage() {
         setRemarksSuccess(true);
         loadCustomers();
       } else {
-        alert(res.error || "Failed to update remarks.");
+        hotToast.error(res.error || "Failed to update remarks.");
       }
     });
   };
@@ -207,19 +209,19 @@ export default function CustomerProfilePage() {
       if (res.success) {
         loadCustomers();
       } else {
-        alert(res.error || "Failed to change status.");
+        hotToast.error(res.error || "Failed to change status.");
       }
     });
   };
 
   const handleDeleteCustomer = async (id: string) => {
-    if (window.confirm("Void this customer profile? Voided records are retained for audit and cannot be restored.")) {
+    if (await customConfirm("Void this customer profile? Voided records are retained for audit and cannot be restored.")) {
       startTransition(async () => {
         const res = await deleteCustomerProfile(id);
         if (res.success) {
           loadCustomers();
         } else {
-          alert(res.error || "Failed to void customer.");
+          hotToast.error(res.error || "Failed to void customer.");
         }
       });
     }
@@ -305,7 +307,7 @@ export default function CustomerProfilePage() {
       if (res.success) {
         loadCustomerDetailData(selectedCustomerId);
       } else {
-        alert(res.error || "Failed to toggle contact status.");
+        hotToast.error(res.error || "Failed to toggle contact status.");
       }
     });
   };
@@ -317,21 +319,21 @@ export default function CustomerProfilePage() {
       if (res.success) {
         loadCustomerDetailData(selectedCustomerId);
       } else {
-        alert(res.error || "Failed to set default contact.");
+        hotToast.error(res.error || "Failed to set default contact.");
       }
     });
   };
 
   const handleDeleteContact = async (id: string) => {
     if (!selectedCustomerId) return;
-    if (window.confirm("Void this contact person? Voided records are retained for audit.")) {
+    if (await customConfirm("Void this contact person? Voided records are retained for audit.")) {
       startTransition(async () => {
         const res = await deleteContactPerson(id);
         if (res.success) {
           loadCustomerDetailData(selectedCustomerId);
           loadCustomers();
         } else {
-          alert(res.error || "Failed to delete contact.");
+          hotToast.error(res.error || "Failed to delete contact.");
         }
       });
     }
@@ -395,7 +397,7 @@ export default function CustomerProfilePage() {
       if (res.success) {
         loadCustomerDetailData(selectedCustomerId);
       } else {
-        alert(res.error || "Failed to toggle address status.");
+        hotToast.error(res.error || "Failed to toggle address status.");
       }
     });
   };
@@ -407,21 +409,21 @@ export default function CustomerProfilePage() {
       if (res.success) {
         loadCustomerDetailData(selectedCustomerId);
       } else {
-        alert(res.error || "Failed to set default address.");
+        hotToast.error(res.error || "Failed to set default address.");
       }
     });
   };
 
   const handleDeleteAddress = async (id: string) => {
     if (!selectedCustomerId) return;
-    if (window.confirm("Void this address? Voided records are retained for audit.")) {
+    if (await customConfirm("Void this address? Voided records are retained for audit.")) {
       startTransition(async () => {
         const res = await deleteAddress(id);
         if (res.success) {
           loadCustomerDetailData(selectedCustomerId);
           loadCustomers();
         } else {
-          alert(res.error || "Failed to delete address.");
+          hotToast.error(res.error || "Failed to delete address.");
         }
       });
     }

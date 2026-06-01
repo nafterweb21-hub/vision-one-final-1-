@@ -1,4 +1,6 @@
 "use client";
+import { customConfirm } from "@/lib/customConfirm";
+import { toast as hotToast } from "react-hot-toast";
 
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -50,19 +52,19 @@ export default function ReceiptViewPage() {
   }, [id]);
 
   async function handleConfirm() {
-    if (!confirm(`Confirm receipt ${receipt?.receiptNo}?`)) return;
+    if (!await customConfirm(`Confirm receipt ${receipt?.receiptNo}?`)) return;
     setProcessing(true);
     const res = await transitionReceiptAction(id, "confirm");
-    if (!res.success) alert(res.error || "Failed to confirm");
+    if (!res.success) hotToast.error(res.error || "Failed to confirm");
     else await fetchReceipt();
     setProcessing(false);
   }
 
   async function handleVoid() {
-    if (!confirm(`Void receipt ${receipt?.receiptNo}?`)) return;
+    if (!await customConfirm(`Void receipt ${receipt?.receiptNo}?`)) return;
     setProcessing(true);
     const res = await transitionReceiptAction(id, "void");
-    if (!res.success) alert(res.error || "Failed to void");
+    if (!res.success) hotToast.error(res.error || "Failed to void");
     else await fetchReceipt();
     setProcessing(false);
   }

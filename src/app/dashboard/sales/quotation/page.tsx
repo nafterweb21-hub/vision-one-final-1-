@@ -1,4 +1,6 @@
 "use client";
+import { customConfirm } from "@/lib/customConfirm";
+import { toast as hotToast } from "react-hot-toast";
 
 import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
@@ -118,7 +120,7 @@ export default function QuotationListPage() {
     });
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      alert(err.error || `Failed: ${action}`);
+      hotToast.error(err.error || `Failed: ${action}`);
       return null;
     }
     return res.json();
@@ -126,40 +128,40 @@ export default function QuotationListPage() {
 
   async function onIssue() {
     if (!selected) return;
-    if (selected.status !== "Draft") return alert("Only Draft can be Issued");
+    if (selected.status !== "Draft") return hotToast.error("Only Draft can be Issued");
     await callAction(selected.id, "issue");
     fetchRows();
   }
   async function onConfirm() {
     if (!selected) return;
     if (selected.status !== "Issued" && selected.status !== "Draft")
-      return alert("Only Draft or Issued can be Confirmed");
+      return hotToast.error("Only Draft or Issued can be Confirmed");
     await callAction(selected.id, "confirm");
     fetchRows();
   }
   async function onVoid() {
     if (!selected) return;
-    if (!confirm(`Void quotation ${selected.quotationNo}?`)) return;
+    if (!await customConfirm(`Void quotation ${selected.quotationNo}?`)) return;
     await callAction(selected.id, "void");
     fetchRows();
   }
   async function onRevise() {
     if (!selected) return;
-    if (!confirm(`Create a new revision of ${selected.quotationNo}?`)) return;
+    if (!await customConfirm(`Create a new revision of ${selected.quotationNo}?`)) return;
     const res = await callAction(selected.id, "revise");
     if (res?.id) router.push(`/dashboard/sales/quotation/${res.id}`);
   }
   async function onConvertToSo() {
     if (!selected) return;
     if (selected.status !== "Confirmed")
-      return alert("Only Confirmed quotations can be converted to SO");
+      return hotToast.error("Only Confirmed quotations can be converted to SO");
     const res = await callAction(selected.id, "convertToSo");
     if (res?.id) router.push(`/dashboard/sales/sales-order/${res.id}`);
   }
   async function onConvertToInvoice() {
     if (!selected) return;
     if (selected.status !== "Confirmed")
-      return alert("Only Confirmed quotations can be converted to Invoice");
+      return hotToast.error("Only Confirmed quotations can be converted to Invoice");
     const res = await callAction(selected.id, "convertToInvoice");
     if (res?.id) router.push(`/dashboard/sales/invoice/form?id=${res.id}`);
   }
@@ -169,7 +171,7 @@ export default function QuotationListPage() {
   }
   function onEdit() {
     if (!selected) return;
-    if (selected.status !== "Draft") return alert("Only Draft can be edited");
+    if (selected.status !== "Draft") return hotToast.error("Only Draft can be edited");
     router.push(`/dashboard/sales/quotation/${selected.id}`);
   }
   async function onHistory() {
@@ -182,7 +184,7 @@ export default function QuotationListPage() {
       if (!res.ok) throw new Error("Failed to load history");
       setHistoryRows(await res.json());
     } catch (e: any) {
-      alert(e.message || "Failed to load history");
+      hotToast.error(e.message || "Failed to load history");
       setHistoryOpen(false);
     } finally {
       setHistoryLoading(false);
@@ -224,7 +226,7 @@ export default function QuotationListPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
-    if (!res.ok) return alert((await res.json()).error || "Copy failed");
+    if (!res.ok) return hotToast.error((await res.json()).error || "Copy failed");
     const created = await res.json();
     router.push(`/dashboard/sales/quotation/${created.id}`);
   }

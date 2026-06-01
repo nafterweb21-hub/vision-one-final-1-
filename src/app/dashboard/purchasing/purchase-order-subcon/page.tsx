@@ -1,4 +1,6 @@
 "use client";
+import { customConfirm } from "@/lib/customConfirm";
+import { toast as hotToast } from "react-hot-toast";
 
 import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
@@ -110,7 +112,7 @@ export default function PurchaseOrderListPage() {
     });
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      alert(err.error || `Failed: ${action}`);
+      hotToast.error(err.error || `Failed: ${action}`);
       return null;
     }
     return res.json();
@@ -118,15 +120,15 @@ export default function PurchaseOrderListPage() {
 
   async function onSubmit() {
     if (!selected) return;
-    if (selected.status !== "Draft") return alert("Only Draft can be Submitted");
+    if (selected.status !== "Draft") return hotToast.error("Only Draft can be Submitted");
     await callAction(selected.id, "submit");
     fetchRows();
   }
 
   async function onVoid() {
     if (!selected) return;
-    if (selected.status === "Void") return alert("Already voided");
-    if (!confirm(`Void purchase order ${selected.poNo}-R${selected.revision}?`)) return;
+    if (selected.status === "Void") return hotToast.error("Already voided");
+    if (!await customConfirm(`Void purchase order ${selected.poNo}-R${selected.revision}?`)) return;
     await callAction(selected.id, "void");
     fetchRows();
   }
@@ -134,16 +136,16 @@ export default function PurchaseOrderListPage() {
   async function onRevise() {
     if (!selected) return;
     if (selected.status !== "Approved" && selected.status !== "Issued") {
-      return alert("Only Approved or Issued purchase orders can be revised");
+      return hotToast.error("Only Approved or Issued purchase orders can be revised");
     }
-    if (!confirm(`Create a new revision of ${selected.poNo}?`)) return;
+    if (!await customConfirm(`Create a new revision of ${selected.poNo}?`)) return;
     const res = await callAction(selected.id, "revise");
     if (res?.id) router.push(`/dashboard/purchasing/purchase-order-subcon/${res.id}`);
   }
 
   function onEdit() {
     if (!selected) return;
-    if (selected.status !== "Draft") return alert("Only Draft can be edited");
+    if (selected.status !== "Draft") return hotToast.error("Only Draft can be edited");
     router.push(`/dashboard/purchasing/purchase-order-subcon/${selected.id}`);
   }
 
@@ -159,7 +161,7 @@ export default function PurchaseOrderListPage() {
       if (!res.ok) throw new Error("Failed to load history");
       setHistoryRows(await res.json());
     } catch (e: any) {
-      alert(e.message || "Failed to load history");
+      hotToast.error(e.message || "Failed to load history");
       setHistoryOpen(false);
     } finally {
       setHistoryLoading(false);
@@ -196,11 +198,11 @@ export default function PurchaseOrderListPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...payload, type: "SUBCON" }),
       });
-      if (!res.ok) return alert((await res.json()).error || "Copy failed");
+      if (!res.ok) return hotToast.error((await res.json()).error || "Copy failed");
       const created = await res.json();
       router.push(`/dashboard/purchasing/purchase-order-subcon/${created.id}`);
     } catch (e: any) {
-      alert(e.message || "Failed to copy purchase order");
+      hotToast.error(e.message || "Failed to copy purchase order");
     }
   }
 

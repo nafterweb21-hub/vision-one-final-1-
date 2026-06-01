@@ -1,4 +1,5 @@
 "use client";
+import { toast as hotToast } from "react-hot-toast";
 
 import { useState } from "react";
 import Link from "next/link";
@@ -40,13 +41,13 @@ export default function ProcessParameterList({ timesheets, employees, elcometers
   ];
 
   const handleConfirm = async () => {
-    if (selectedIds.length === 0) return alert("Please select at least one record to confirm.");
-    if (!confirmedById) return alert("Please select a 'Confirm By' employee.");
+    if (selectedIds.length === 0) return hotToast.error("Please select at least one record to confirm.");
+    if (!confirmedById) return hotToast.error("Please select a 'Confirm By' employee.");
 
     // Check if any selected record is spray painting and needs elcometer
     const hasSpray = timesheets.some((ts: any) => selectedIds.includes(ts.id) && ts.sprayParameter);
     if (hasSpray && !elcometerName) {
-      return alert("Please select an 'Elcometer Used' for the Spray Painting record(s).");
+      return hotToast.error("Please select an 'Elcometer Used' for the Spray Painting record(s).");
     }
 
     const formData = new FormData();

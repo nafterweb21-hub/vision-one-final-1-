@@ -1,4 +1,6 @@
 "use client";
+import { customConfirm } from "@/lib/customConfirm";
+import { toast as hotToast } from "react-hot-toast";
 
 import React, { useState, useEffect, useTransition } from "react";
 import {
@@ -123,19 +125,19 @@ export default function TaxProfilePage() {
       if (res.success) {
         loadData();
       } else {
-        alert(res.error || "Failed to change status.");
+        hotToast.error(res.error || "Failed to change status.");
       }
     });
   };
 
   const handleDeleteTaxProfile = async (id: string) => {
-    if (window.confirm("Are you sure you want to delete this Tax Profile? This action cannot be undone.")) {
+    if (await customConfirm("Are you sure you want to delete this Tax Profile? This action cannot be undone.")) {
       startTransition(async () => {
         const res = await deleteTaxProfile(id);
         if (res.success) {
           loadData();
         } else {
-          alert(res.error || "Failed to delete tax profile.");
+          hotToast.error(res.error || "Failed to delete tax profile.");
         }
       });
     }

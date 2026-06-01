@@ -1,4 +1,6 @@
 "use client";
+import { toast as hotToast } from "react-hot-toast";
+import { customConfirm } from "@/lib/customConfirm";
 
 import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
@@ -100,46 +102,46 @@ export default function ReceiptListPage() {
 
   async function onConfirm() {
     if (!selected) return;
-    if (selected.status !== "Draft") return alert("Only Draft can be Confirmed");
-    if (!confirm(`Confirm receipt ${selected.receiptNo}?`)) return;
+    if (selected.status !== "Draft") return hotToast.error("Only Draft can be Confirmed");
+    if (!await customConfirm(`Confirm receipt ${selected.receiptNo}?`)) return;
     
     setLoading(true);
     const res = await transitionReceiptAction(selected.id, "confirm");
-    if (!res.success) alert(res.error || "Failed to confirm");
+    if (!res.success) hotToast.error(res.error || "Failed to confirm");
     await fetchRows();
   }
 
   async function onVoid() {
     if (!selected) return;
-    if (selected.status === "Void") return alert("Already Voided");
-    if (!confirm(`Void receipt ${selected.receiptNo}?`)) return;
+    if (selected.status === "Void") return hotToast.error("Already Voided");
+    if (!await customConfirm(`Void receipt ${selected.receiptNo}?`)) return;
     
     setLoading(true);
     const res = await transitionReceiptAction(selected.id, "void");
-    if (!res.success) alert(res.error || "Failed to void");
+    if (!res.success) hotToast.error(res.error || "Failed to void");
     await fetchRows();
   }
 
   async function onDelete() {
     if (!selected) return;
-    if (selected.status !== "Draft") return alert("Only Draft can be deleted");
-    if (!confirm(`Permanently delete receipt ${selected.receiptNo}?`)) return;
+    if (selected.status !== "Draft") return hotToast.error("Only Draft can be deleted");
+    if (!await customConfirm(`Permanently delete receipt ${selected.receiptNo}?`)) return;
     
     setLoading(true);
     const res = await deleteDraftReceiptAction(selected.id);
-    if (!res.success) alert(res.error || "Failed to delete");
+    if (!res.success) hotToast.error(res.error || "Failed to delete");
     await fetchRows();
   }
 
   function onEdit() {
     if (!selected) return;
-    if (selected.status !== "Draft") return alert("Only Draft can be edited");
+    if (selected.status !== "Draft") return hotToast.error("Only Draft can be edited");
     router.push(`/dashboard/sales/receipt/form?id=${selected.id}`);
   }
 
   function onPrint() {
     if (!selected) return;
-    if (selected.status !== "Confirmed") return alert("Only Confirmed receipts can be printed");
+    if (selected.status !== "Confirmed") return hotToast.error("Only Confirmed receipts can be printed");
     window.open(`/print/receipt/${selected.id}`, "_blank");
   }
 

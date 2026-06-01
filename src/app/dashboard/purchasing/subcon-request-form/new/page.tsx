@@ -1,4 +1,5 @@
 "use client";
+import { toast as hotToast } from "react-hot-toast";
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
@@ -78,7 +79,7 @@ export default function NewSubconRequestFormPage() {
     if (!selectedItem) return;
     
     if (quantity <= 0 || quantity > selectedItem.availableQuantity) {
-      return alert(`Quantity must be between 1 and ${selectedItem.availableQuantity}`);
+      return hotToast.error(`Quantity must be between 1 and ${selectedItem.availableQuantity}`);
     }
 
     setSaving(true);
@@ -107,7 +108,7 @@ export default function NewSubconRequestFormPage() {
       const created = await res.json();
       router.push(`/dashboard/saved?module=Subcon Request&id=${created.srfNo || created.id}&viewUrl=/dashboard/purchasing/subcon-request-form/${created.id}&backUrl=/dashboard/purchasing/subcon-request-form`);
     } catch (err: any) {
-      alert(err.message);
+      hotToast.error(err.message);
       setSaving(false);
     }
   };

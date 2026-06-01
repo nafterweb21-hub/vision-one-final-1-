@@ -1,4 +1,6 @@
 "use client";
+import { customConfirm } from "@/lib/customConfirm";
+import { toast as hotToast } from "react-hot-toast";
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -178,9 +180,9 @@ export default function GoodsReceiveFormPage({ params }: { params: Promise<{ id:
 
   async function handleSubmit() {
     if (isNew) {
-      return alert("Please save draft first before submitting.");
+      return hotToast.error("Please save draft first before submitting.");
     }
-    if (!confirm("Submit this Goods Receive?")) return;
+    if (!await customConfirm("Submit this Goods Receive?")) return;
     setSaving(true);
     try {
       const res = await submitGoodsReceive(id);

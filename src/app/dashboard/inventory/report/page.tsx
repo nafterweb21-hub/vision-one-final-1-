@@ -1,4 +1,5 @@
 "use client";
+import { toast as hotToast } from "react-hot-toast";
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
@@ -66,7 +67,7 @@ export default function InventoryReportPage() {
   }
 
   function handleExport() {
-    if (rows.length === 0) return alert("No data to export");
+    if (rows.length === 0) return hotToast.error("No data to export");
     const exportData = rows.map((r, i) => ({
       "SN": i + 1,
       "Part No": r.partNo,
