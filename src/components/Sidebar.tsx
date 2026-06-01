@@ -54,22 +54,10 @@ import {
   Settings2,
   Layers,
   Globe,
-  Settings2,
-  Layers,
-  Globe,
-  Package,
   Flame,
   Link2,
   Cpu,
   Gauge,
-  Banknote,
-  Package,
-  Zap,
-  Share2,
-  Settings,
-  Activity,
-  Brush,
-  ListTree,
 } from "lucide-react";
 
 interface SidebarProps {
