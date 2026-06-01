@@ -54,6 +54,10 @@ import {
   Settings2,
   Layers,
   Globe,
+  Settings2,
+  Layers,
+  Globe,
+  Package,
   Flame,
   Link2,
   Cpu,
@@ -487,6 +491,18 @@ export default function Sidebar({ userEmail, userRole, isAdmin }: SidebarProps) 
               <Link href="/dashboard/master-profile/failure-mode" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/master-profile/failure-mode")}>
                 <AlertTriangle size={16} className="text-rose-600" />
                 <span>Failure Mode Profile</span>
+              </Link>
+            )}
+            {allow("/dashboard/master-profile/failure-mode") && (
+              <Link href="/dashboard/master-profile/failure-mode" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/master-profile/failure-mode")}>
+                <AlertTriangle size={16} className="text-red-600" />
+                <span>Failure Mode Profile</span>
+              </Link>
+            )}
+            {allow("/dashboard/profiles/finished-good") && (
+              <Link href="/dashboard/profiles/finished-good" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/profiles/finished-good")}>
+                <Box size={16} className="text-emerald-600" />
+                <span>Finished Good Profile</span>
               </Link>
             )}
           </div>
