@@ -50,5 +50,13 @@ export const PROFILE_REGISTRY: Record<
     uniqueFields: ["name"],
     searchFields: ["name"],
   },
+  "finished-good": {
+    modelName: "finishedGoodProfile",
+    displayName: "Finished Good Profile",
+    immutableFields: ["partNo", "description"],
+    mandatoryFields: ["description"],
+    uniqueFields: ["partNo", "description"],
+    searchFields: ["partNo", "description", "remark"],
+  },
 };
 
