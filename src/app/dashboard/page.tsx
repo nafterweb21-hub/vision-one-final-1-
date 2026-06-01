@@ -66,12 +66,12 @@ export default function DashboardPage() {
   return (
     <div className="space-y-8 animate-fade-in pb-12">
       {/* Welcome Banner */}
-      <div className="relative overflow-hidden rounded-3xl bg-slate-900 px-8 py-10 shadow-2xl sm:px-12 sm:py-16">
+      <div className="relative w-[100vw] left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] -mt-24 mb-0 overflow-hidden bg-slate-900 px-4 sm:px-8 md:px-12 lg:px-16 pt-6 pb-8 shadow-2xl sm:pt-8 sm:pb-10 rounded-b-3xl">
         <div className="absolute -left-20 -top-20 h-96 w-96 rounded-full bg-indigo-600/30 blur-3xl"></div>
         <div className="absolute -bottom-40 -right-20 h-96 w-96 rounded-full bg-blue-600/30 blur-3xl"></div>
         
-        <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <div className="max-w-2xl">
+        <div className="relative z-10 mx-auto max-w-7xl flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div className="max-w-2xl ml-16 md:ml-20 lg:ml-24 xl:ml-0">
             <span className="inline-flex items-center gap-2 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-indigo-300">
               <span className="h-1.5 w-1.5 rounded-full bg-indigo-400"></span>
               System Overview
@@ -107,7 +107,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Quick Statistics */}
-      <div>
+      <div className="mt-8 relative z-10">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
             <Activity className="w-5 h-5 text-indigo-600" />
@@ -532,15 +532,18 @@ export default function DashboardPage() {
               </div>
             </a>
 
-            <div className="flex items-center gap-4 rounded-2xl border border-slate-100 bg-slate-50/50 p-5 opacity-60">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white text-slate-400 shadow-sm border border-slate-100">
+            <a
+              href="/dashboard/profiles/employee"
+              className="group flex items-center gap-4 rounded-2xl border border-slate-100 bg-slate-50/50 p-5 transition-all hover:border-indigo-200 hover:bg-indigo-50/50 hover:shadow-sm"
+            >
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white text-indigo-600 shadow-sm border border-slate-100 transition-transform group-hover:scale-110">
                 <Users className="h-6 w-6" />
               </div>
               <div>
-                <h5 className="text-sm font-bold text-slate-900">Employee Profile</h5>
+                <h5 className="text-sm font-bold text-slate-900 group-hover:text-indigo-700 transition-colors">Employee Profile</h5>
                 <p className="mt-1 text-xs text-slate-500 line-clamp-1">Manage employee codes, FINs & designations</p>
               </div>
-            </div>
+            </a>
 
             <a
               href="/dashboard/profiles/company"

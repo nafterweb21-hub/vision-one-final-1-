@@ -1,17 +1,34 @@
 "use client";
 
-import React, { useState, useEffect, useTransition } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
-import { Plus, Search, Loader2, Edit2, AlertCircle, FileText } from "lucide-react";
-import { getInvoices } from "./invoice.actions";
+import { useRouter } from "next/navigation";
+import {
+  Plus,
+  Search,
+  Loader2,
+  Edit2,
+  AlertCircle,
+  FileText,
+  Printer,
+  Copy,
+  Send,
+  Ban,
+  GitBranch,
+} from "lucide-react";
+import { getInvoices, getInvoice, voidInvoice, submitInvoice, createInvoice, reviseInvoice } from "./invoice.actions";
+
+const STATUS_TABS = ["All", "Draft", "Submitted", "Old Version", "Void"] as const;
 
 export default function InvoiceListPage() {
+  const router = useRouter();
   const [invoices, setInvoices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("All");
+  const [tab, setTab] = useState<(typeof STATUS_TABS)[number]>("All");
   const [errorMsg, setErrorMsg] = useState("");
-  const [isPending, startTransition] = useTransition();
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
 
   const fetchInvoicesList = async () => {
     setLoading(true);
@@ -34,9 +51,102 @@ export default function InvoiceListPage() {
   const filteredInvoices = invoices.filter((inv) => {
     const matchesSearch = inv.invoiceNo.toLowerCase().includes(search.toLowerCase()) || 
                           (inv.customer?.customerName || "").toLowerCase().includes(search.toLowerCase());
-    const matchesStatus = statusFilter === "All" || inv.status === statusFilter;
+    const matchesStatus = tab === "All" || inv.status === tab;
     return matchesSearch && matchesStatus;
   });
+
+  const counts = useMemo(() => {
+    const c: Record<string, number> = { All: invoices.length };
+    for (const r of invoices) c[r.status] = (c[r.status] ?? 0) + 1;
+    return c;
+  }, [invoices]);
+
+  const selected = useMemo(
+    () => invoices.find((r) => r.id === selectedId) || null,
+    [invoices, selectedId],
+  );
+
+  const onEdit = () => {
+    if (!selected) return;
+    if (selected.status !== "Draft") return alert("Only Draft can be edited");
+    router.push(`/dashboard/sales/invoice/form?id=${selected.id}`);
+  };
+
+  const onVoid = async () => {
+    if (!selected) return;
+    if (selected.status === "Void" || selected.status === "Old Version") return alert("Cannot void this invoice");
+    if (!confirm(`Void invoice ${selected.invoiceNo}?`)) return;
+    setActionLoading(true);
+    await voidInvoice(selected.id);
+    await fetchInvoicesList();
+    setSelectedId(null);
+    setActionLoading(false);
+  };
+
+  const onSubmit = async () => {
+    if (!selected) return;
+    if (selected.status !== "Draft") return alert("Only Draft can be submitted");
+    if (!confirm(`Submit invoice ${selected.invoiceNo}?`)) return;
+    setActionLoading(true);
+    await submitInvoice(selected.id);
+    await fetchInvoicesList();
+    setSelectedId(null);
+    setActionLoading(false);
+  };
+
+  const onRevise = async () => {
+    if (!selected) return;
+    if (selected.status !== "Submitted") return alert("Only Submitted invoices can be revised");
+    if (!confirm(`Create a new revision of ${selected.invoiceNo}?`)) return;
+    setActionLoading(true);
+    const invRes = await getInvoice(selected.id);
+    if (!invRes.success) {
+      alert("Failed to load invoice details");
+      setActionLoading(false);
+      return;
+    }
+    const res = await reviseInvoice(selected.id, invRes.data);
+    if (res.success && res.data) {
+      router.push(`/dashboard/sales/invoice/form?id=${res.data.id}`);
+    } else {
+      alert(res.error || "Failed to revise invoice");
+      setActionLoading(false);
+    }
+  };
+
+  const onCopy = async () => {
+    if (!selected) return;
+    if (!confirm(`Copy invoice ${selected.invoiceNo}?`)) return;
+    setActionLoading(true);
+    const invRes = await getInvoice(selected.id);
+    if (!invRes.success) {
+      alert("Failed to load invoice details");
+      setActionLoading(false);
+      return;
+    }
+    const data = invRes.data;
+    data.invoiceDate = new Date().toISOString().split("T")[0];
+    data.doIds = data.deliveryOrders.map((doLink: any) => doLink.deliveryOrderId);
+    // Remove IDs from items to create new ones
+    data.items = data.items.map((item: any) => ({
+      ...item,
+      id: undefined,
+      invoiceId: undefined,
+    }));
+    const res = await createInvoice(data);
+    if (res.success && res.data) {
+      router.push(`/dashboard/sales/invoice/form?id=${res.data.id}`);
+    } else {
+      alert(res.error || "Failed to copy invoice");
+      setActionLoading(false);
+    }
+  };
+
+  const onPrint = () => {
+    if (!selected) return;
+    if (selected.status !== "Submitted") return alert("Only Submitted invoices can be printed");
+    window.open(`/print/invoice/${selected.id}`, "_blank");
+  };
 
   return (
     <div className="p-6 lg:p-8 space-y-6">
@@ -69,6 +179,33 @@ export default function InvoiceListPage() {
         </Link>
       </div>
 
+      {/* Toolbar */}
+      <div className="flex flex-wrap items-center gap-2 bg-white border border-blue-200 p-3 rounded-xl shadow-sm">
+        <ToolbarBtn icon={<Edit2 size={14} />} label="Edit" onClick={onEdit} disabled={!selected || actionLoading} />
+        <ToolbarBtn icon={<Ban size={14} />} label="Void" onClick={onVoid} disabled={!selected || actionLoading} />
+        <ToolbarBtn icon={<Send size={14} />} label="Submit" onClick={onSubmit} disabled={!selected || actionLoading} />
+        <ToolbarBtn icon={<GitBranch size={14} />} label="Revise" onClick={onRevise} disabled={!selected || actionLoading} />
+        <ToolbarBtn icon={<Copy size={14} />} label="Copy" onClick={onCopy} disabled={!selected || actionLoading} />
+        <ToolbarBtn icon={<Printer size={14} />} label="Print Invoice" onClick={onPrint} disabled={!selected || actionLoading} />
+      </div>
+
+      {/* Tabs */}
+      <div className="flex flex-wrap gap-2">
+        {STATUS_TABS.map((t) => (
+          <button
+            key={t}
+            onClick={() => setTab(t)}
+            className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition-colors ${
+              tab === t
+                ? "bg-blue-900 text-white border-blue-900"
+                : "bg-white text-blue-700 border-blue-200 hover:bg-blue-50"
+            }`}
+          >
+            {t} {counts[t] != null ? `(${counts[t]})` : ""}
+          </button>
+        ))}
+      </div>
+
       {/* Filter and Search Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center gap-4 bg-white border border-blue-200 p-4 rounded-xl shadow-sm">
         <div className="relative flex-1">
@@ -80,19 +217,6 @@ export default function InvoiceListPage() {
             onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-9 pr-4 py-2 text-sm bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors"
           />
-        </div>
-        <div className="sm:w-48">
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="w-full px-3 py-2 text-sm bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-blue-700 transition-colors"
-          >
-            <option value="All">All Status</option>
-            <option value="Draft">Draft</option>
-            <option value="Submitted">Submitted</option>
-            <option value="Void">Void</option>
-            <option value="Old Version">Old Version</option>
-          </select>
         </div>
       </div>
 
@@ -123,71 +247,55 @@ export default function InvoiceListPage() {
             <table className="w-full text-sm text-left whitespace-nowrap">
               <thead className="text-xs text-blue-500 bg-blue-50/50 uppercase tracking-wider border-b border-blue-200">
                 <tr>
-                  <th className="px-6 py-4">Invoice No</th>
-                  <th className="px-6 py-4">Date</th>
-                  <th className="px-6 py-4">Customer</th>
-                  <th className="px-6 py-4">Type</th>
-                  <th className="px-6 py-4">Amount</th>
-                  <th className="px-6 py-4">Status</th>
-                  <th className="px-6 py-4 text-right">Action</th>
+                  <th className="px-3 py-3 w-10"></th>
+                  <th className="px-3 py-3">Status</th>
+                  <th className="px-3 py-3">Invoice No</th>
+                  <th className="px-3 py-3">Date</th>
+                  <th className="px-3 py-3">Customer</th>
+                  <th className="px-3 py-3">Type</th>
+                  <th className="px-3 py-3 text-right">Amount</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-blue-100">
                 {filteredInvoices.map((inv) => (
-                  <tr key={inv.id} className="hover:bg-blue-50/50 transition-colors group">
-                    <td className="px-6 py-4 font-bold text-blue-900">
-                      <Link href={`/dashboard/sales/invoice/form?id=${inv.id}`} className="hover:text-indigo-600 transition-colors">
+                  <tr
+                    key={inv.id}
+                    onClick={() => setSelectedId(inv.id === selectedId ? null : inv.id)}
+                    className={`cursor-pointer transition-colors ${
+                      selectedId === inv.id ? "bg-indigo-50/70" : "hover:bg-blue-50/50"
+                    }`}
+                  >
+                    <td className="px-3 py-3">
+                      <input
+                        type="radio"
+                        checked={selectedId === inv.id}
+                        onChange={() => setSelectedId(inv.id)}
+                        className="accent-indigo-500"
+                      />
+                    </td>
+                    <td className="px-3 py-3">
+                      <StatusPill status={inv.status} />
+                    </td>
+                    <td className="px-3 py-3 font-bold text-blue-900">
+                      <Link
+                        href={`/dashboard/sales/invoice/form?id=${inv.id}`}
+                        className="hover:text-indigo-600"
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         {inv.invoiceNo}
                       </Link>
                     </td>
-                    <td className="px-6 py-4 text-blue-700">
+                    <td className="px-3 py-3 text-blue-700">
                       {new Date(inv.invoiceDate).toLocaleDateString()}
                     </td>
-                    <td className="px-6 py-4 font-medium text-blue-700">
+                    <td className="px-3 py-3 font-medium text-blue-700">
                       {inv.customer?.customerName || "—"}
                     </td>
-                    <td className="px-6 py-4 text-blue-700">
+                    <td className="px-3 py-3 text-blue-700">
                       {inv.invoiceType}
                     </td>
-                    <td className="px-6 py-4 text-blue-700 font-semibold">
+                    <td className="px-3 py-3 text-blue-700 font-semibold text-right">
                       {inv.currency?.code} {Number(inv.amountAfterTax).toFixed(2)}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${
-                        inv.status === "Submitted"
-                          ? "bg-emerald-50 text-emerald-700 border-emerald-200/60"
-                          : inv.status === "Void"
-                          ? "bg-rose-50 text-rose-700 border-rose-200/60"
-                          : inv.status === "Old Version"
-                          ? "bg-slate-50 text-slate-700 border-slate-200/60"
-                          : "bg-amber-50 text-amber-700 border-amber-200/60"
-                      }`}>
-                        <span className={`w-1.5 h-1.5 rounded-full ${
-                          inv.status === "Submitted" ? "bg-emerald-500" : inv.status === "Void" ? "bg-rose-500" : inv.status === "Old Version" ? "bg-slate-500" : "bg-amber-500"
-                        }`} />
-                        {inv.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <Link
-                          href={`/dashboard/sales/invoice/form?id=${inv.id}`}
-                          className="inline-flex items-center justify-center p-1.5 rounded-lg border border-blue-200 hover:bg-blue-100 text-blue-600 transition-colors active:scale-95"
-                          title="Edit/View"
-                        >
-                          <Edit2 size={14} />
-                        </Link>
-                        {inv.status === "Submitted" && (
-                          <Link
-                            href={`/print/invoice/${inv.id}`}
-                            target="_blank"
-                            className="inline-flex items-center justify-center p-1.5 rounded-lg border border-blue-200 hover:bg-blue-100 text-blue-600 transition-colors active:scale-95"
-                            title="Print"
-                          >
-                            <FileText size={14} />
-                          </Link>
-                        )}
-                      </div>
                     </td>
                   </tr>
                 ))}
@@ -197,5 +305,51 @@ export default function InvoiceListPage() {
         </div>
       )}
     </div>
+  );
+}
+
+function ToolbarBtn({
+  icon,
+  label,
+  onClick,
+  disabled,
+  primary,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  onClick: () => void;
+  disabled?: boolean;
+  primary?: boolean;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md border transition-colors active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed ${
+        primary
+          ? "bg-indigo-600 text-white border-indigo-600 hover:bg-indigo-500"
+          : "bg-white text-blue-700 border-blue-200 hover:bg-blue-50"
+      }`}
+    >
+      {icon} {label}
+    </button>
+  );
+}
+
+function StatusPill({ status }: { status: string }) {
+  const cls =
+    status === "Submitted"
+      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+      : status === "Draft"
+      ? "bg-amber-50 text-amber-700 border-amber-200"
+      : status === "Void"
+      ? "bg-rose-50 text-rose-700 border-rose-200"
+      : status === "Old Version"
+      ? "bg-slate-100 text-slate-600 border-slate-200"
+      : "bg-blue-50 text-blue-700 border-blue-200";
+  return (
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${cls}`}>
+      {status}
+    </span>
   );
 }

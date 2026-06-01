@@ -35,9 +35,10 @@ export default function InvoiceFormPage() {
     amountAfterTax: 0,
     bankDetails: "",
     remark: "",
-    preparedById: "",
     doIds: [],
     items: [],
+    poNo: "",
+    vehicleNumber: "",
   });
 
   const [metadata, setMetadata] = useState<any>({
@@ -250,6 +251,7 @@ export default function InvoiceFormPage() {
       unitPrice: 0,
       amount: 0,
       remark: "",
+      hsnCode: "",
     };
     const newItems = [...formData.items, newItem];
     const totals = calculateTotals(newItems, formData.taxRate);
@@ -421,7 +423,7 @@ export default function InvoiceFormPage() {
             <label className="text-sm font-semibold text-blue-900">Invoice No</label>
             <input
               type="text"
-              value={formData.invoiceNo}
+              value={formData.invoiceNo || ""}
               disabled
               className="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-lg focus:outline-none text-slate-500"
             />
@@ -478,6 +480,26 @@ export default function InvoiceFormPage() {
                 <option key={e.id} value={e.id}>{e.name}</option>
               ))}
             </select>
+          </div>
+          <div className="space-y-1">
+            <label className="text-sm font-semibold text-blue-900">P.O. No.</label>
+            <input
+              type="text"
+              value={formData.poNo || ""}
+              onChange={(e) => setFormData({ ...formData, poNo: e.target.value })}
+              disabled={!isDraft}
+              className="w-full px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-60"
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="text-sm font-semibold text-blue-900">Vehicle Number</label>
+            <input
+              type="text"
+              value={formData.vehicleNumber || ""}
+              onChange={(e) => setFormData({ ...formData, vehicleNumber: e.target.value })}
+              disabled={!isDraft}
+              className="w-full px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-60"
+            />
           </div>
         </div>
       </div>
@@ -549,7 +571,7 @@ export default function InvoiceFormPage() {
             <label className="text-sm font-semibold text-blue-900">Email <span className="text-rose-500">*</span></label>
             <input
               type="email"
-              value={formData.email}
+              value={formData.email || ""}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               disabled={!isDraft}
               className="w-full px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-60"
@@ -560,7 +582,7 @@ export default function InvoiceFormPage() {
             <label className="text-sm font-semibold text-blue-900">Tel</label>
             <input
               type="text"
-              value={formData.tel}
+              value={formData.tel || ""}
               onChange={(e) => setFormData({ ...formData, tel: e.target.value })}
               disabled={!isDraft}
               className="w-full px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-60"
@@ -571,7 +593,7 @@ export default function InvoiceFormPage() {
             <label className="text-sm font-semibold text-blue-900">Fax</label>
             <input
               type="text"
-              value={formData.fax}
+              value={formData.fax || ""}
               onChange={(e) => setFormData({ ...formData, fax: e.target.value })}
               disabled={!isDraft}
               className="w-full px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-60"
@@ -677,6 +699,7 @@ export default function InvoiceFormPage() {
                 <th className="px-4 py-3">SN</th>
                 <th className="px-4 py-3 min-w-[150px]">Work Order</th>
                 <th className="px-4 py-3 min-w-[200px]">Part / Description</th>
+                <th className="px-4 py-3 w-32">HSN / SAC</th>
                 <th className="px-4 py-3 w-32">Qty</th>
                 <th className="px-4 py-3 w-32">UOM</th>
                 <th className="px-4 py-3 w-32">Unit Price</th>
@@ -713,6 +736,16 @@ export default function InvoiceFormPage() {
                         disabled={!isDraft || !!item.partId}
                         className="w-full px-3 py-1.5 bg-slate-50 border border-blue-100 rounded-lg text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-60"
                         placeholder="Description"
+                      />
+                    </td>
+                    <td className="px-4 py-2">
+                       <input
+                        type="text"
+                        value={item.hsnCode || ""}
+                        onChange={(e) => updateItem(index, "hsnCode", e.target.value)}
+                        disabled={!isDraft}
+                        className="w-full px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-lg text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-60"
+                        placeholder="HSN"
                       />
                     </td>
                     <td className="px-4 py-2">
@@ -795,7 +828,7 @@ export default function InvoiceFormPage() {
            <div className="space-y-1">
              <label className="text-sm font-semibold text-blue-900">Bank Details</label>
              <textarea
-               value={formData.bankDetails}
+               value={formData.bankDetails || ""}
                onChange={(e) => setFormData({ ...formData, bankDetails: e.target.value })}
                disabled={!isDraft}
                rows={3}
@@ -806,7 +839,7 @@ export default function InvoiceFormPage() {
            <div className="space-y-1">
              <label className="text-sm font-semibold text-blue-900">Remarks</label>
              <textarea
-               value={formData.remark}
+               value={formData.remark || ""}
                onChange={(e) => setFormData({ ...formData, remark: e.target.value })}
                disabled={!isDraft}
                rows={3}

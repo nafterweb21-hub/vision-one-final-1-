@@ -62,7 +62,6 @@ export async function createProcessProfileAction(formData: FormData) {
       costPerMinute,
       remark,
     });
-    
     revalidatePath("/dashboard/master-profile/process-profile");
     return { success: true, data: JSON.parse(JSON.stringify(data)) };
   } catch (error: any) {
@@ -88,7 +87,6 @@ export async function updateProcessProfileAction(id: string, formData: FormData)
       costPerMinute,
       remark,
     });
-    
     revalidatePath("/dashboard/master-profile/process-profile");
     return { success: true, data: JSON.parse(JSON.stringify(data)) };
   } catch (error: any) {

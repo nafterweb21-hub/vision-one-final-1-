@@ -43,6 +43,17 @@ import {
   BarChart,
   TrendingUp,
   ShoppingCart,
+  Banknote,
+  Package,
+  Zap,
+  Share2,
+  Settings,
+  Activity,
+  Brush,
+  ListTree,
+  Settings2,
+  Layers,
+  Globe,
   Settings2,
   Layers,
   Globe,
@@ -51,6 +62,14 @@ import {
   Link2,
   Cpu,
   Gauge,
+  Banknote,
+  Package,
+  Zap,
+  Share2,
+  Settings,
+  Activity,
+  Brush,
+  ListTree,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -199,7 +218,7 @@ export default function Sidebar({ userEmail, userRole, isAdmin }: SidebarProps) 
                 <span>Certificate Of Conformity</span>
               </Link>
             )}
-            <Link href="/dashboard/production/process-parameter" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/production/process-parameter")}>
+            <Link href="/dashboard/production/process-parameter-confirmation" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/production/process-parameter-confirmation")}>
               <SquareSplitHorizontal size={16} className="text-slate-600" fill="currentColor" />
               <span>Process Parameter Confirmation</span>
             </Link>
@@ -245,6 +264,12 @@ export default function Sidebar({ userEmail, userRole, isAdmin }: SidebarProps) 
               <Link href="/dashboard/purchasing/goods-return" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/purchasing/goods-return")}>
                 <CornerUpLeft size={16} className="text-slate-600" />
                 <span>Goods Return</span>
+              </Link>
+            )}
+            {allow("/dashboard/inventory") && (
+              <Link href="/dashboard/inventory" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/inventory")}>
+                <Box size={16} className="text-blue-600" />
+                <span>Inventory</span>
               </Link>
             )}
           </div>
@@ -298,6 +323,12 @@ export default function Sidebar({ userEmail, userRole, isAdmin }: SidebarProps) 
               <Link href="/dashboard/sales/invoice" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/sales/invoice")}>
                 <Receipt size={16} className="text-slate-400" />
                 <span className="flex-1">Invoicing</span>
+              </Link>
+            )}
+            {allow("/dashboard/sales/receipt") && (
+              <Link href="/dashboard/sales/receipt" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/sales/receipt")}>
+                <Banknote size={16} className="text-emerald-500" />
+                <span className="flex-1">Receipt / Payment Record</span>
               </Link>
             )}
             <Link href="#" onClick={() => setIsOpen(false)} className={linkClass("#cost-monitoring")}>
@@ -377,15 +408,21 @@ export default function Sidebar({ userEmail, userRole, isAdmin }: SidebarProps) 
                 <span>Material Category Profile</span>
               </Link>
             )}
+            {allow("/dashboard/master-profile/material") && (
+              <Link href="/dashboard/master-profile/material" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/master-profile/material")}>
+                <Box size={16} className="text-blue-500" />
+                <span>Material Profile</span>
+              </Link>
+            )}
             {allow("/dashboard/master-profile/process-profile") && (
               <Link href="/dashboard/master-profile/process-profile" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/master-profile/process-profile")}>
-                <Settings2 size={16} className="text-slate-500" />
+                <RefreshCw size={16} className="text-cyan-500" />
                 <span>Process Profile</span>
               </Link>
             )}
             {allow("/dashboard/master-profile/main-process") && (
               <Link href="/dashboard/master-profile/main-process" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/master-profile/main-process")}>
-                <Layers size={16} className="text-indigo-500" />
+                <ListTree size={16} className="text-indigo-500" />
                 <span>Main Process Profile</span>
               </Link>
             )}
@@ -395,10 +432,28 @@ export default function Sidebar({ userEmail, userRole, isAdmin }: SidebarProps) 
                 <span>Incoterm Profile</span>
               </Link>
             )}
+            {allow("/dashboard/master-profile/material") && (
+              <Link href="/dashboard/master-profile/material" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/master-profile/material")}>
+                <Box size={16} className="text-blue-500" />
+                <span>Material Profile</span>
+              </Link>
+            )}
             {allow("/dashboard/master-profile/material-type") && (
               <Link href="/dashboard/master-profile/material-type" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/master-profile/material-type")}>
-                <Package size={16} className="text-amber-600" />
+                <Package size={16} className="text-cyan-600" />
                 <span>Material Type Profile</span>
+              </Link>
+            )}
+            {allow("/dashboard/admin/master-profile/finished-good") && (
+              <Link href="/dashboard/admin/master-profile/finished-good" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/admin/master-profile/finished-good")}>
+                <Package size={16} className="text-green-600" />
+                <span>Finished Goods Profile (Admin)</span>
+              </Link>
+            )}
+            {allow("/dashboard/profiles/finished-good") && (
+              <Link href="/dashboard/profiles/finished-good" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/profiles/finished-good")}>
+                <Box size={16} className="text-emerald-600" />
+                <span>Finished Good Profile</span>
               </Link>
             )}
             {allow("/dashboard/master-profile/welding-type") && (
@@ -409,13 +464,13 @@ export default function Sidebar({ userEmail, userRole, isAdmin }: SidebarProps) 
             )}
             {allow("/dashboard/master-profile/joint") && (
               <Link href="/dashboard/master-profile/joint" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/master-profile/joint")}>
-                <Link2 size={16} className="text-slate-600" />
+                <Link2 size={16} className="text-purple-500" />
                 <span>Joint Profile</span>
               </Link>
             )}
             {allow("/dashboard/profiles/machine") && (
               <Link href="/dashboard/profiles/machine" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/profiles/machine")}>
-                <Cpu size={16} className="text-slate-500" />
+                <Cpu size={16} className="text-slate-600" />
                 <span>Machine Profile</span>
               </Link>
             )}
@@ -423,6 +478,19 @@ export default function Sidebar({ userEmail, userRole, isAdmin }: SidebarProps) 
               <Link href="/dashboard/profiles/elcometer" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/profiles/elcometer")}>
                 <Gauge size={16} className="text-red-500" />
                 <span>Elcometer Profile</span>
+              </Link>
+            )}
+            {allow("/dashboard/master-profile/painting-method") && (
+              <Link href="/dashboard/master-profile/painting-method" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/master-profile/painting-method")}>
+                <Brush size={16} className="text-pink-500" />
+                <span>Painting Method Profile</span>
+
+              </Link>
+            )}
+            {allow("/dashboard/master-profile/failure-mode") && (
+              <Link href="/dashboard/master-profile/failure-mode" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/master-profile/failure-mode")}>
+                <AlertTriangle size={16} className="text-rose-600" />
+                <span>Failure Mode Profile</span>
               </Link>
             )}
             {allow("/dashboard/master-profile/failure-mode") && (
@@ -470,6 +538,12 @@ export default function Sidebar({ userEmail, userRole, isAdmin }: SidebarProps) 
               <Link href="/dashboard/purchasing/subcon-purchasing-report" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/purchasing/subcon-purchasing-report")}>
                 <Factory size={16} className="text-red-800" fill="currentColor" />
                 <span>Subcon Purchasing Report</span>
+              </Link>
+            )}
+            {allow("/dashboard/inventory/report") && (
+              <Link href="/dashboard/inventory/report" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/inventory/report")}>
+                <Box size={16} className="text-blue-600" />
+                <span>Inventory Report</span>
               </Link>
             )}
           </div>

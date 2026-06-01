@@ -185,6 +185,7 @@ export async function getDOItemsForInvoice(doIds: string[]) {
         unitPrice: soUnitPrice,
         amount,
         remark: "",
+        hsnCode: "",
       };
     });
 
@@ -235,6 +236,8 @@ export async function createInvoice(data: any) {
         bankDetails: data.bankDetails,
         remark: data.remark,
         preparedById: data.preparedById,
+        poNo: data.poNo,
+        vehicleNumber: data.vehicleNumber,
         status: "Draft",
         items: {
           create: data.items.map((item: any) => ({
@@ -247,6 +250,7 @@ export async function createInvoice(data: any) {
             unitPrice: item.unitPrice,
             amount: item.amount,
             remark: item.remark,
+            hsnCode: item.hsnCode,
           })),
         },
         deliveryOrders: {
@@ -258,7 +262,7 @@ export async function createInvoice(data: any) {
     });
 
     revalidatePath("/dashboard/sales/invoice");
-    return { success: true, data: invoice };
+    return { success: true, data: JSON.parse(JSON.stringify(invoice)) };
   } catch (error: any) {
     return { success: false, error: error.message };
   }
@@ -301,6 +305,8 @@ export async function updateInvoice(id: string, data: any) {
         bankDetails: data.bankDetails,
         remark: data.remark,
         preparedById: data.preparedById,
+        poNo: data.poNo,
+        vehicleNumber: data.vehicleNumber,
         items: {
           deleteMany: {},
           create: data.items.map((item: any) => ({
@@ -313,6 +319,7 @@ export async function updateInvoice(id: string, data: any) {
             unitPrice: item.unitPrice,
             amount: item.amount,
             remark: item.remark,
+            hsnCode: item.hsnCode,
           })),
         },
         deliveryOrders: {
@@ -325,7 +332,7 @@ export async function updateInvoice(id: string, data: any) {
     });
 
     revalidatePath("/dashboard/sales/invoice");
-    return { success: true, data: invoice };
+    return { success: true, data: JSON.parse(JSON.stringify(invoice)) };
   } catch (error: any) {
     return { success: false, error: error.message };
   }
@@ -414,6 +421,8 @@ export async function reviseInvoice(id: string, data: any) {
         bankDetails: data.bankDetails,
         remark: data.remark,
         preparedById: data.preparedById,
+        poNo: data.poNo,
+        vehicleNumber: data.vehicleNumber,
         status: "Draft",
         items: {
           create: data.items.map((item: any) => ({
@@ -426,6 +435,7 @@ export async function reviseInvoice(id: string, data: any) {
             unitPrice: item.unitPrice,
             amount: item.amount,
             remark: item.remark,
+            hsnCode: item.hsnCode,
           })),
         },
         deliveryOrders: {
@@ -437,7 +447,7 @@ export async function reviseInvoice(id: string, data: any) {
     });
 
     revalidatePath("/dashboard/sales/invoice");
-    return { success: true, data: invoice };
+    return { success: true, data: JSON.parse(JSON.stringify(invoice)) };
   } catch (error: any) {
     return { success: false, error: error.message };
   }
