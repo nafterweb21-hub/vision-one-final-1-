@@ -1,10 +1,9 @@
 "use client";
-
+import { SearchableSelect } from "@/components/SearchableSelect";
 import React, { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Loader2, ArrowLeft, Plus, Trash2, Save, FileText } from "lucide-react";
-
 type FormData = {
   companies: { id: string; companyName: string; allowPoForWo: boolean }[];
   employees: { id: string; name: string; email: string; code: string }[];
@@ -472,7 +471,7 @@ export default function PurchaseOrderEditPage() {
       {/* Header Fields */}
       <div className="bg-white border border-blue-200 rounded-xl shadow-sm p-6 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
         <Field label="Company" required>
-          <select
+          <SearchableSelect
             value={companyId}
             disabled={readOnly || !isNew}
             onChange={(e) => setCompanyId(e.target.value)}
@@ -484,7 +483,7 @@ export default function PurchaseOrderEditPage() {
                 {c.companyName}
               </option>
             ))}
-          </select>
+          </SearchableSelect>
         </Field>
 
         <Field label="PO Date" required>
@@ -498,7 +497,7 @@ export default function PurchaseOrderEditPage() {
         </Field>
 
         <Field label="Purchaser" required>
-          <select
+          <SearchableSelect
             value={purchaserId}
             disabled={readOnly}
             onChange={(e) => setPurchaserId(e.target.value)}
@@ -510,11 +509,11 @@ export default function PurchaseOrderEditPage() {
                 {e.name} ({e.code})
               </option>
             ))}
-          </select>
+          </SearchableSelect>
         </Field>
 
         <Field label="PR No">
-          <select
+          <SearchableSelect
             value={purchaseRequisitionId}
             disabled={readOnly || !isNew}
             onChange={(e) => handlePrChange(e.target.value)}
@@ -528,11 +527,11 @@ export default function PurchaseOrderEditPage() {
                   {pr.prNo}
                 </option>
               ))}
-          </select>
+          </SearchableSelect>
         </Field>
 
         <Field label="Supplier" required>
-          <select
+          <SearchableSelect
             value={supplierId}
             disabled={readOnly || !isNew}
             onChange={(e) => setSupplierId(e.target.value)}
@@ -544,11 +543,11 @@ export default function PurchaseOrderEditPage() {
                 {s.supplierName}
               </option>
             ))}
-          </select>
+          </SearchableSelect>
         </Field>
 
         <Field label="Supplier Contact Person">
-          <select
+          <SearchableSelect
             value={contactPersonId}
             disabled={readOnly || !supplierId}
             onChange={(e) => handleContactPersonChange(e.target.value)}
@@ -560,7 +559,7 @@ export default function PurchaseOrderEditPage() {
                 {cp.contactPersonName}
               </option>
             ))}
-          </select>
+          </SearchableSelect>
         </Field>
 
         <Field label="Supplier Email">
@@ -604,7 +603,7 @@ export default function PurchaseOrderEditPage() {
         </Field>
         
         <Field label="Work Order">
-          <select
+          <SearchableSelect
             value={workOrderNo}
             disabled={readOnly}
             onChange={(e) => setWorkOrderNo(e.target.value)}
@@ -616,11 +615,11 @@ export default function PurchaseOrderEditPage() {
                 {w.workOrderNo} - {w.jobDescription?.substring(0,20)}...
               </option>
             ))}
-          </select>
+          </SearchableSelect>
         </Field>
 
         <Field label="Currency" required>
-          <select
+          <SearchableSelect
             value={currencyId}
             disabled={readOnly}
             onChange={(e) => handleCurrencyChange(e.target.value)}
@@ -632,7 +631,7 @@ export default function PurchaseOrderEditPage() {
                 {c.code}
               </option>
             ))}
-          </select>
+          </SearchableSelect>
         </Field>
         <Field label="Exchange Rate" required>
           <input
@@ -646,7 +645,7 @@ export default function PurchaseOrderEditPage() {
         </Field>
 
         <Field label="Tax Code" required>
-          <select
+          <SearchableSelect
             value={taxTypeId}
             disabled={readOnly}
             onChange={(e) => handleTaxTypeChange(e.target.value)}
@@ -658,7 +657,7 @@ export default function PurchaseOrderEditPage() {
                 {t.taxType}
               </option>
             ))}
-          </select>
+          </SearchableSelect>
         </Field>
         <Field label="Tax Rate %">
           <input
@@ -713,7 +712,7 @@ export default function PurchaseOrderEditPage() {
                 return (
                   <tr key={idx} className="hover:bg-blue-50/10">
                     <td className="px-3 py-2 align-top">
-                      <select
+                      <SearchableSelect
                         value={it.fromMaterialProfile ? "Profile" : "Free"}
                         disabled={readOnly || !!it.purchaseRequisitionItemId}
                         onChange={(e) => updateItem(idx, { fromMaterialProfile: e.target.value === "Profile" })}
@@ -721,12 +720,12 @@ export default function PurchaseOrderEditPage() {
                       >
                         <option value="Profile">Profile</option>
                         <option value="Free">FreeText</option>
-                      </select>
+                      </SearchableSelect>
                     </td>
 
                     <td className="px-3 py-2 align-top">
                       {it.fromMaterialProfile ? (
-                        <select
+                        <SearchableSelect
                           value={it.materialProfileId}
                           disabled={readOnly || !!it.purchaseRequisitionItemId}
                           onChange={(e) => updateItem(idx, { materialProfileId: e.target.value })}
@@ -738,7 +737,7 @@ export default function PurchaseOrderEditPage() {
                               {m.partNo ? `${m.partNo} — ` : ""}{m.description.slice(0, 30)}
                             </option>
                           ))}
-                        </select>
+                        </SearchableSelect>
                       ) : (
                         <input
                           type="text"
@@ -796,7 +795,7 @@ export default function PurchaseOrderEditPage() {
                     </td>
 
                     <td className="px-3 py-2 align-top">
-                      <select
+                      <SearchableSelect
                         value={it.poUomId}
                         disabled={readOnly}
                         onChange={(e) => updateItem(idx, { poUomId: e.target.value })}
@@ -808,7 +807,7 @@ export default function PurchaseOrderEditPage() {
                             {u.uomName}
                           </option>
                         ))}
-                      </select>
+                      </SearchableSelect>
                     </td>
 
                     <td className="px-3 py-2 align-top">
@@ -852,7 +851,7 @@ export default function PurchaseOrderEditPage() {
                     </td>
 
                     <td className="px-3 py-2 align-top">
-                      <select
+                      <SearchableSelect
                         value={it.internalUomId}
                         disabled={readOnly || !!it.purchaseRequisitionItemId}
                         onChange={(e) => updateItem(idx, { internalUomId: e.target.value })}
@@ -864,7 +863,7 @@ export default function PurchaseOrderEditPage() {
                             {u.uomName}
                           </option>
                         ))}
-                      </select>
+                      </SearchableSelect>
                     </td>
                     
                     <td className="px-3 py-2 align-top text-right font-mono text-blue-900 pt-4">

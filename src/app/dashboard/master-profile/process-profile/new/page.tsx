@@ -1,10 +1,9 @@
 "use client";
-
+import { SearchableSelect } from "@/components/SearchableSelect";
 import React, { useState, useEffect, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createProcessProfileAction, getMainProcessesAction } from "../actions";
-
 export default function NewProcessProfilePage() {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -75,7 +74,7 @@ export default function NewProcessProfilePage() {
               <label htmlFor="mainProcessId" className="block text-sm font-bold text-blue-900 mb-1.5">
                 Main Process <span className="text-rose-500">*</span>
               </label>
-              <select
+              <SearchableSelect
                 id="mainProcessId"
                 name="mainProcessId"
                 required
@@ -85,7 +84,7 @@ export default function NewProcessProfilePage() {
                 {mainProcesses.map((mp) => (
                   <option key={mp.id} value={mp.id}>{mp.process}</option>
                 ))}
-              </select>
+              </SearchableSelect>
             </div>
 
             <div>

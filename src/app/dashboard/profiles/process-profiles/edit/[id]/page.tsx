@@ -1,10 +1,10 @@
+import { SearchableSelect } from "@/components/SearchableSelect";
 // src/app/dashboard/profiles/process-profiles/edit/[id]/page.tsx
 "use client";
 
 import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useParams } from "next/navigation";
-
 interface ProcessProfile {
   id: string;
   mainProcessId: string;
@@ -111,7 +111,7 @@ export default function EditProcessProfilePage() {
         {/* Main Process selector – same as create */}
         <div>
           <label className="block text-sm font-medium mb-1">Main Process</label>
-          <select
+          <SearchableSelect
             name="mainProcessId"
             value={formData.mainProcessId}
             onChange={handleChange}
@@ -119,7 +119,7 @@ export default function EditProcessProfilePage() {
             className="w-full rounded border p-2"
           >
             {/* TODO: populate options – for simplicity we reuse the create page fetch */}
-          </select>
+          </SearchableSelect>
         </div>
         {/* Flags */}
         <div className="flex space-x-4">
@@ -160,10 +160,10 @@ export default function EditProcessProfilePage() {
         </div>
         <div>
           <label className="block text-sm font-medium mb-1">Status</label>
-          <select name="status" value={formData.status} onChange={handleChange} className="w-full rounded border p-2">
+          <SearchableSelect name="status" value={formData.status} onChange={handleChange} className="w-full rounded border p-2">
             <option value="Active">Active</option>
             <option value="Inactive">Inactive</option>
-          </select>
+          </SearchableSelect>
         </div>
         <button type="submit" className="px-4 py-2 bg-indigo-600 text-white rounded" disabled={loading}>
           Save Changes

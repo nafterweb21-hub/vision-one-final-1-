@@ -26,38 +26,35 @@ const ConfirmModal = ({
     }, 200); // wait for fade out
   };
 
+  const hostName = typeof window !== "undefined" ? window.location.host : "localhost:3000";
+
   return (
     <div 
-      className={`fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm transition-opacity duration-200 ${visible ? "opacity-100" : "opacity-0"}`}
+      className={`fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/40 backdrop-blur-[2px] transition-opacity duration-200 ${visible ? "opacity-100" : "opacity-0"}`}
       onClick={() => handleClose(false)}
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className={`max-w-md w-full bg-white shadow-2xl rounded-2xl pointer-events-auto flex flex-col ring-1 ring-black/5 transition-all duration-200 ${
+        className={`w-[420px] max-w-[90vw] bg-white shadow-xl rounded-2xl pointer-events-auto flex flex-col transition-all duration-200 ${
           visible ? "scale-100 opacity-100" : "scale-95 opacity-0"
         }`}
       >
-        <div className="p-6 flex flex-col items-center text-center gap-4">
-          <div className="flex-shrink-0 flex items-center justify-center w-14 h-14 rounded-full bg-amber-100">
-            <AlertTriangle className="w-7 h-7 text-amber-600" />
-          </div>
-          <div>
-            <h3 className="text-lg font-bold text-slate-900 mb-2">Please Confirm</h3>
-            <p className="text-sm text-slate-500 leading-relaxed max-w-sm mx-auto">{message}</p>
-          </div>
+        <div className="px-6 pt-6 pb-8">
+          <h3 className="text-[16px] font-bold text-slate-900 mb-4">{hostName} says</h3>
+          <p className="text-[15px] text-slate-800 leading-snug">{message}</p>
         </div>
-        <div className="flex border-t border-slate-100 bg-slate-50 rounded-b-2xl">
+        <div className="px-6 pb-6 flex justify-end gap-3">
           <button
             onClick={() => handleClose(false)}
-            className="w-full border-r border-slate-200 p-4 flex items-center justify-center text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors focus:outline-none rounded-bl-2xl"
+            className="px-6 py-2.5 bg-[#F3E779] hover:bg-[#E8DB6A] text-slate-900 text-[15px] font-medium rounded-full transition-colors focus:outline-none"
           >
             Cancel
           </button>
           <button
             onClick={() => handleClose(true)}
-            className="w-full p-4 flex items-center justify-center text-sm font-bold text-rose-600 hover:text-rose-700 hover:bg-rose-50 transition-colors focus:outline-none rounded-br-2xl"
+            className="px-8 py-2.5 bg-[#636C18] hover:bg-[#525912] text-white text-[15px] font-medium rounded-full transition-colors focus:outline-none"
           >
-            Confirm
+            OK
           </button>
         </div>
       </div>

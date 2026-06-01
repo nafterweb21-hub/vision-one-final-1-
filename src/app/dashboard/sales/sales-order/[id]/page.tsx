@@ -1,11 +1,10 @@
 "use client";
-
+import { SearchableSelect } from "@/components/SearchableSelect";
 import React, { useState, useEffect, useMemo, use } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Save, X, Plus, Trash2, ArrowLeft, Loader2, FileText, CheckCircle2, AlertCircle } from "lucide-react";
 import { getFormData } from "./actions";
-
 type PageProps = {
   params: Promise<{ id: string }>;
 };
@@ -367,7 +366,7 @@ export default function SalesOrderFormPage({ params }: PageProps) {
               </div>
               <div>
                 <label className="block text-sm font-medium text-blue-700 mb-1">Salesperson <span className="text-red-500">*</span></label>
-                <select
+                <SearchableSelect
                   value={order.salespersonId}
                   onChange={(e) => handleOrderChange("salespersonId", e.target.value)}
                   className="w-full px-3 py-2 text-sm bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
@@ -376,11 +375,11 @@ export default function SalesOrderFormPage({ params }: PageProps) {
                   {formDataCache?.employees?.map((emp: any) => (
                     <option key={emp.id} value={emp.id}>{emp.name}</option>
                   ))}
-                </select>
+                </SearchableSelect>
               </div>
               <div>
                 <label className="block text-sm font-medium text-blue-700 mb-1">Customer <span className="text-red-500">*</span></label>
-                <select
+                <SearchableSelect
                   value={order.customerId}
                   onChange={(e) => handleOrderChange("customerId", e.target.value)}
                   className="w-full px-3 py-2 text-sm bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
@@ -389,7 +388,7 @@ export default function SalesOrderFormPage({ params }: PageProps) {
                   {formDataCache?.customers?.map((cust: any) => (
                     <option key={cust.id} value={cust.id}>{cust.customerName}</option>
                   ))}
-                </select>
+                </SearchableSelect>
               </div>
               <div>
                 <label className="block text-sm font-medium text-blue-700 mb-1">Customer PO Ref</label>
@@ -459,7 +458,7 @@ export default function SalesOrderFormPage({ params }: PageProps) {
                       <div className="grid grid-cols-1 sm:grid-cols-5 gap-3 pb-4 border-b border-blue-200">
                         <div className="sm:col-span-2">
                           <label className="block text-xs font-medium text-blue-500 mb-1">Part <span className="text-red-500">*</span></label>
-                          <select
+                          <SearchableSelect
                             value={item.partId}
                             onChange={(e) => handleItemChange(index, "partId", e.target.value)}
                             className="w-full px-2 py-1.5 text-sm bg-white border border-blue-200 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500"
@@ -468,7 +467,7 @@ export default function SalesOrderFormPage({ params }: PageProps) {
                             {formDataCache?.finishedGoods?.map((fg: any) => (
                               <option key={fg.id} value={fg.id}>{fg.partNo} - {fg.description}</option>
                             ))}
-                          </select>
+                          </SearchableSelect>
                         </div>
                         <div>
                           <label className="block text-xs font-medium text-blue-500 mb-1">Int. Quotation <span className="text-red-500">*</span></label>
@@ -492,7 +491,7 @@ export default function SalesOrderFormPage({ params }: PageProps) {
                         </div>
                         <div>
                           <label className="block text-xs font-medium text-blue-500 mb-1">UOM <span className="text-red-500">*</span></label>
-                          <select
+                          <SearchableSelect
                             value={item.uomId}
                             onChange={(e) => handleItemChange(index, "uomId", e.target.value)}
                             className="w-full px-2 py-1.5 text-sm bg-white border border-blue-200 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500"
@@ -501,7 +500,7 @@ export default function SalesOrderFormPage({ params }: PageProps) {
                             {formDataCache?.uoms?.map((u: any) => (
                               <option key={u.id} value={u.id}>{u.uomName}</option>
                             ))}
-                          </select>
+                          </SearchableSelect>
                         </div>
                         <div>
                           <label className="block text-xs font-medium text-blue-500 mb-1">Vendor Material No</label>
@@ -663,7 +662,7 @@ export default function SalesOrderFormPage({ params }: PageProps) {
             
             <div>
               <label className="block text-sm font-medium text-blue-700 mb-1">Currency <span className="text-red-500">*</span></label>
-              <select
+              <SearchableSelect
                 value={order.currencyId}
                 onChange={(e) => handleOrderChange("currencyId", e.target.value)}
                 className="w-full px-3 py-2 text-sm bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
@@ -672,12 +671,12 @@ export default function SalesOrderFormPage({ params }: PageProps) {
                 {formDataCache?.currencies?.map((c: any) => (
                   <option key={c.id} value={c.id}>{c.code}</option>
                 ))}
-              </select>
+              </SearchableSelect>
             </div>
             
             <div>
               <label className="block text-sm font-medium text-blue-700 mb-1">Tax Profile</label>
-              <select
+              <SearchableSelect
                 value={order.taxTypeId || ""}
                 onChange={(e) => handleOrderChange("taxTypeId", e.target.value)}
                 className="w-full px-3 py-2 text-sm bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
@@ -686,12 +685,12 @@ export default function SalesOrderFormPage({ params }: PageProps) {
                 {formDataCache?.taxes?.map((t: any) => (
                   <option key={t.id} value={t.id}>{t.taxType} ({t.taxRate}%)</option>
                 ))}
-              </select>
+              </SearchableSelect>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-blue-700 mb-1">Payment Term <span className="text-red-500">*</span></label>
-              <select
+              <SearchableSelect
                 value={order.paymentTermId}
                 onChange={(e) => handleOrderChange("paymentTermId", e.target.value)}
                 className="w-full px-3 py-2 text-sm bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
@@ -700,7 +699,7 @@ export default function SalesOrderFormPage({ params }: PageProps) {
                 {formDataCache?.paymentTerms?.map((pt: any) => (
                   <option key={pt.id} value={pt.id}>{pt.name}</option>
                 ))}
-              </select>
+              </SearchableSelect>
             </div>
             
             <div>
@@ -739,7 +738,7 @@ export default function SalesOrderFormPage({ params }: PageProps) {
             
             <div>
               <label className="block text-sm font-medium text-blue-700 mb-1">Contact Person</label>
-              <select
+              <SearchableSelect
                 value={order.contactPersonId || ""}
                 onChange={(e) => handleOrderChange("contactPersonId", e.target.value)}
                 disabled={!selectedCustomer}
@@ -749,7 +748,7 @@ export default function SalesOrderFormPage({ params }: PageProps) {
                 {selectedCustomer?.contactPersons?.map((cp: any) => (
                   <option key={cp.id} value={cp.id}>{cp.contactPersonName}</option>
                 ))}
-              </select>
+              </SearchableSelect>
             </div>
             
             <div className="grid grid-cols-2 gap-4">
@@ -785,7 +784,7 @@ export default function SalesOrderFormPage({ params }: PageProps) {
 
             <div>
               <label className="block text-sm font-medium text-blue-700 mb-1">Deliver To</label>
-              <select
+              <SearchableSelect
                 value={order.deliverToId || ""}
                 onChange={(e) => handleOrderChange("deliverToId", e.target.value)}
                 disabled={!selectedCustomer}
@@ -795,12 +794,12 @@ export default function SalesOrderFormPage({ params }: PageProps) {
                 {selectedCustomer?.addresses?.map((a: any) => (
                   <option key={a.id} value={a.id}>{a.address}</option>
                 ))}
-              </select>
+              </SearchableSelect>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-blue-700 mb-1">Bill To</label>
-              <select
+              <SearchableSelect
                 value={order.billToId || ""}
                 onChange={(e) => handleOrderChange("billToId", e.target.value)}
                 disabled={!selectedCustomer}
@@ -810,7 +809,7 @@ export default function SalesOrderFormPage({ params }: PageProps) {
                 {selectedCustomer?.addresses?.map((a: any) => (
                   <option key={a.id} value={a.id}>{a.address}</option>
                 ))}
-              </select>
+              </SearchableSelect>
             </div>
             
           </div>

@@ -1,10 +1,10 @@
 "use client";
-
+import { SearchableSelect } from "@/components/SearchableSelect";
 import React, { useState, useEffect, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
-  getMaterialCategories,
+getMaterialCategories,
   updateMaterialProfile,
   getMaterialDetail,
 } from "../../actions";
@@ -145,7 +145,7 @@ export default function EditMaterialPage({ params }: { params: { id: string } })
               <label className="text-sm font-bold text-blue-800 ">
                 Category <span className="text-rose-500">*</span>
               </label>
-              <select
+              <SearchableSelect
                 required
                 value={editCategoryId}
                 onChange={(e) => setEditCategoryId(e.target.value)}
@@ -155,7 +155,7 @@ export default function EditMaterialPage({ params }: { params: { id: string } })
                 {categories.map((c) => (
                   <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
-              </select>
+              </SearchableSelect>
             </div>
           </div>
 

@@ -1,9 +1,9 @@
+import { SearchableSelect } from "@/components/SearchableSelect";
 import { toast as hotToast } from "react-hot-toast";
 import { useState, useMemo, useTransition, useEffect } from "react";
 import { ArrowLeft, Monitor, Camera, QrCode, Search, Calendar, Clock, Send, Package, ChevronDown } from "lucide-react";
 import CameraScanner from "./CameraScanner";
 import { lookupWorkOrder, scanIn } from "../actions";
-
 type Support = {
   employees: { id: string; name: string; code: string }[];
   activeWorkOrders?: { workOrderNo: string }[];
@@ -442,7 +442,7 @@ function Select({
   return (
     <div>
       <label className="text-xs font-bold text-slate-500 tracking-wider uppercase">{label}</label>
-      <select
+      <SearchableSelect
         value={value}
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}
@@ -452,7 +452,7 @@ function Select({
         {options.map((o) => (
           <option key={o.id} value={o.id}>{o.label}</option>
         ))}
-      </select>
+      </SearchableSelect>
     </div>
   );
 }

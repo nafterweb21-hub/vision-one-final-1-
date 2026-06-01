@@ -1,11 +1,11 @@
 "use client";
+import { SearchableSelect } from "@/components/SearchableSelect";
 import { toast as hotToast } from "react-hot-toast";
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Search, Loader2, AlertCircle, FileText, Download, Filter } from "lucide-react";
 import * as XLSX from "xlsx";
-
 type Company = {
   id: string;
   companyName: string;
@@ -124,7 +124,7 @@ export default function InventoryReportPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
             <label className="block text-xs font-bold text-blue-900 mb-1">Company</label>
-            <select
+            <SearchableSelect
               value={filterCompany}
               onChange={e => setFilterCompany(e.target.value)}
               className="w-full px-3 py-2 text-sm bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
@@ -133,7 +133,7 @@ export default function InventoryReportPage() {
               {companies.map(c => (
                 <option key={c.id} value={c.id}>{c.companyName}</option>
               ))}
-            </select>
+            </SearchableSelect>
           </div>
           <div>
             <label className="block text-xs font-bold text-blue-900 mb-1">Part No / Description</label>

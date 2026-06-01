@@ -27,7 +27,7 @@ export default function IncotermProfileForm({ editingProfile }: IncotermProfileF
   // Initialize fields if editing
   useEffect(() => {
     if (editingProfile) {
-      setFormIncoterm(editingProfile.type);
+      setFormIncoterm(editingProfile.incoterm);
       setFormRemark(editingProfile.remark || "");
       setFormStatus(editingProfile.status || "Active");
     }

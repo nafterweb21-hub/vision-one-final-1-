@@ -1,4 +1,5 @@
 "use client";
+import { SearchableSelect } from "@/components/SearchableSelect";
 import { customConfirm } from "@/lib/customConfirm";
 import { toast as hotToast } from "react-hot-toast";
 
@@ -6,7 +7,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  ArrowLeft,
+ArrowLeft,
   Loader2,
   AlertCircle,
   Save,
@@ -334,7 +335,7 @@ export default function SubconRequestFormDetailPage({ params }: { params: { id: 
             <div>
               <label className="block text-xs font-semibold text-blue-500 mb-1">Outsourced By *</label>
               {isEditable ? (
-                <select
+                <SearchableSelect
                   value={outsourcedById}
                   onChange={(e) => setOutsourcedById(e.target.value)}
                   className="w-full px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20"
@@ -344,7 +345,7 @@ export default function SubconRequestFormDetailPage({ params }: { params: { id: 
                   {employees.map(emp => (
                     <option key={emp.id} value={emp.id}>{emp.name}</option>
                   ))}
-                </select>
+                </SearchableSelect>
               ) : (
                 <input
                   type="text"
@@ -370,7 +371,7 @@ export default function SubconRequestFormDetailPage({ params }: { params: { id: 
             <div>
               <label className="block text-xs font-semibold text-blue-500 mb-1">Received By</label>
               {isEditable ? (
-                <select
+                <SearchableSelect
                   value={receivedById}
                   onChange={(e) => setReceivedById(e.target.value)}
                   className="w-full px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20"
@@ -379,7 +380,7 @@ export default function SubconRequestFormDetailPage({ params }: { params: { id: 
                   {srf.purchaseOrderItem.purchaseOrder.supplier?.contactPersons?.map((cp: any) => (
                     <option key={cp.id} value={cp.id}>{cp.contactPersonName}</option>
                   ))}
-                </select>
+                </SearchableSelect>
               ) : (
                 <input
                   type="text"

@@ -1,8 +1,7 @@
 "use client";
-
+import { SearchableSelect } from "@/components/SearchableSelect";
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import Link from "next/link";
-
 interface Employee {
   id: string;
   code: string;
@@ -238,7 +237,7 @@ export default function EmployeeProfilePage() {
 
         {/* Filter status */}
         <div className="md:col-span-3">
-          <select
+          <SearchableSelect
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             className="w-full px-3.5 py-2.5 rounded-xl bg-blue-50 border border-blue-200 text-sm focus:bg-white :bg-blue-900 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all duration-150 text-blue-700 "
@@ -246,12 +245,12 @@ export default function EmployeeProfilePage() {
             <option value="ALL">All Statuses</option>
             <option value="ACTIVE">Active Only</option>
             <option value="INACTIVE">Inactive Only</option>
-          </select>
+          </SearchableSelect>
         </div>
 
         {/* Filter employment type */}
         <div className="md:col-span-3">
-          <select
+          <SearchableSelect
             value={employmentFilter}
             onChange={(e) => setEmploymentFilter(e.target.value)}
             className="w-full px-3.5 py-2.5 rounded-xl bg-blue-50 border border-blue-200 text-sm focus:bg-white :bg-blue-900 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all duration-150 text-blue-700 "
@@ -262,7 +261,7 @@ export default function EmployeeProfilePage() {
                 {type}
               </option>
             ))}
-          </select>
+          </SearchableSelect>
         </div>
       </div>
 

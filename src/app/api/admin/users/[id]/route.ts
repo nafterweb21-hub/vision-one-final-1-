@@ -2,12 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/authz";
-import { UserRole } from "@/generated/prisma/client";
 
-const VALID_ROLES = Object.values(UserRole);
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const { error } = await requireRole(UserRole.ADMIN);
+  const { error } = await requireRole("ADMIN");
   if (error) return error;
   const { id } = await params;
 
@@ -28,7 +26,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 }
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const { session, error } = await requireRole(UserRole.ADMIN);
+  const { session, error } = await requireRole("ADMIN");
   if (error) return error;
   const { id } = await params;
 
@@ -42,11 +40,12 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     data.email = email;
   }
   if (typeof body.role === "string") {
-    if (!VALID_ROLES.includes(body.role as UserRole)) {
+    const validRole = await prisma.roleProfile.findUnique({ where: { name: body.role } });
+    if (!validRole) {
       return NextResponse.json({ error: "Invalid role." }, { status: 400 });
     }
     // prevent admins from demoting themselves
-    if (session!.user.id === id && body.role !== UserRole.ADMIN) {
+    if (session!.user.id === id && body.role !== "ADMIN") {
       return NextResponse.json(
         { error: "You cannot change your own role." },
         { status: 400 },
@@ -96,7 +95,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 }
 
 export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const { session, error } = await requireRole(UserRole.ADMIN);
+  const { session, error } = await requireRole("ADMIN");
   if (error) return error;
   const { id } = await params;
 

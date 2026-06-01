@@ -27,7 +27,7 @@ export default function PaintingMethodProfileForm({ editingProfile }: PaintingMe
   // Initialize fields if editing
   useEffect(() => {
     if (editingProfile) {
-      setFormMethod(editingProfile.type);
+      setFormMethod(editingProfile.method);
       setFormRemark(editingProfile.remark || "");
       setFormStatus(editingProfile.status || "Active");
     }

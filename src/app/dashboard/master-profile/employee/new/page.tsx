@@ -1,9 +1,8 @@
 "use client";
-
+import { SearchableSelect } from "@/components/SearchableSelect";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-
 export default function NewEmployeePage() {
   const router = useRouter();
 
@@ -266,7 +265,7 @@ export default function NewEmployeePage() {
               <label className="block text-xs font-bold text-blue-700 uppercase tracking-wide">
                 Employment Type
               </label>
-              <select
+              <SearchableSelect
                 value={formData.employmentType}
                 onChange={(e) =>
                   setFormData({
@@ -281,7 +280,7 @@ export default function NewEmployeePage() {
                     {type}
                   </option>
                 ))}
-              </select>
+              </SearchableSelect>
             </div>
 
             {/* Mobile No */}
@@ -327,7 +326,7 @@ export default function NewEmployeePage() {
               <label className="block text-xs font-bold text-blue-700 uppercase tracking-wide">
                 Gender
               </label>
-              <select
+              <SearchableSelect
                 value={formData.gender}
                 onChange={(e) =>
                   setFormData({ ...formData, gender: e.target.value })
@@ -336,7 +335,7 @@ export default function NewEmployeePage() {
               >
                 <option value="Male">Male</option>
                 <option value="Female">Female</option>
-              </select>
+              </SearchableSelect>
             </div>
 
             {/* Status Toggle */}

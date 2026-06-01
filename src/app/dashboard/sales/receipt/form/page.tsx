@@ -1,4 +1,5 @@
 "use client";
+import { SearchableSelect } from "@/components/SearchableSelect";
 import { toast as hotToast } from "react-hot-toast";
 
 import React, { useState, useEffect, useMemo, Suspense } from "react";
@@ -13,7 +14,7 @@ import {
   ChevronLeft,
 } from "lucide-react";
 import {
-  getReceiptFormData,
+getReceiptFormData,
   getReceipt,
   createReceiptAction,
   updateReceiptAction,
@@ -249,7 +250,7 @@ function ReceiptFormContent() {
 
           <div className="space-y-1.5">
             <label className="text-xs font-bold text-blue-900 uppercase tracking-wider">Company *</label>
-            <select
+            <SearchableSelect
               name="companyId"
               value={formData.companyId}
               onChange={handleChange}
@@ -260,12 +261,12 @@ function ReceiptFormContent() {
               {options.companies.map((c: any) => (
                 <option key={c.id} value={c.id}>{c.companyName}</option>
               ))}
-            </select>
+            </SearchableSelect>
           </div>
 
           <div className="space-y-1.5">
             <label className="text-xs font-bold text-blue-900 uppercase tracking-wider">Customer *</label>
-            <select
+            <SearchableSelect
               name="customerId"
               value={formData.customerId}
               onChange={(e) => {
@@ -279,12 +280,12 @@ function ReceiptFormContent() {
               {options.customers.map((c: any) => (
                 <option key={c.id} value={c.id}>{c.customerName}</option>
               ))}
-            </select>
+            </SearchableSelect>
           </div>
 
           <div className="space-y-1.5">
             <label className="text-xs font-bold text-blue-900 uppercase tracking-wider">Invoice No *</label>
-            <select
+            <SearchableSelect
               name="invoiceId"
               value={formData.invoiceId}
               onChange={handleChange}
@@ -297,7 +298,7 @@ function ReceiptFormContent() {
                   {inv.invoiceNo} (Bal: {inv.currency?.code} {Number(inv.balanceDue).toFixed(2)})
                 </option>
               ))}
-            </select>
+            </SearchableSelect>
             {!formData.customerId && (
               <p className="text-[10px] text-amber-600">Select a customer first to see their invoices.</p>
             )}
@@ -330,7 +331,7 @@ function ReceiptFormContent() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
           <div className="space-y-1.5">
             <label className="text-xs font-bold text-blue-900 uppercase tracking-wider">Payment Method *</label>
-            <select
+            <SearchableSelect
               name="paymentMethod"
               value={formData.paymentMethod}
               onChange={handleChange}
@@ -341,7 +342,7 @@ function ReceiptFormContent() {
               <option value="Cheque">Cheque</option>
               <option value="Cash">Cash</option>
               <option value="Others">Others</option>
-            </select>
+            </SearchableSelect>
           </div>
 
           <div className="space-y-1.5">
@@ -358,7 +359,7 @@ function ReceiptFormContent() {
 
           <div className="space-y-1.5">
             <label className="text-xs font-bold text-blue-900 uppercase tracking-wider">Currency *</label>
-            <select
+            <SearchableSelect
               name="currencyId"
               value={formData.currencyId}
               onChange={handleChange}
@@ -369,7 +370,7 @@ function ReceiptFormContent() {
               {options.currencies.map((c: any) => (
                 <option key={c.id} value={c.id}>{c.code}</option>
               ))}
-            </select>
+            </SearchableSelect>
           </div>
 
           <div className="space-y-1.5">
@@ -401,7 +402,7 @@ function ReceiptFormContent() {
           
           <div className="space-y-1.5">
             <label className="text-xs font-bold text-blue-900 uppercase tracking-wider">Creator *</label>
-            <select
+            <SearchableSelect
               name="creatorId"
               value={formData.creatorId}
               onChange={handleChange}
@@ -412,7 +413,7 @@ function ReceiptFormContent() {
               {options.employees.map((c: any) => (
                 <option key={c.id} value={c.id}>{c.name}</option>
               ))}
-            </select>
+            </SearchableSelect>
           </div>
 
           <div className="space-y-1.5 md:col-span-2">

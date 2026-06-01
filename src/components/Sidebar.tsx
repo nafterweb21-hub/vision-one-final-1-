@@ -87,7 +87,7 @@ export default function Sidebar({ userEmail, userRole, isAdmin }: SidebarProps) 
       {/* Mobile & Desktop Toggle Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`fixed top-5 z-50 p-2.5 rounded-xl border shadow-sm transition-all duration-300 ${
+        className={`fixed top-3 z-50 p-2.5 rounded-xl border shadow-sm transition-all duration-300 ${
           isOpen 
             ? "left-[19rem] bg-white border-slate-200 text-slate-600 hover:bg-slate-50" 
             : "left-6 bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
@@ -144,7 +144,7 @@ export default function Sidebar({ userEmail, userRole, isAdmin }: SidebarProps) 
               <LayoutGrid size={16} className="text-slate-500" />
               <span>Module Management</span>
             </Link>
-            <Link href="#" onClick={() => setIsOpen(false)} className={linkClass("#roles")}>
+            <Link href="/dashboard/admin/roles" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/admin/roles")}>
               <Key size={16} className="text-yellow-500" />
               <span>Roles</span>
             </Link>

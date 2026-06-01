@@ -1,10 +1,9 @@
 "use client";
-
+import { SearchableSelect } from "@/components/SearchableSelect";
 import React, { useState } from "react";
 import Link from "next/link";
 import { FileText, Download, Loader2, AlertCircle } from "lucide-react";
 import * as XLSX from "xlsx";
-
 export default function SubconPurchasingReportPage() {
   const [company, setCompany] = useState("");
   const [poNo, setPoNo] = useState("");
@@ -223,7 +222,7 @@ export default function SubconPurchasingReportPage() {
           </div>
           <div className="space-y-1">
             <label className="text-xs font-semibold text-blue-700">PO Status</label>
-            <select
+            <SearchableSelect
               value={poStatus}
               onChange={(e) => setPoStatus(e.target.value)}
               className="w-full px-3 py-2 text-sm bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
@@ -232,7 +231,7 @@ export default function SubconPurchasingReportPage() {
               <option value="Draft">Draft</option>
               <option value="Issued">Issued</option>
               <option value="Confirmed">Confirmed</option>
-            </select>
+            </SearchableSelect>
           </div>
           <div className="space-y-1">
             <label className="text-xs font-semibold text-blue-700">PO Date (From)</label>

@@ -1,4 +1,5 @@
 "use client";
+import { SearchableSelect } from "@/components/SearchableSelect";
 import { customConfirm } from "@/lib/customConfirm";
 import { toast as hotToast } from "react-hot-toast";
 
@@ -15,7 +16,6 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { getGoodsReturnFormData, submitGoodsReturn, voidGoodsReturn } from "../actions";
-
 export default function GoodsReturnFormPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const { id } = React.use(params);
@@ -339,7 +339,7 @@ export default function GoodsReturnFormPage({ params }: { params: Promise<{ id: 
           <FormCard title="Basic Information">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <FieldGroup label="Company *">
-                <select
+                <SearchableSelect
                   value={companyId}
                   onChange={(e) => setCompanyId(e.target.value)}
                   disabled={isReadonly}
@@ -349,7 +349,7 @@ export default function GoodsReturnFormPage({ params }: { params: Promise<{ id: 
                   {prereq?.companies?.map((c: any) => (
                     <option key={c.id} value={c.id}>{c.companyName}</option>
                   ))}
-                </select>
+                </SearchableSelect>
               </FieldGroup>
 
               <FieldGroup label="RTN Date *">
@@ -363,7 +363,7 @@ export default function GoodsReturnFormPage({ params }: { params: Promise<{ id: 
               </FieldGroup>
 
               <FieldGroup label="Supplier *">
-                <select
+                <SearchableSelect
                   value={supplierId}
                   onChange={(e) => {
                     setSupplierId(e.target.value);
@@ -378,11 +378,11 @@ export default function GoodsReturnFormPage({ params }: { params: Promise<{ id: 
                   {prereq?.suppliers?.map((s: any) => (
                     <option key={s.id} value={s.id}>{s.supplierName}</option>
                   ))}
-                </select>
+                </SearchableSelect>
               </FieldGroup>
 
               <FieldGroup label="PO No *">
-                <select
+                <SearchableSelect
                   value={purchaseOrderId}
                   onChange={(e) => {
                     setPurchaseOrderId(e.target.value);
@@ -396,11 +396,11 @@ export default function GoodsReturnFormPage({ params }: { params: Promise<{ id: 
                   {filteredPOs.map((p: any) => (
                     <option key={p.id} value={p.id}>{p.poNo}</option>
                   ))}
-                </select>
+                </SearchableSelect>
               </FieldGroup>
 
               <FieldGroup label="GR No *">
-                <select
+                <SearchableSelect
                   value={goodsReceiveId}
                   onChange={(e) => {
                     setGoodsReceiveId(e.target.value);
@@ -413,7 +413,7 @@ export default function GoodsReturnFormPage({ params }: { params: Promise<{ id: 
                   {filteredGRsByPO.map((gr: any) => (
                     <option key={gr.id} value={gr.id}>{gr.grNo}</option>
                   ))}
-                </select>
+                </SearchableSelect>
               </FieldGroup>
             </div>
           </FormCard>
@@ -526,7 +526,7 @@ export default function GoodsReturnFormPage({ params }: { params: Promise<{ id: 
           <FormCard title="Other Details">
             <div className="space-y-4">
               <FieldGroup label="Creator *">
-                <select
+                <SearchableSelect
                   value={creatorId}
                   onChange={(e) => setCreatorId(e.target.value)}
                   disabled={isReadonly}
@@ -536,7 +536,7 @@ export default function GoodsReturnFormPage({ params }: { params: Promise<{ id: 
                   {prereq?.employees?.map((e: any) => (
                     <option key={e.id} value={e.id}>{e.name}</option>
                   ))}
-                </select>
+                </SearchableSelect>
               </FieldGroup>
               <FieldGroup label="Remark">
                 <textarea

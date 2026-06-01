@@ -1,9 +1,9 @@
-import { PrismaClient } from "@/generated/prisma/client";
+import { PrismaClient } from "@/generated/prisma";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 
 const globalForPrisma = globalThis as unknown as {
-  prisma_v7: PrismaClient | undefined;
+  prisma_v8: PrismaClient | undefined;
 };
 
 function createPrismaClient(): PrismaClient {
@@ -19,10 +19,10 @@ function createPrismaClient(): PrismaClient {
 }
 
 function getOrCreatePrisma(): PrismaClient {
-  if (globalForPrisma.prisma_v7) return globalForPrisma.prisma_v7;
+  if (globalForPrisma.prisma_v8) return globalForPrisma.prisma_v8;
   const client = createPrismaClient();
   if (process.env.NODE_ENV !== "production") {
-    globalForPrisma.prisma_v7 = client;
+    globalForPrisma.prisma_v8 = client;
   }
   return client;
 }

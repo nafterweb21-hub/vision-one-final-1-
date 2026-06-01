@@ -1,9 +1,8 @@
 "use client";
-
+import { SearchableSelect } from "@/components/SearchableSelect";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { transitionWorkOrderStatus, updateWorkOrderEditable } from "../actions";
-
 type Uom = { id: string; uomName: string };
 
 type Props = {
@@ -182,7 +181,7 @@ export default function WorkOrderHeader({ wo, uoms }: Props) {
           />
         </Editable>
         <Editable label="Label UOM" required>
-          <select
+          <SearchableSelect
             value={labelUomId}
             onChange={(e) => setLabelUomId(e.target.value)}
             disabled={!editable}
@@ -194,7 +193,7 @@ export default function WorkOrderHeader({ wo, uoms }: Props) {
                 {u.uomName}
               </option>
             ))}
-          </select>
+          </SearchableSelect>
         </Editable>
       </Section>
 

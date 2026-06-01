@@ -1,11 +1,11 @@
 "use client";
+import { SearchableSelect } from "@/components/SearchableSelect";
 import { customConfirm } from "@/lib/customConfirm";
 
 import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Save, Loader2, AlertCircle, Send, CheckCircle, Printer } from "lucide-react";
-
 export default function CertificateOfConformityFormPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -308,7 +308,7 @@ export default function CertificateOfConformityFormPage() {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
               <label className="text-sm font-semibold text-blue-900">Type <span className="text-rose-500">*</span></label>
-              <select
+              <SearchableSelect
                 value={formData.type}
                 onChange={(e) => setFormData({ ...formData, type: e.target.value })}
                 disabled={!isDraft}
@@ -319,7 +319,7 @@ export default function CertificateOfConformityFormPage() {
                 <option value="Pressure">Pressure</option>
                 <option value="Spray Painting">Spray Painting</option>
                 <option value="Welding">Welding</option>
-              </select>
+              </SearchableSelect>
             </div>
             
             <div className="space-y-1">
@@ -336,7 +336,7 @@ export default function CertificateOfConformityFormPage() {
 
           <div className="space-y-1">
             <label className="text-sm font-semibold text-blue-900">Customer <span className="text-rose-500">*</span></label>
-            <select
+            <SearchableSelect
               value={formData.customerId}
               onChange={(e) => setFormData({ ...formData, customerId: e.target.value, deliveryOrderId: "", workOrderNo: "" })}
               disabled={!isDraft}
@@ -346,12 +346,12 @@ export default function CertificateOfConformityFormPage() {
               {metadata.customers.map((c: any) => (
                 <option key={c.id} value={c.id}>{c.customerName}</option>
               ))}
-            </select>
+            </SearchableSelect>
           </div>
 
           <div className="space-y-1">
             <label className="text-sm font-semibold text-blue-900">Delivery Order <span className="text-rose-500">*</span></label>
-            <select
+            <SearchableSelect
               value={formData.deliveryOrderId}
               onChange={(e) => setFormData({ ...formData, deliveryOrderId: e.target.value, workOrderNo: "" })}
               disabled={!isDraft || !formData.customerId}
@@ -365,12 +365,12 @@ export default function CertificateOfConformityFormPage() {
                   <option key={d.id} value={d.id}>{d.doNo}</option>
                 ))
               )}
-            </select>
+            </SearchableSelect>
           </div>
 
           <div className="space-y-1">
             <label className="text-sm font-semibold text-blue-900">Work Order <span className="text-rose-500">*</span></label>
-            <select
+            <SearchableSelect
               value={formData.workOrderNo}
               onChange={(e) => setFormData({ ...formData, workOrderNo: e.target.value })}
               disabled={!isDraft || !formData.deliveryOrderId}
@@ -384,7 +384,7 @@ export default function CertificateOfConformityFormPage() {
                   <option key={wo.workOrderNo} value={wo.workOrderNo}>{wo.workOrderNo}</option>
                 ))
               )}
-            </select>
+            </SearchableSelect>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -403,7 +403,7 @@ export default function CertificateOfConformityFormPage() {
             
             <div className="space-y-1">
               <label className="text-sm font-semibold text-blue-900">COC UOM <span className="text-rose-500">*</span></label>
-              <select
+              <SearchableSelect
                 value={formData.cocUomId}
                 onChange={(e) => setFormData({ ...formData, cocUomId: e.target.value })}
                 disabled={!isDraft}
@@ -413,7 +413,7 @@ export default function CertificateOfConformityFormPage() {
                 {metadata.uoms.map((u: any) => (
                   <option key={u.id} value={u.id}>{u.uomName}</option>
                 ))}
-              </select>
+              </SearchableSelect>
             </div>
           </div>
 
@@ -448,7 +448,7 @@ export default function CertificateOfConformityFormPage() {
               </div>
               <div className="space-y-1">
                 <label className="text-sm font-semibold text-blue-900">Welder <span className="text-rose-500">*</span></label>
-                <select
+                <SearchableSelect
                   value={formData.welderId}
                   onChange={(e) => setFormData({ ...formData, welderId: e.target.value })}
                   disabled={!isDraft}
@@ -458,7 +458,7 @@ export default function CertificateOfConformityFormPage() {
                   {metadata.employees.map((e: any) => (
                     <option key={e.id} value={e.id}>{e.name} ({e.code})</option>
                   ))}
-                </select>
+                </SearchableSelect>
               </div>
               <div className="space-y-1">
                 <label className="text-sm font-semibold text-blue-900">Welding Process <span className="text-rose-500">*</span></label>
@@ -472,7 +472,7 @@ export default function CertificateOfConformityFormPage() {
               </div>
               <div className="space-y-1">
                 <label className="text-sm font-semibold text-blue-900">Welding Machine</label>
-                <select
+                <SearchableSelect
                   value={formData.weldingMachineId}
                   onChange={(e) => setFormData({ ...formData, weldingMachineId: e.target.value })}
                   disabled={!isDraft}
@@ -482,7 +482,7 @@ export default function CertificateOfConformityFormPage() {
                   {metadata.machines.filter((m: any) => m.machineCategory === "Welding Machine").map((m: any) => (
                     <option key={m.id} value={m.id}>{m.machineNo} - {m.brand}</option>
                   ))}
-                </select>
+                </SearchableSelect>
               </div>
             </div>
           )}
@@ -525,7 +525,7 @@ export default function CertificateOfConformityFormPage() {
 
               <div className="space-y-1">
                 <label className="text-sm font-semibold text-blue-900">Painter <span className="text-rose-500">*</span></label>
-                <select
+                <SearchableSelect
                   value={formData.painterId}
                   onChange={(e) => setFormData({ ...formData, painterId: e.target.value })}
                   disabled={!isDraft}
@@ -535,12 +535,12 @@ export default function CertificateOfConformityFormPage() {
                   {metadata.employees.map((e: any) => (
                     <option key={e.id} value={e.id}>{e.name} ({e.code})</option>
                   ))}
-                </select>
+                </SearchableSelect>
               </div>
 
               <div className="space-y-1">
                 <label className="text-sm font-semibold text-blue-900">Painting Method <span className="text-rose-500">*</span></label>
-                <select
+                <SearchableSelect
                   value={formData.paintingMethodId}
                   onChange={(e) => setFormData({ ...formData, paintingMethodId: e.target.value })}
                   disabled={!isDraft}
@@ -550,7 +550,7 @@ export default function CertificateOfConformityFormPage() {
                   {metadata.paintingMethods.map((m: any) => (
                     <option key={m.id} value={m.id}>{m.method}</option>
                   ))}
-                </select>
+                </SearchableSelect>
               </div>
 
               <div className="space-y-1">

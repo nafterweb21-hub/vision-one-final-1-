@@ -1,7 +1,6 @@
 "use client";
-
+import { SearchableSelect } from "@/components/SearchableSelect";
 import { useMemo } from "react";
-
 type Machine = {
   id: string;
   machineCode: string;
@@ -66,7 +65,7 @@ export default function WeldingForm({
 
       <Group label="Welding Machine">
         <Field label="Welding Machine" required>
-          <select
+          <SearchableSelect
             value={value.weldingMachineId || ""}
             onChange={(e) => set("weldingMachineId", e.target.value)}
             className={inputCls}
@@ -75,7 +74,7 @@ export default function WeldingForm({
             {weldingMachines.map((m) => (
               <option key={m.id} value={m.id}>{m.machineCode}</option>
             ))}
-          </select>
+          </SearchableSelect>
         </Field>
         <ReadField label="Machine No" value={selectedMachine?.machineNo} />
         <ReadField label="Brand" value={selectedMachine?.brand} />
@@ -86,7 +85,7 @@ export default function WeldingForm({
 
       <Group label="Joint & Process">
         <Field label="Type of Joint">
-          <select
+          <SearchableSelect
             value={value.typeOfJointId || ""}
             onChange={(e) => set("typeOfJointId", e.target.value)}
             className={inputCls}
@@ -95,18 +94,18 @@ export default function WeldingForm({
             {joints.map((j) => (
               <option key={j.id} value={j.id}>{j.joint}</option>
             ))}
-          </select>
+          </SearchableSelect>
         </Field>
         <Field label="Electrode Type">
           <input value={value.electrodeType || ""} onChange={(e) => set("electrodeType", e.target.value)} className={inputCls} />
         </Field>
         <Field label="Welding Position">
-          <select value={value.weldingPosition || ""} onChange={(e) => set("weldingPosition", e.target.value)} className={inputCls}>
+          <SearchableSelect value={value.weldingPosition || ""} onChange={(e) => set("weldingPosition", e.target.value)} className={inputCls}>
             <option value="">Select</option>
             {POSITIONS.map((p) => (
               <option key={p} value={p}>{p}</option>
             ))}
-          </select>
+          </SearchableSelect>
         </Field>
         <NumField label="Welding Joint" value={value.weldingJoint} onChange={(v) => set("weldingJoint", v)} />
         <NumField label="Welding Size (mm)" value={value.weldingSizeMm} onChange={(v) => set("weldingSizeMm", v)} />

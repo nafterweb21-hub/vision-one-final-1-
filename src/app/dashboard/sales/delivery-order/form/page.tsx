@@ -1,11 +1,11 @@
 "use client";
+import { SearchableSelect } from "@/components/SearchableSelect";
 import { customConfirm } from "@/lib/customConfirm";
 
 import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Save, Loader2, Plus, Trash2, Send, AlertCircle } from "lucide-react";
-
 export default function DeliveryOrderFormPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -246,7 +246,7 @@ export default function DeliveryOrderFormPage() {
 
           <div className="space-y-1">
             <label className="text-sm font-semibold text-blue-900">Customer <span className="text-rose-500">*</span></label>
-            <select
+            <SearchableSelect
               value={formData.customerId}
               onChange={(e) => setFormData({ ...formData, customerId: e.target.value, salesOrderId: "" })} // Reset SO when customer changes
               disabled={!isDraft}
@@ -256,12 +256,12 @@ export default function DeliveryOrderFormPage() {
               {metadata.customers.map((c: any) => (
                 <option key={c.id} value={c.id}>{c.customerName}</option>
               ))}
-            </select>
+            </SearchableSelect>
           </div>
 
           <div className="space-y-1">
             <label className="text-sm font-semibold text-blue-900">Sales Order <span className="text-rose-500">*</span></label>
-            <select
+            <SearchableSelect
               value={formData.salesOrderId}
               onChange={(e) => setFormData({ ...formData, salesOrderId: e.target.value })}
               disabled={!isDraft || !formData.customerId}
@@ -271,7 +271,7 @@ export default function DeliveryOrderFormPage() {
               {filteredSalesOrders.map((so: any) => (
                 <option key={so.id} value={so.id}>{so.orderNo} {so.customerPoRef ? `(${so.customerPoRef})` : ""}</option>
               ))}
-            </select>
+            </SearchableSelect>
           </div>
 
           <div className="space-y-1 md:col-span-2 flex items-center gap-3">
@@ -327,7 +327,7 @@ export default function DeliveryOrderFormPage() {
                 formData.items.map((item: any, index: number) => (
                   <tr key={index} className="hover:bg-blue-50/30">
                     <td className="px-4 py-2">
-                      <select
+                      <SearchableSelect
                         value={item.workOrderNo}
                         onChange={(e) => updateItem(index, "workOrderNo", e.target.value)}
                         disabled={!isDraft}
@@ -337,7 +337,7 @@ export default function DeliveryOrderFormPage() {
                         {filteredWorkOrders.map((wo: any) => (
                           <option key={wo.workOrderNo} value={wo.workOrderNo}>{wo.workOrderNo}</option>
                         ))}
-                      </select>
+                      </SearchableSelect>
                     </td>
                     <td className="px-4 py-2">
                        <input
@@ -351,7 +351,7 @@ export default function DeliveryOrderFormPage() {
                       />
                     </td>
                     <td className="px-4 py-2">
-                      <select
+                      <SearchableSelect
                         value={item.uomId || ""}
                         onChange={(e) => updateItem(index, "uomId", e.target.value)}
                         disabled={!isDraft}
@@ -361,7 +361,7 @@ export default function DeliveryOrderFormPage() {
                         {metadata.uoms.map((u: any) => (
                           <option key={u.id} value={u.id}>{u.uomName}</option>
                         ))}
-                      </select>
+                      </SearchableSelect>
                     </td>
                     <td className="px-4 py-2">
                        <input

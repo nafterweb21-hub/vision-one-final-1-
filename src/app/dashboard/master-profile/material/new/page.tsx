@@ -1,5 +1,5 @@
 "use client";
-
+import { SearchableSelect } from "@/components/SearchableSelect";
 import React, { useState, useEffect, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -8,7 +8,6 @@ import {
   createMaterialCategory,
 } from "../actions";
 import Link from "next/link";
-
 interface MaterialCategory {
   id: string;
   name: string;
@@ -159,7 +158,7 @@ export default function CreateMaterialPage() {
                 Category <span className="text-rose-500">*</span>
               </label>
               <div className="flex gap-2">
-                <select
+                <SearchableSelect
                   required
                   value={newCategoryId}
                   onChange={(e) => setNewCategoryId(e.target.value)}
@@ -169,7 +168,7 @@ export default function CreateMaterialPage() {
                   {categories.map((c) => (
                     <option key={c.id} value={c.id}>{c.name}</option>
                   ))}
-                </select>
+                </SearchableSelect>
                 <button
                   type="button"
                   onClick={() => setIsCategoryModalOpen(true)}

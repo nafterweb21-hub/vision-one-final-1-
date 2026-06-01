@@ -1,9 +1,8 @@
 "use client";
-
+import { SearchableSelect } from "@/components/SearchableSelect";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-
 interface MainProcess {
   id: string;
   process: string;
@@ -129,7 +128,7 @@ export default function CreateProcessProfilePage() {
                 <label className="mb-1.5 block text-xs font-bold text-blue-700 ">
                   Main Process <span className="text-rose-500">*</span>
                 </label>
-                <select
+                <SearchableSelect
                   name="mainProcessId"
                   required
                   value={formData.mainProcessId}
@@ -140,7 +139,7 @@ export default function CreateProcessProfilePage() {
                   {mainProcesses.map(m => (
                     <option key={m.id} value={m.id}>{m.process}</option>
                   ))}
-                </select>
+                </SearchableSelect>
                 <p className="mt-1.5 text-[11px] text-blue-500">Group categorization for this routing process.</p>
               </div>
 
@@ -223,7 +222,7 @@ export default function CreateProcessProfilePage() {
                 <label className="mb-1.5 block text-xs font-bold text-blue-700 ">
                   Status
                 </label>
-                <select
+                <SearchableSelect
                   name="status"
                   value={formData.status}
                   onChange={handleChange}
@@ -231,7 +230,7 @@ export default function CreateProcessProfilePage() {
                 >
                   <option value="Active">Active</option>
                   <option value="Inactive">Inactive</option>
-                </select>
+                </SearchableSelect>
               </div>
             </div>
 

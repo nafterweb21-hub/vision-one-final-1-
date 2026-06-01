@@ -1,9 +1,8 @@
 "use client";
-
+import { SearchableSelect } from "@/components/SearchableSelect";
 import React, { useState, useEffect } from "react";
 import { getJointProfileItems } from "@/app/dashboard/master-profile/joint/actions";
 import Link from "next/link";
-
 interface JointProfileDropdownProps {
   value: string;
   onChange: (value: string) => void;
@@ -30,20 +29,20 @@ export function JointProfileDropdown({ value, onChange, disabled }: JointProfile
   return (
     <div className="relative">
       {isLoading ? (
-        <select
+        <SearchableSelect
           disabled
           className="w-full rounded-lg border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm text-blue-500 outline-none opacity-50"
         >
           <option>Loading joint profiles...</option>
-        </select>
+        </SearchableSelect>
       ) : items.length === 0 ? (
         <div className="flex flex-col gap-2">
-          <select
+          <SearchableSelect
             disabled
             className="w-full rounded-lg border border-rose-200 bg-rose-50 px-4 py-2.5 text-sm text-rose-500 outline-none opacity-80"
           >
             <option>No active joint profiles found</option>
-          </select>
+          </SearchableSelect>
           <Link
             href="/dashboard/master-profile/joint/new"
             target="_blank"
@@ -54,7 +53,7 @@ export function JointProfileDropdown({ value, onChange, disabled }: JointProfile
         </div>
       ) : (
         <div className="flex flex-col gap-2">
-          <select
+          <SearchableSelect
             value={value}
             onChange={(e) => onChange(e.target.value)}
             disabled={disabled}
@@ -66,7 +65,7 @@ export function JointProfileDropdown({ value, onChange, disabled }: JointProfile
                 {item.joint}
               </option>
             ))}
-          </select>
+          </SearchableSelect>
           
           <div className="flex justify-end">
             <Link

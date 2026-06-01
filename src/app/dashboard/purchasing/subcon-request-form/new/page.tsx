@@ -1,11 +1,12 @@
 "use client";
+import { SearchableSelect } from "@/components/SearchableSelect";
 import { toast as hotToast } from "react-hot-toast";
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  ArrowLeft,
+ArrowLeft,
   Search,
   Loader2,
   AlertCircle,
@@ -331,7 +332,7 @@ export default function NewSubconRequestFormPage() {
             
             <div>
               <label className="block text-xs font-semibold text-blue-500 mb-1">Outsourced By *</label>
-              <select
+              <SearchableSelect
                 value={outsourcedById}
                 onChange={(e) => setOutsourcedById(e.target.value)}
                 className="w-full px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20"
@@ -341,7 +342,7 @@ export default function NewSubconRequestFormPage() {
                 {employees.map(emp => (
                   <option key={emp.id} value={emp.id}>{emp.name}</option>
                 ))}
-              </select>
+              </SearchableSelect>
             </div>
             
             <div>
@@ -357,7 +358,7 @@ export default function NewSubconRequestFormPage() {
             
             <div>
               <label className="block text-xs font-semibold text-blue-500 mb-1">Received By</label>
-              <select
+              <SearchableSelect
                 value={receivedById}
                 onChange={(e) => setReceivedById(e.target.value)}
                 className="w-full px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20"
@@ -366,7 +367,7 @@ export default function NewSubconRequestFormPage() {
                 {selectedItem.purchaseOrder.supplier?.contactPersons?.map((cp: any) => (
                   <option key={cp.id} value={cp.id}>{cp.contactPersonName}</option>
                 ))}
-              </select>
+              </SearchableSelect>
             </div>
             
             <div>

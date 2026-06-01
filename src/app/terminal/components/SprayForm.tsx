@@ -1,5 +1,5 @@
 "use client";
-
+import { SearchableSelect } from "@/components/SearchableSelect";
 type Props = {
   value: any;
   onChange: (next: any) => void;
@@ -184,12 +184,12 @@ function SelectField({
 }) {
   return (
     <Field label={label}>
-      <select value={value[field] || ""} onChange={(e) => onChange({ ...value, [field]: e.target.value })} className={inputCls}>
+      <SearchableSelect value={value[field] || ""} onChange={(e) => onChange({ ...value, [field]: e.target.value })} className={inputCls}>
         <option value="">Select</option>
         {options.map((o) => (
           <option key={o} value={o}>{o}</option>
         ))}
-      </select>
+      </SearchableSelect>
     </Field>
   );
 }

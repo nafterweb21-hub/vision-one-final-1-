@@ -1,4 +1,5 @@
 "use client";
+import { SearchableSelect } from "@/components/SearchableSelect";
 import { toast as hotToast } from "react-hot-toast";
 
 import React, { useState, useEffect } from "react";
@@ -6,7 +7,7 @@ import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { useForm, Controller } from "react-hook-form";
 import {
-  Save,
+Save,
   ArrowLeft,
   Loader2,
   AlertCircle,
@@ -265,12 +266,12 @@ export default function SubconReturnTrackingFormPage() {
                     control={control}
                     rules={{ required: "Required" }}
                     render={({ field }) => (
-                      <select {...field} disabled={readOnlyMode} className={`w-full px-3 py-2 text-sm bg-indigo-50/50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30 ${errors.companyId ? "border-rose-300 focus:border-rose-500" : "border-indigo-100 focus:border-indigo-500"} disabled:opacity-60`}>
+                      <SearchableSelect {...field} disabled={readOnlyMode} className={`w-full px-3 py-2 text-sm bg-indigo-50/50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30 ${errors.companyId ? "border-rose-300 focus:border-rose-500" : "border-indigo-100 focus:border-indigo-500"} disabled:opacity-60`}>
                         <option value="">-- Select Company --</option>
                         {formData.companies.map((c: any) => (
                           <option key={c.id} value={c.id}>{c.companyName}</option>
                         ))}
-                      </select>
+                      </SearchableSelect>
                     )}
                   />
                </div>
@@ -294,12 +295,12 @@ export default function SubconReturnTrackingFormPage() {
                     control={control}
                     rules={{ required: "Required" }}
                     render={({ field }) => (
-                      <select {...field} disabled={readOnlyMode} className={`w-full px-3 py-2 text-sm bg-indigo-50/50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30 ${errors.supplierId ? "border-rose-300 focus:border-rose-500" : "border-indigo-100 focus:border-indigo-500"} disabled:opacity-60`}>
+                      <SearchableSelect {...field} disabled={readOnlyMode} className={`w-full px-3 py-2 text-sm bg-indigo-50/50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30 ${errors.supplierId ? "border-rose-300 focus:border-rose-500" : "border-indigo-100 focus:border-indigo-500"} disabled:opacity-60`}>
                         <option value="">-- Select Supplier --</option>
                         {formData.suppliers.map((s: any) => (
                           <option key={s.id} value={s.id}>{s.supplierCode} - {s.supplierName}</option>
                         ))}
-                      </select>
+                      </SearchableSelect>
                     )}
                   />
                </div>
@@ -311,12 +312,12 @@ export default function SubconReturnTrackingFormPage() {
                     control={control}
                     rules={{ required: "Required" }}
                     render={({ field }) => (
-                      <select {...field} disabled={readOnlyMode || !watchSupplierId || !watchCompanyId} className={`w-full px-3 py-2 text-sm bg-indigo-50/50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30 ${errors.purchaseOrderId ? "border-rose-300 focus:border-rose-500" : "border-indigo-100 focus:border-indigo-500"} disabled:opacity-60`}>
+                      <SearchableSelect {...field} disabled={readOnlyMode || !watchSupplierId || !watchCompanyId} className={`w-full px-3 py-2 text-sm bg-indigo-50/50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30 ${errors.purchaseOrderId ? "border-rose-300 focus:border-rose-500" : "border-indigo-100 focus:border-indigo-500"} disabled:opacity-60`}>
                         <option value="">-- Select PO --</option>
                         {filteredPOs.map((p: any) => (
                           <option key={p.id} value={p.id}>{p.poNo}</option>
                         ))}
-                      </select>
+                      </SearchableSelect>
                     )}
                   />
                </div>
@@ -328,12 +329,12 @@ export default function SubconReturnTrackingFormPage() {
                     control={control}
                     rules={{ required: "Required" }}
                     render={({ field }) => (
-                      <select {...field} disabled={readOnlyMode || !watchPurchaseOrderId} className={`w-full px-3 py-2 text-sm bg-indigo-50/50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30 ${errors.subconRequestFormId ? "border-rose-300 focus:border-rose-500" : "border-indigo-100 focus:border-indigo-500"} disabled:opacity-60`}>
+                      <SearchableSelect {...field} disabled={readOnlyMode || !watchPurchaseOrderId} className={`w-full px-3 py-2 text-sm bg-indigo-50/50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30 ${errors.subconRequestFormId ? "border-rose-300 focus:border-rose-500" : "border-indigo-100 focus:border-indigo-500"} disabled:opacity-60`}>
                         <option value="">-- Select SRF --</option>
                         {filteredSRFs.map((s: any) => (
                           <option key={s.id} value={s.id}>{s.srfNo} - {s.partDescription}</option>
                         ))}
-                      </select>
+                      </SearchableSelect>
                     )}
                   />
                </div>

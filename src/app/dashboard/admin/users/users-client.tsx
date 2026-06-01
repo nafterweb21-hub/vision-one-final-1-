@@ -1,5 +1,5 @@
 "use client";
-
+import { SearchableSelect } from "@/components/SearchableSelect";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { customConfirm } from "@/lib/customConfirm";
@@ -142,7 +142,7 @@ export default function UsersClient({ currentUserId }: { currentUserId: string }
           onChange={(e) => setSearch(e.target.value)}
           className="col-span-6 rounded-xl border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
         />
-        <select
+        <SearchableSelect
           value={roleFilter}
           onChange={(e) => setRoleFilter(e.target.value as "ALL" | Role)}
           className="col-span-3 rounded-xl border border-blue-200 bg-blue-50 px-3 py-2.5 text-sm"
@@ -153,8 +153,8 @@ export default function UsersClient({ currentUserId }: { currentUserId: string }
               {r}
             </option>
           ))}
-        </select>
-        <select
+        </SearchableSelect>
+        <SearchableSelect
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value as "ALL" | "ACTIVE" | "INACTIVE")}
           className="col-span-3 rounded-xl border border-blue-200 bg-blue-50 px-3 py-2.5 text-sm"
@@ -162,7 +162,7 @@ export default function UsersClient({ currentUserId }: { currentUserId: string }
           <option value="ALL">All Statuses</option>
           <option value="ACTIVE">Active</option>
           <option value="INACTIVE">Inactive</option>
-        </select>
+        </SearchableSelect>
       </div>
 
       {/* Table */}

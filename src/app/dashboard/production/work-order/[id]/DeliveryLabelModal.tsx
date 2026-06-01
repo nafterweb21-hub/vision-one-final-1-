@@ -1,8 +1,7 @@
 "use client";
-
+import { SearchableSelect } from "@/components/SearchableSelect";
 import { useState } from "react";
 import { X, Printer } from "lucide-react";
-
 export default function DeliveryLabelModal({ 
   workOrderNo, 
   defaultQty, 
@@ -70,7 +69,7 @@ export default function DeliveryLabelModal({
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">UOM</label>
-                  <select
+                  <SearchableSelect
                     value={uom}
                     onChange={(e) => setUom(e.target.value)}
                     className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
@@ -79,7 +78,7 @@ export default function DeliveryLabelModal({
                     {uoms.map(u => (
                       <option key={u.id} value={u.uomName}>{u.uomName}</option>
                     ))}
-                  </select>
+                  </SearchableSelect>
                 </div>
               </div>
             </div>

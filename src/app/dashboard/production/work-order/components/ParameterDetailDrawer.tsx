@@ -1,10 +1,9 @@
 "use client";
-
+import { SearchableSelect } from "@/components/SearchableSelect";
 import { useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { X, Plus, Trash2, Edit, Save } from "lucide-react";
 import { updateProcessParameters } from "../actions";
-
 type Props = {
   welding?: any;
   spray?: any;
@@ -501,7 +500,7 @@ function WeldingEdit({
 
         <div className="flex flex-col">
           <label className="text-xs font-semibold text-slate-500 mb-1">Welding Machine</label>
-          <select
+          <SearchableSelect
             value={formData.weldingMachineId}
             onChange={(e) => updateField("weldingMachineId", e.target.value)}
             className="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
@@ -512,14 +511,14 @@ function WeldingEdit({
                 {m.machineCode} ({m.brand} {m.model})
               </option>
             ))}
-          </select>
+          </SearchableSelect>
         </div>
       </Section>
 
       <Section title="Joint & Process (Edit)">
         <div className="flex flex-col">
           <label className="text-xs font-semibold text-slate-500 mb-1">Type of Joint</label>
-          <select
+          <SearchableSelect
             value={formData.typeOfJointId}
             onChange={(e) => updateField("typeOfJointId", e.target.value)}
             className="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
@@ -530,7 +529,7 @@ function WeldingEdit({
                 {j.joint}
               </option>
             ))}
-          </select>
+          </SearchableSelect>
         </div>
 
         <div className="flex flex-col">
@@ -1030,7 +1029,7 @@ function SprayEdit({
       <Section title="Confirmation & Elcometer (Edit)">
         <div className="flex flex-col">
           <label className="text-xs font-semibold text-slate-500 mb-1">Elcometer Serial No</label>
-          <select
+          <SearchableSelect
             value={formData.elcometerSerialNoId}
             onChange={(e) => {
               const selectedId = e.target.value;
@@ -1049,7 +1048,7 @@ function SprayEdit({
                 {el.serialNo}
               </option>
             ))}
-          </select>
+          </SearchableSelect>
         </div>
 
         <div className="flex flex-col md:col-span-2">
@@ -1127,7 +1126,7 @@ function MachiningEdit({
       <Section title="Machine Specs (Edit)">
         <div className="flex flex-col">
           <label className="text-xs font-semibold text-slate-500 mb-1">Machine</label>
-          <select
+          <SearchableSelect
             value={formData.machineSerialNoId}
             onChange={(e) => updateField("machineSerialNoId", e.target.value)}
             className="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
@@ -1138,7 +1137,7 @@ function MachiningEdit({
                 {m.machineNo} ({m.brand} {m.model} - S/N {m.serialNo})
               </option>
             ))}
-          </select>
+          </SearchableSelect>
         </div>
       </Section>
 

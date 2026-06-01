@@ -1,9 +1,8 @@
 "use client";
-
+import { SearchableSelect } from "@/components/SearchableSelect";
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Plus, Search, Loader2, Edit2, AlertCircle, FileCheck, Printer } from "lucide-react";
-
 export default function CertificateOfConformityListPage() {
   const [cocs, setCocs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -74,7 +73,7 @@ export default function CertificateOfConformityListPage() {
           />
         </div>
         <div className="sm:w-48">
-          <select
+          <SearchableSelect
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             className="w-full px-3 py-2 text-sm bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-blue-700 transition-colors"
@@ -83,7 +82,7 @@ export default function CertificateOfConformityListPage() {
             <option value="Draft">Draft</option>
             <option value="Require Approval">Require Approval</option>
             <option value="Approved">Approved</option>
-          </select>
+          </SearchableSelect>
         </div>
       </div>
 

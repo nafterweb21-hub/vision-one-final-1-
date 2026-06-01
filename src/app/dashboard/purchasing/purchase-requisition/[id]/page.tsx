@@ -1,10 +1,9 @@
 "use client";
-
+import { SearchableSelect } from "@/components/SearchableSelect";
 import React, { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Loader2, ArrowLeft, Plus, Trash2, Save, FileText } from "lucide-react";
-
 type FormData = {
   companies: { id: string; companyName: string; allowPoForWo: boolean }[];
   employees: { id: string; name: string; email: string; code: string }[];
@@ -330,7 +329,7 @@ export default function PurchaseRequisitionEditPage() {
       {/* Header Fields */}
       <div className="bg-white border border-blue-200 rounded-xl shadow-sm p-6 grid grid-cols-1 md:grid-cols-3 gap-4">
         <Field label="Company" required>
-          <select
+          <SearchableSelect
             value={companyId}
             disabled={readOnly || !isNew}
             onChange={(e) => setCompanyId(e.target.value)}
@@ -342,7 +341,7 @@ export default function PurchaseRequisitionEditPage() {
                 {c.companyName}
               </option>
             ))}
-          </select>
+          </SearchableSelect>
         </Field>
 
         <Field label="PR Date" required>
@@ -356,7 +355,7 @@ export default function PurchaseRequisitionEditPage() {
         </Field>
 
         <Field label="Requested By (Employee)" required>
-          <select
+          <SearchableSelect
             value={requestedById}
             disabled={readOnly}
             onChange={(e) => setRequestedById(e.target.value)}
@@ -368,12 +367,12 @@ export default function PurchaseRequisitionEditPage() {
                 {e.name} ({e.code})
               </option>
             ))}
-          </select>
+          </SearchableSelect>
         </Field>
 
         {(!selectedCompany || selectedCompany.allowPoForWo) && (
           <Field label="Work Order">
-            <select
+            <SearchableSelect
               value={workOrderNo}
               disabled={readOnly}
               onChange={(e) => setWorkOrderNo(e.target.value)}
@@ -385,7 +384,7 @@ export default function PurchaseRequisitionEditPage() {
                   {w.workOrderNo}
                 </option>
               ))}
-            </select>
+            </SearchableSelect>
           </Field>
         )}
 
@@ -448,7 +447,7 @@ export default function PurchaseRequisitionEditPage() {
                 return (
                   <tr key={idx} className="hover:bg-blue-50/10">
                     <td className="px-3 py-2 align-top">
-                      <select
+                      <SearchableSelect
                         value={it.fromMaterialProfile ? "Profile" : "Free"}
                         disabled={readOnly}
                         onChange={(e) => updateItem(idx, { fromMaterialProfile: e.target.value === "Profile" })}
@@ -456,12 +455,12 @@ export default function PurchaseRequisitionEditPage() {
                       >
                         <option value="Profile">Profile</option>
                         <option value="Free">FreeText</option>
-                      </select>
+                      </SearchableSelect>
                     </td>
 
                     <td className="px-3 py-2 align-top">
                       {it.fromMaterialProfile ? (
-                        <select
+                        <SearchableSelect
                           value={it.materialProfileId}
                           disabled={readOnly}
                           onChange={(e) => updateItem(idx, { materialProfileId: e.target.value })}
@@ -473,7 +472,7 @@ export default function PurchaseRequisitionEditPage() {
                               {m.partNo ? `${m.partNo} — ` : ""}{m.description.slice(0, 30)}
                             </option>
                           ))}
-                        </select>
+                        </SearchableSelect>
                       ) : (
                         <input
                           type="text"
@@ -520,7 +519,7 @@ export default function PurchaseRequisitionEditPage() {
                     </td>
 
                     <td className="px-3 py-2 align-top">
-                      <select
+                      <SearchableSelect
                         value={it.uomId}
                         disabled={readOnly}
                         onChange={(e) => updateItem(idx, { uomId: e.target.value })}
@@ -532,7 +531,7 @@ export default function PurchaseRequisitionEditPage() {
                             {u.uomName}
                           </option>
                         ))}
-                      </select>
+                      </SearchableSelect>
                     </td>
 
                     <td className="px-3 py-2 align-top">

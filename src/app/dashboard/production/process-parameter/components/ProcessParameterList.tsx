@@ -1,10 +1,10 @@
 "use client";
+import { SearchableSelect } from "@/components/SearchableSelect";
 import { toast as hotToast } from "react-hot-toast";
 
 import { useState } from "react";
 import Link from "next/link";
 import { confirmBulkProcessParameters } from "@/app/dashboard/production/process-parameter/actions";
-
 export default function ProcessParameterList({ timesheets, employees, elcometers }: any) {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [confirmedById, setConfirmedById] = useState("");
@@ -94,7 +94,7 @@ export default function ProcessParameterList({ timesheets, employees, elcometers
       <div className="p-4 bg-slate-50 border-b border-slate-200 flex flex-wrap gap-4 items-end">
         <div className="flex flex-col">
           <label className="text-xs font-semibold text-slate-600 mb-1">Confirm By <span className="text-red-500">*</span></label>
-          <select 
+          <SearchableSelect 
             value={confirmedById}
             onChange={(e) => setConfirmedById(e.target.value)}
             className="border border-slate-300 rounded-md px-3 py-1.5 text-sm bg-white"
@@ -103,12 +103,12 @@ export default function ProcessParameterList({ timesheets, employees, elcometers
             {employees.map((emp: any) => (
               <option key={emp.id} value={emp.id}>{emp.name}</option>
             ))}
-          </select>
+          </SearchableSelect>
         </div>
 
         <div className="flex flex-col">
           <label className="text-xs font-semibold text-slate-600 mb-1">Elcometer Used (For Spray Painting)</label>
-          <select 
+          <SearchableSelect 
             value={elcometerName}
             onChange={(e) => setElcometerName(e.target.value)}
             className="border border-slate-300 rounded-md px-3 py-1.5 text-sm bg-white"
@@ -117,7 +117,7 @@ export default function ProcessParameterList({ timesheets, employees, elcometers
             {elcometers.map((elc: any) => (
               <option key={elc.id} value={elc.serialNo}>{elc.serialNo}</option>
             ))}
-          </select>
+          </SearchableSelect>
         </div>
 
         <button 

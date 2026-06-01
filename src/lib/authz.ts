@@ -1,8 +1,8 @@
 import { auth } from "@/lib/auth";
 import { NextResponse } from "next/server";
-import type { UserRole } from "@/generated/prisma/client";
+import type { Role } from "@/lib/access";
 
-export async function requireRole(...roles: UserRole[]) {
+export async function requireRole(...roles: Role[]) {
   const session = await auth();
   if (!session?.user) {
     return {

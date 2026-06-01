@@ -1,4 +1,5 @@
 "use client";
+import { SearchableSelect } from "@/components/SearchableSelect";
 import { customConfirm } from "@/lib/customConfirm";
 import { toast as hotToast } from "react-hot-toast";
 
@@ -6,7 +7,6 @@ import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Loader2, ArrowLeft, CheckCircle2, XCircle, FileText } from "lucide-react";
-
 type Item = {
   id?: string;
   fromMaterialProfile: boolean;
@@ -224,12 +224,12 @@ export default function PurchaseOrderApprovalDetailPage() {
       {/* Header Fields - Read Only */}
       <div className="bg-white border border-blue-200 rounded-xl shadow-sm p-6 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
         <Field label="Company">
-          <select value={companyId} disabled className={inputCls}>
+          <SearchableSelect value={companyId} disabled className={inputCls}>
             <option value="">— Select —</option>
             {companies.map((c) => (
               <option key={c.id} value={c.id}>{c.companyName}</option>
             ))}
-          </select>
+          </SearchableSelect>
         </Field>
 
         <Field label="PO Date">
@@ -237,39 +237,39 @@ export default function PurchaseOrderApprovalDetailPage() {
         </Field>
 
         <Field label="Purchaser">
-          <select value={purchaserId} disabled className={inputCls}>
+          <SearchableSelect value={purchaserId} disabled className={inputCls}>
             <option value="">— Select —</option>
             {employees.map((e) => (
               <option key={e.id} value={e.id}>{e.name} ({e.code})</option>
             ))}
-          </select>
+          </SearchableSelect>
         </Field>
 
         <Field label="PR No">
-          <select value={purchaseRequisitionId} disabled className={inputCls}>
+          <SearchableSelect value={purchaseRequisitionId} disabled className={inputCls}>
             <option value="">— Independent PO —</option>
             {prs.map((pr) => (
               <option key={pr.id} value={pr.id}>{pr.prNo}</option>
             ))}
-          </select>
+          </SearchableSelect>
         </Field>
 
         <Field label="Supplier">
-          <select value={supplierId} disabled className={inputCls}>
+          <SearchableSelect value={supplierId} disabled className={inputCls}>
             <option value="">— Select Supplier —</option>
             {suppliers.map((s) => (
               <option key={s.id} value={s.id}>{s.supplierName}</option>
             ))}
-          </select>
+          </SearchableSelect>
         </Field>
 
         <Field label="Supplier Contact Person">
-          <select value={contactPersonId} disabled className={inputCls}>
+          <SearchableSelect value={contactPersonId} disabled className={inputCls}>
             <option value="">— Select —</option>
             {suppliers.find(s => s.id === supplierId)?.contactPersons?.map((cp: any) => (
               <option key={cp.id} value={cp.id}>{cp.contactPersonName}</option>
             ))}
-          </select>
+          </SearchableSelect>
         </Field>
 
         <Field label="Supplier Email">
@@ -289,21 +289,21 @@ export default function PurchaseOrderApprovalDetailPage() {
         </Field>
         
         <Field label="Work Order">
-          <select value={workOrderNo} disabled className={inputCls}>
+          <SearchableSelect value={workOrderNo} disabled className={inputCls}>
             <option value="">— None (Non Work Order) —</option>
             {workOrders.map((w) => (
               <option key={w.workOrderNo} value={w.workOrderNo}>{w.workOrderNo}</option>
             ))}
-          </select>
+          </SearchableSelect>
         </Field>
 
         <Field label="Currency">
-          <select value={currencyId} disabled className={inputCls}>
+          <SearchableSelect value={currencyId} disabled className={inputCls}>
             <option value="">— Select —</option>
             {currencies.map((c) => (
               <option key={c.id} value={c.id}>{c.code}</option>
             ))}
-          </select>
+          </SearchableSelect>
         </Field>
 
         <Field label="Exchange Rate">
@@ -311,12 +311,12 @@ export default function PurchaseOrderApprovalDetailPage() {
         </Field>
 
         <Field label="Tax Code">
-          <select value={taxTypeId} disabled className={inputCls}>
+          <SearchableSelect value={taxTypeId} disabled className={inputCls}>
             <option value="">— Select —</option>
             {taxes.map((t) => (
               <option key={t.id} value={t.id}>{t.taxType}</option>
             ))}
-          </select>
+          </SearchableSelect>
         </Field>
 
         <Field label="Tax Rate %">
@@ -358,12 +358,12 @@ export default function PurchaseOrderApprovalDetailPage() {
                   </td>
                   <td className="px-3 py-2 align-top">
                     {it.fromMaterialProfile ? (
-                      <select value={it.materialProfileId} disabled className={inputCls}>
+                      <SearchableSelect value={it.materialProfileId} disabled className={inputCls}>
                         <option value="">— Select —</option>
                         {materials.map((m) => (
                           <option key={m.id} value={m.id}>{m.partNo || "N/A"}</option>
                         ))}
-                      </select>
+                      </SearchableSelect>
                     ) : (
                       <input type="text" value={it.material} disabled className={inputCls} />
                     )}
@@ -381,10 +381,10 @@ export default function PurchaseOrderApprovalDetailPage() {
                     <input type="text" value={it.size} disabled className={inputCls} />
                   </td>
                   <td className="px-3 py-2 align-top">
-                    <select value={it.poUomId} disabled className={inputCls}>
+                    <SearchableSelect value={it.poUomId} disabled className={inputCls}>
                       <option value="">—</option>
                       {uoms.map((u) => <option key={u.id} value={u.id}>{u.uomName}</option>)}
-                    </select>
+                    </SearchableSelect>
                   </td>
                   <td className="px-3 py-2 align-top">
                     <input type="number" value={it.quantity} disabled className={`${inputCls} text-right`} />
@@ -399,10 +399,10 @@ export default function PurchaseOrderApprovalDetailPage() {
                     <input type="number" value={it.conversion} disabled className={`${inputCls} text-right`} />
                   </td>
                   <td className="px-3 py-2 align-top">
-                    <select value={it.internalUomId} disabled className={inputCls}>
+                    <SearchableSelect value={it.internalUomId} disabled className={inputCls}>
                       <option value="">—</option>
                       {uoms.map((u) => <option key={u.id} value={u.id}>{u.uomName}</option>)}
-                    </select>
+                    </SearchableSelect>
                   </td>
                   <td className="px-3 py-2 align-top text-right font-mono text-blue-900 pt-4">
                     {it.internalQuantity}

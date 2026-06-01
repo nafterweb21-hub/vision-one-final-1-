@@ -1,9 +1,8 @@
 "use client";
-
+import { SearchableSelect } from "@/components/SearchableSelect";
 import { useState } from "react";
 import { confirmParameters } from "./actions";
 import { Check, AlertCircle } from "lucide-react";
-
 function formatDate(dateStr: string | Date | null) {
   if (!dateStr) return "";
   const d = new Date(dateStr);
@@ -475,7 +474,7 @@ export default function ClientPage({ parameters, options, currentEmployeeId }: a
             
             <div className="flex items-center gap-2">
               <label className="text-slate-600 font-medium whitespace-nowrap">Confirm By:</label>
-              <select 
+              <SearchableSelect 
                 value={confirmBy} 
                 onChange={(e) => setConfirmBy(e.target.value)}
                 className="rounded-md border-slate-300 py-1.5 pl-3 pr-8 text-sm focus:border-indigo-500 focus:ring-indigo-500 min-w-[200px]"
@@ -484,13 +483,13 @@ export default function ClientPage({ parameters, options, currentEmployeeId }: a
                 {options.employees.map((emp: any) => (
                   <option key={emp.id} value={emp.id}>{emp.name}</option>
                 ))}
-              </select>
+              </SearchableSelect>
             </div>
 
             {activeTab === "SprayPainting" && (
               <div className="flex items-center gap-2 ml-4">
                 <label className="text-slate-600 font-medium whitespace-nowrap">Elcometer Used:</label>
-                <select 
+                <SearchableSelect 
                   value={elcometerId} 
                   onChange={(e) => setElcometerId(e.target.value)}
                   className="rounded-md border-slate-300 py-1.5 pl-3 pr-8 text-sm focus:border-indigo-500 focus:ring-indigo-500 min-w-[150px]"
@@ -499,7 +498,7 @@ export default function ClientPage({ parameters, options, currentEmployeeId }: a
                   {options.elcometers.map((elc: any) => (
                     <option key={elc.id} value={elc.id}>{elc.serialNo}</option>
                   ))}
-                </select>
+                </SearchableSelect>
               </div>
             )}
           </div>

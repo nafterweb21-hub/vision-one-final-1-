@@ -1,10 +1,9 @@
 "use client";
-
+import { SearchableSelect } from "@/components/SearchableSelect";
 import React, { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Loader2, ArrowLeft, Plus, Trash2, Save, FileText } from "lucide-react";
-
 type FormData = {
   companies: { id: string; companyName: string; allowPoForWo: boolean }[];
   employees: { id: string; name: string; email: string; code: string }[];
@@ -419,7 +418,7 @@ export default function PurchaseOrderSubconEditPage() {
       {/* Header Fields */}
       <div className="bg-white border border-blue-200 rounded-xl shadow-sm p-6 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
         <Field label="Company" required>
-          <select
+          <SearchableSelect
             value={companyId}
             disabled={readOnly || !isNew}
             onChange={(e) => setCompanyId(e.target.value)}
@@ -431,7 +430,7 @@ export default function PurchaseOrderSubconEditPage() {
                 {c.companyName}
               </option>
             ))}
-          </select>
+          </SearchableSelect>
         </Field>
 
         <Field label="PO Date" required>
@@ -445,7 +444,7 @@ export default function PurchaseOrderSubconEditPage() {
         </Field>
 
         <Field label="Purchaser" required>
-          <select
+          <SearchableSelect
             value={purchaserId}
             disabled={readOnly}
             onChange={(e) => setPurchaserId(e.target.value)}
@@ -457,11 +456,11 @@ export default function PurchaseOrderSubconEditPage() {
                 {e.name} ({e.code})
               </option>
             ))}
-          </select>
+          </SearchableSelect>
         </Field>
 
         <Field label="Work Order">
-          <select
+          <SearchableSelect
             value={workOrderNo}
             disabled={readOnly || !isNew}
             onChange={(e) => setWorkOrderNo(e.target.value)}
@@ -473,14 +472,14 @@ export default function PurchaseOrderSubconEditPage() {
                 {w.workOrderNo} - {w.jobDescription?.substring(0,20)}...
               </option>
             ))}
-          </select>
+          </SearchableSelect>
           {!allowPoForWo && !workOrderNo && (
             <p className="text-[10px] text-rose-500 mt-1">Required based on company settings.</p>
           )}
         </Field>
 
         <Field label="Supplier" required>
-          <select
+          <SearchableSelect
             value={supplierId}
             disabled={readOnly || !isNew}
             onChange={(e) => setSupplierId(e.target.value)}
@@ -492,11 +491,11 @@ export default function PurchaseOrderSubconEditPage() {
                 {s.supplierName}
               </option>
             ))}
-          </select>
+          </SearchableSelect>
         </Field>
 
         <Field label="Supplier Contact Person">
-          <select
+          <SearchableSelect
             value={contactPersonId}
             disabled={readOnly || !supplierId}
             onChange={(e) => handleContactPersonChange(e.target.value)}
@@ -508,7 +507,7 @@ export default function PurchaseOrderSubconEditPage() {
                 {cp.contactPersonName}
               </option>
             ))}
-          </select>
+          </SearchableSelect>
         </Field>
 
         <Field label="Supplier Email">
@@ -552,7 +551,7 @@ export default function PurchaseOrderSubconEditPage() {
         </Field>
 
         <Field label="Currency" required>
-          <select
+          <SearchableSelect
             value={currencyId}
             disabled={readOnly}
             onChange={(e) => handleCurrencyChange(e.target.value)}
@@ -564,7 +563,7 @@ export default function PurchaseOrderSubconEditPage() {
                 {c.code}
               </option>
             ))}
-          </select>
+          </SearchableSelect>
         </Field>
         <Field label="Exchange Rate" required>
           <input
@@ -578,7 +577,7 @@ export default function PurchaseOrderSubconEditPage() {
         </Field>
 
         <Field label="Tax Code" required>
-          <select
+          <SearchableSelect
             value={taxTypeId}
             disabled={readOnly}
             onChange={(e) => handleTaxTypeChange(e.target.value)}
@@ -590,7 +589,7 @@ export default function PurchaseOrderSubconEditPage() {
                 {t.taxType}
               </option>
             ))}
-          </select>
+          </SearchableSelect>
         </Field>
         <Field label="Tax Rate %">
           <input
@@ -657,7 +656,7 @@ export default function PurchaseOrderSubconEditPage() {
                   <tr key={idx} className="hover:bg-blue-50/10">
                     {workOrderNo ? (
                       <td className="px-3 py-2 align-top">
-                        <select
+                        <SearchableSelect
                           value={it.woRoutingProcessId}
                           disabled={readOnly}
                           onChange={(e) => updateItem(idx, { woRoutingProcessId: e.target.value })}
@@ -669,12 +668,12 @@ export default function PurchaseOrderSubconEditPage() {
                               {rp.mainProcess?.process} - {rp.routingProcess?.routingProcess}
                             </option>
                           ))}
-                        </select>
+                        </SearchableSelect>
                       </td>
                     ) : (
                       <>
                         <td className="px-3 py-2 align-top">
-                          <select
+                          <SearchableSelect
                             value={it.masterMainProcessId}
                             disabled={readOnly}
                             onChange={(e) => updateItem(idx, { masterMainProcessId: e.target.value, masterRoutingProcessId: "" })}
@@ -686,10 +685,10 @@ export default function PurchaseOrderSubconEditPage() {
                                 {m.process}
                               </option>
                             ))}
-                          </select>
+                          </SearchableSelect>
                         </td>
                         <td className="px-3 py-2 align-top">
-                          <select
+                          <SearchableSelect
                             value={it.masterRoutingProcessId}
                             disabled={readOnly || !it.masterMainProcessId}
                             onChange={(e) => updateItem(idx, { masterRoutingProcessId: e.target.value })}
@@ -701,7 +700,7 @@ export default function PurchaseOrderSubconEditPage() {
                                 {p.routingProcess}
                               </option>
                             ))}
-                          </select>
+                          </SearchableSelect>
                         </td>
                       </>
                     )}
@@ -740,7 +739,7 @@ export default function PurchaseOrderSubconEditPage() {
                     </td>
 
                     <td className="px-3 py-2 align-top">
-                      <select
+                      <SearchableSelect
                         value={it.poUomId}
                         disabled={readOnly}
                         onChange={(e) => updateItem(idx, { poUomId: e.target.value })}
@@ -752,7 +751,7 @@ export default function PurchaseOrderSubconEditPage() {
                             {u.uomName}
                           </option>
                         ))}
-                      </select>
+                      </SearchableSelect>
                     </td>
 
                     <td className="px-3 py-2 align-top">

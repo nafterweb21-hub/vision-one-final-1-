@@ -19,7 +19,8 @@ model User {
   employeeId    String?                   @unique
   isActive      Boolean                   @default(true)
   passwordHash  String?
-  role          UserRole                  @default(VIEWER)
+  role          String                    @default("VIEWER")
+  roleProfile   RoleProfile?              @relation(fields: [role], references: [name], onDelete: SetNull)
   accounts      Account[]
   approvals     ApprovalPerson[]
   approvedCocs  CertificateOfConformity[] @relation("CocApprovedBy")
@@ -1338,12 +1339,13 @@ model Receipt {
   creator  Employee        @relation("ReceiptCreator", fields: [creatorId], references: [id])
 }
 
-enum UserRole {
-  ADMIN
-  SALES
-  PRODUCTION
-  PURCHASING
-  QC
-  PLANNER
-  VIEWER
+model RoleProfile {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  permissions String[]
+  remark      String?
+  status      String   @default("Active")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  users       User[]
 }

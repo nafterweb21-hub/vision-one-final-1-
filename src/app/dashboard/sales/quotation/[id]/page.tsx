@@ -1,10 +1,9 @@
 "use client";
-
+import { SearchableSelect } from "@/components/SearchableSelect";
 import React, { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Loader2, ArrowLeft, Plus, Trash2, Save, FileText } from "lucide-react";
-
 type FormData = {
   employees: { id: string; name: string; email: string; code: string }[];
   customers: {
@@ -309,7 +308,7 @@ export default function QuotationEditPage() {
           />
         </Field>
         <Field label="Our Contact (Salesperson)" required>
-          <select
+          <SearchableSelect
             value={salespersonId}
             disabled={readOnly}
             onChange={(e) => setSalespersonId(e.target.value)}
@@ -321,7 +320,7 @@ export default function QuotationEditPage() {
                 {e.name}
               </option>
             ))}
-          </select>
+          </SearchableSelect>
         </Field>
         <Field label="Quote Validity (days)">
           <input
@@ -335,7 +334,7 @@ export default function QuotationEditPage() {
         </Field>
 
         <Field label="Customer" required>
-          <select
+          <SearchableSelect
             value={customerId}
             disabled={readOnly}
             onChange={(e) => setCustomerId(e.target.value)}
@@ -347,7 +346,7 @@ export default function QuotationEditPage() {
                 {c.customerName}
               </option>
             ))}
-          </select>
+          </SearchableSelect>
         </Field>
         <Field label="Customer Contact">
           {(() => {
@@ -387,7 +386,7 @@ export default function QuotationEditPage() {
           />
         </Field>
         <Field label="Payment Terms">
-          <select
+          <SearchableSelect
             value={paymentTermId}
             disabled={readOnly}
             onChange={(e) => setPaymentTermId(e.target.value)}
@@ -399,7 +398,7 @@ export default function QuotationEditPage() {
                 {p.name} ({p.days} days)
               </option>
             ))}
-          </select>
+          </SearchableSelect>
         </Field>
         <Field label="Lead Time">
           <input
@@ -413,7 +412,7 @@ export default function QuotationEditPage() {
         </Field>
 
         <Field label="Currency" required>
-          <select
+          <SearchableSelect
             value={currencyId}
             disabled={readOnly}
             onChange={(e) => setCurrencyId(e.target.value)}
@@ -425,7 +424,7 @@ export default function QuotationEditPage() {
                 {c.code}
               </option>
             ))}
-          </select>
+          </SearchableSelect>
         </Field>
         <Field label="Exchange Rate">
           <input
@@ -493,7 +492,7 @@ export default function QuotationEditPage() {
                 return (
                   <tr key={idx}>
                     <td className="px-3 py-2 align-top">
-                      <select
+                      <SearchableSelect
                         value={it.partId}
                         disabled={readOnly}
                         onChange={(e) => updateItem(idx, { partId: e.target.value })}
@@ -505,10 +504,10 @@ export default function QuotationEditPage() {
                             {fg.partNo ? `${fg.partNo} — ` : ""}{fg.description}
                           </option>
                         ))}
-                      </select>
+                      </SearchableSelect>
                     </td>
                     <td className="px-3 py-2 align-top">
-                      <select
+                      <SearchableSelect
                         value={it.uomId}
                         disabled={readOnly}
                         onChange={(e) => updateItem(idx, { uomId: e.target.value })}
@@ -520,7 +519,7 @@ export default function QuotationEditPage() {
                             {u.uomName}
                           </option>
                         ))}
-                      </select>
+                      </SearchableSelect>
                     </td>
                     <td className="px-3 py-2 align-top">
                       <input
@@ -568,7 +567,7 @@ export default function QuotationEditPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-white border border-blue-200 rounded-xl shadow-sm p-5 md:col-span-2 space-y-4">
           <Field label="Tax Type">
-            <select
+            <SearchableSelect
               value={taxTypeId}
               disabled={readOnly}
               onChange={(e) => setTaxTypeId(e.target.value)}
@@ -580,7 +579,7 @@ export default function QuotationEditPage() {
                   {t.taxType} ({t.taxRate}%)
                 </option>
               ))}
-            </select>
+            </SearchableSelect>
           </Field>
           <Field label="Terms & Conditions">
             <textarea

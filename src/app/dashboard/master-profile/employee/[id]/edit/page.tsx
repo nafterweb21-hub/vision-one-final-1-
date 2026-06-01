@@ -1,9 +1,8 @@
 "use client";
-
+import { SearchableSelect } from "@/components/SearchableSelect";
 import React, { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
-
 interface Employee {
   id: string;
   code: string;
@@ -324,7 +323,7 @@ export default function EditEmployeePage() {
                 <label className="block text-xs font-bold text-blue-700 uppercase tracking-wide">
                   Employment Type
                 </label>
-                <select
+                <SearchableSelect
                   value={formData.employmentType}
                   onChange={(e) =>
                     setFormData({
@@ -339,7 +338,7 @@ export default function EditEmployeePage() {
                       {type}
                     </option>
                   ))}
-                </select>
+                </SearchableSelect>
               </div>
 
               {/* Mobile No */}
@@ -385,7 +384,7 @@ export default function EditEmployeePage() {
                 <label className="block text-xs font-bold text-blue-700 uppercase tracking-wide">
                   Gender
                 </label>
-                <select
+                <SearchableSelect
                   value={formData.gender}
                   onChange={(e) =>
                     setFormData({ ...formData, gender: e.target.value })
@@ -394,7 +393,7 @@ export default function EditEmployeePage() {
                 >
                   <option value="Male">Male</option>
                   <option value="Female">Female</option>
-                </select>
+                </SearchableSelect>
               </div>
 
               {/* Status Toggle */}

@@ -3,19 +3,19 @@ import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { authConfig } from "@/lib/auth.config";
-import type { UserRole } from "@/generated/prisma/client";
+import type { Role } from "@/lib/access";
 import type { JWT } from "next-auth/jwt";
 
 declare module "next-auth" {
   interface Session {
     user: {
       id: string;
-      role: UserRole;
+      role: string;
       employeeId: string | null;
     } & DefaultSession["user"];
   }
   interface User {
-    role: UserRole;
+    role: string;
     employeeId: string | null;
   }
 }
@@ -23,7 +23,7 @@ declare module "next-auth" {
 declare module "next-auth/jwt" {
   interface JWT {
     id: string;
-    role: UserRole;
+    role: string;
     employeeId: string | null;
   }
 }

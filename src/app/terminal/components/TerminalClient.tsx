@@ -1,4 +1,5 @@
 "use client";
+import { SearchableSelect } from "@/components/SearchableSelect";
 import { toast as hotToast } from "react-hot-toast";
 
 import { useMemo, useState, useTransition, useEffect } from "react";
@@ -6,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { Monitor, Plus, ChevronRight, CheckCircle2, Info, AlertCircle, Minus, ChevronDown, Check, Zap, Clock, Box, LogOut } from "lucide-react";
 import ProductionIntake from "./ProductionIntake";
 import {
-  lookupWorkOrder,
+lookupWorkOrder,
   getOpenScans,
   scanOut,
   type ScanOutPayload,
@@ -374,7 +375,7 @@ export default function TerminalClient({ support, loggedInEmployee, initialSessi
                     </div>
                     
                     <div className="relative mt-auto">
-                      <select 
+                      <SearchableSelect 
                         value={defectReason}
                         onChange={(e) => setDefectReason(e.target.value)}
                         className="w-full appearance-none bg-white border border-slate-200 text-slate-700 text-sm font-medium rounded-xl px-4 py-3.5 outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-500/20 shadow-sm cursor-pointer"
@@ -383,7 +384,7 @@ export default function TerminalClient({ support, loggedInEmployee, initialSessi
                         <option value="scratch">Surface Scratch</option>
                         <option value="dent">Dent / Damage</option>
                         <option value="dimension">Out of Tolerance</option>
-                      </select>
+                      </SearchableSelect>
                       <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                     </div>
                   </div>

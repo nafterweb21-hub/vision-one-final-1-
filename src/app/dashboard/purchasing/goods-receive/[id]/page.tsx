@@ -1,4 +1,5 @@
 "use client";
+import { SearchableSelect } from "@/components/SearchableSelect";
 import { customConfirm } from "@/lib/customConfirm";
 import { toast as hotToast } from "react-hot-toast";
 
@@ -7,7 +8,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { PackageCheck, Save, ArrowLeft, Loader2, Send, Ban, AlertCircle } from "lucide-react";
 import {
-  getGoodsReceiveFormData,
+getGoodsReceiveFormData,
   createGoodsReceive,
   updateGoodsReceive,
   submitGoodsReceive,
@@ -266,7 +267,7 @@ export default function GoodsReceiveFormPage({ params }: { params: Promise<{ id:
             <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
                 <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wider">Company <span className="text-red-500">*</span></label>
-                <select
+                <SearchableSelect
                   value={companyId}
                   onChange={(e) => setCompanyId(e.target.value)}
                   disabled={isReadonly}
@@ -276,7 +277,7 @@ export default function GoodsReceiveFormPage({ params }: { params: Promise<{ id:
                   {prereq?.companies?.map((c: any) => (
                     <option key={c.id} value={c.id}>{c.companyName}</option>
                   ))}
-                </select>
+                </SearchableSelect>
               </div>
 
               <div>
@@ -292,7 +293,7 @@ export default function GoodsReceiveFormPage({ params }: { params: Promise<{ id:
 
               <div>
                 <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wider">Supplier <span className="text-red-500">*</span></label>
-                <select
+                <SearchableSelect
                   value={supplierId}
                   onChange={(e) => {
                     setSupplierId(e.target.value);
@@ -305,12 +306,12 @@ export default function GoodsReceiveFormPage({ params }: { params: Promise<{ id:
                   {prereq?.suppliers?.map((s: any) => (
                     <option key={s.id} value={s.id}>{s.supplierName}</option>
                   ))}
-                </select>
+                </SearchableSelect>
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wider">PO No <span className="text-red-500">*</span></label>
-                <select
+                <SearchableSelect
                   value={purchaseOrderId}
                   onChange={(e) => setPurchaseOrderId(e.target.value)}
                   disabled={isReadonly || !isNew}
@@ -320,7 +321,7 @@ export default function GoodsReceiveFormPage({ params }: { params: Promise<{ id:
                   {filteredPOs.map((p: any) => (
                     <option key={p.id} value={p.id}>{p.poNo}</option>
                   ))}
-                </select>
+                </SearchableSelect>
               </div>
             </div>
           </div>
@@ -465,7 +466,7 @@ export default function GoodsReceiveFormPage({ params }: { params: Promise<{ id:
             <div className="p-5 space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wider">Creator</label>
-                <select
+                <SearchableSelect
                   value={creatorId}
                   onChange={(e) => setCreatorId(e.target.value)}
                   disabled={isReadonly}
@@ -475,7 +476,7 @@ export default function GoodsReceiveFormPage({ params }: { params: Promise<{ id:
                   {prereq?.employees?.map((e: any) => (
                     <option key={e.id} value={e.id}>{e.name}</option>
                   ))}
-                </select>
+                </SearchableSelect>
               </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wider">Remark</label>

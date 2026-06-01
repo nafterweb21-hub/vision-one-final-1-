@@ -1,16 +1,9 @@
 // Shared role-to-path access policy. Imported by proxy.ts (edge) and Sidebar
 // (client) — keep this file dependency-free (no Prisma, no Node-only APIs).
 
-export type Role =
-  | "ADMIN"
-  | "SALES"
-  | "PRODUCTION"
-  | "PURCHASING"
-  | "QC"
-  | "PLANNER"
-  | "VIEWER";
+export type Role = string;
 
-export const ALL_ROLES: Role[] = [
+export const ALL_ROLES: string[] = [
   "ADMIN",
   "SALES",
   "PRODUCTION",

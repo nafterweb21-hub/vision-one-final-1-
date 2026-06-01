@@ -1,11 +1,10 @@
 "use client";
-
+import { SearchableSelect } from "@/components/SearchableSelect";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Plus, X, Pencil } from "lucide-react";
 import { upsertTimesheet } from "../actions";
 import { useRouter } from "next/navigation";
-
 type AddTimesheetModalProps = {
   workOrderNo: string;
   employees: { id: string; name: string; code: string }[];
@@ -108,7 +107,7 @@ export default function AddTimesheetModal({ workOrderNo, employees, routingProce
                     <label className="text-sm font-medium text-slate-700">
                       Process <span className="text-red-500">*</span>
                     </label>
-                    <select
+                    <SearchableSelect
                       {...register("routingProcessId", { required: true })}
                       className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-colors"
                     >
@@ -118,7 +117,7 @@ export default function AddTimesheetModal({ workOrderNo, employees, routingProce
                           {rp.name} ({rp.description})
                         </option>
                       ))}
-                    </select>
+                    </SearchableSelect>
                     {errors.routingProcessId && <p className="text-xs text-red-500">Process is required</p>}
                   </div>
 
@@ -126,7 +125,7 @@ export default function AddTimesheetModal({ workOrderNo, employees, routingProce
                     <label className="text-sm font-medium text-slate-700">
                       Employee <span className="text-red-500">*</span>
                     </label>
-                    <select
+                    <SearchableSelect
                       {...register("employeeId", { required: true })}
                       className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-colors"
                     >
@@ -136,7 +135,7 @@ export default function AddTimesheetModal({ workOrderNo, employees, routingProce
                           {emp.name} ({emp.code})
                         </option>
                       ))}
-                    </select>
+                    </SearchableSelect>
                     {errors.employeeId && <p className="text-xs text-red-500">Employee is required</p>}
                   </div>
 

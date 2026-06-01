@@ -1,4 +1,5 @@
 "use client";
+import { SearchableSelect } from "@/components/SearchableSelect";
 import { toast as hotToast } from "react-hot-toast";
 
 import { useEffect, useState, useMemo } from "react";
@@ -23,7 +24,6 @@ import {
   Trash2,
 } from "lucide-react";
 import Link from "next/link";
-
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface MachineItem {
@@ -412,7 +412,7 @@ export default function MachineProfilePage() {
         {/* Mock Role Dropdown */}
         <div className="flex items-center gap-2 bg-blue-100 px-3 py-1.5 rounded-lg border border-blue-200 ">
           <label className="text-[10px] font-bold text-blue-500 uppercase tracking-wider">Role</label>
-          <select
+          <SearchableSelect
             value={role}
             onChange={(e) => {
               const selectedRole = e.target.value as UserRole;
@@ -426,7 +426,7 @@ export default function MachineProfilePage() {
           >
             <option value="Admin">Admin (Full CRUD)</option>
             <option value="User">User (View Only)</option>
-          </select>
+          </SearchableSelect>
         </div>
 
         {viewMode === "list" && role === "Admin" && (
@@ -522,7 +522,7 @@ export default function MachineProfilePage() {
                 <label className="text-xs font-semibold uppercase tracking-wider text-blue-500 ">
                   Machine Category <span className="text-rose-500">*</span>
                 </label>
-                <select
+                <SearchableSelect
                   id="machine-category-select"
                   value={formMachineCategory}
                   onChange={(e) => setFormMachineCategory(e.target.value)}
@@ -530,7 +530,7 @@ export default function MachineProfilePage() {
                 >
                   <option value="Machine">Machine</option>
                   <option value="Welding Machine">Welding Machine</option>
-                </select>
+                </SearchableSelect>
               </div>
 
               {/* Brand */}
@@ -585,7 +585,7 @@ export default function MachineProfilePage() {
                 <label className="text-xs font-semibold uppercase tracking-wider text-blue-500 ">
                   Machine Type <span className="text-[10px] font-normal normal-case text-blue-400">(optional)</span>
                 </label>
-                <select
+                <SearchableSelect
                   id="machine-type-select"
                   value={formMachineType}
                   onChange={(e) => setFormMachineType(e.target.value)}
@@ -594,7 +594,7 @@ export default function MachineProfilePage() {
                   <option value="">Select...</option>
                   <option value="CNC">CNC</option>
                   <option value="Convention">Convention</option>
-                </select>
+                </SearchableSelect>
               </div>
 
               {/* Operation Type */}
@@ -602,7 +602,7 @@ export default function MachineProfilePage() {
                 <label className="text-xs font-semibold uppercase tracking-wider text-blue-500 ">
                   Operation Type <span className="text-[10px] font-normal normal-case text-blue-400">(optional)</span>
                 </label>
-                <select
+                <SearchableSelect
                   id="machine-operation-select"
                   value={formOperationType}
                   onChange={(e) => setFormOperationType(e.target.value)}
@@ -611,7 +611,7 @@ export default function MachineProfilePage() {
                   <option value="">Select...</option>
                   <option value="Milling">Milling</option>
                   <option value="Turning">Turning</option>
-                </select>
+                </SearchableSelect>
               </div>
 
               {/* Current */}
@@ -858,7 +858,7 @@ export default function MachineProfilePage() {
           {/* Category Filter */}
           <div className="flex items-center gap-2">
             <label className="text-[10px] font-bold text-blue-500 uppercase tracking-wider shrink-0">Category</label>
-            <select
+            <SearchableSelect
               id="machine-category-filter"
               value={categoryFilter}
               onChange={(e) => { setCategoryFilter(e.target.value as CategoryFilter); setPage(1); }}
@@ -867,13 +867,13 @@ export default function MachineProfilePage() {
               <option value="All">All Categories</option>
               <option value="Machine">Machine</option>
               <option value="Welding Machine">Welding Machine</option>
-            </select>
+            </SearchableSelect>
           </div>
 
           {/* Status Filter */}
           <div className="flex items-center gap-2">
             <label className="text-[10px] font-bold text-blue-500 uppercase tracking-wider shrink-0">Status</label>
-            <select
+            <SearchableSelect
               id="machine-status-filter"
               value={statusFilter}
               onChange={(e) => { setStatusFilter(e.target.value as StatusFilter); setPage(1); }}
@@ -882,13 +882,13 @@ export default function MachineProfilePage() {
               <option value="All">All Statuses</option>
               <option value="Active">Active</option>
               <option value="Inactive">Deactive</option>
-            </select>
+            </SearchableSelect>
           </div>
 
           {/* Sort */}
           <div className="flex items-center gap-2">
             <ArrowUpDown size={14} className="text-blue-400 shrink-0" />
-            <select
+            <SearchableSelect
               id="machine-sort"
               value={sortKey}
               onChange={(e) => { setSortKey(e.target.value as SortKey); setPage(1); }}
@@ -897,7 +897,7 @@ export default function MachineProfilePage() {
               {SORT_OPTIONS.map((o) => (
                 <option key={o.value} value={o.value}>{o.label}</option>
               ))}
-            </select>
+            </SearchableSelect>
           </div>
         </div>
       </div>

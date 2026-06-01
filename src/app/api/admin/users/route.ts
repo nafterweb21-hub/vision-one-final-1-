@@ -2,12 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/authz";
-import { UserRole } from "@/generated/prisma/client";
 
-const VALID_ROLES = Object.values(UserRole);
 
 export async function GET() {
-  const { error } = await requireRole(UserRole.ADMIN);
+  const { error } = await requireRole("ADMIN");
   if (error) return error;
 
   const users = await prisma.user.findMany({
@@ -28,14 +26,14 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  const { error } = await requireRole(UserRole.ADMIN);
+  const { error } = await requireRole("ADMIN");
   if (error) return error;
 
   const body = await req.json();
   const name = String(body.name ?? "").trim();
   const email = String(body.email ?? "").trim().toLowerCase();
   const password = String(body.password ?? "");
-  const role = body.role as UserRole;
+  const role = body.role as string;
   const isActive = body.isActive !== false;
   const employeeId = body.employeeId ? String(body.employeeId) : null;
 
@@ -45,7 +43,8 @@ export async function POST(req: NextRequest) {
       { status: 400 },
     );
   }
-  if (!VALID_ROLES.includes(role)) {
+  const validRole = await prisma.roleProfile.findUnique({ where: { name: role } });
+  if (!validRole) {
     return NextResponse.json({ error: "Invalid role." }, { status: 400 });
   }
 

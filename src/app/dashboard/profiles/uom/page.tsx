@@ -1,4 +1,5 @@
 "use client";
+import { SearchableSelect } from "@/components/SearchableSelect";
 import { toast as hotToast } from "react-hot-toast";
 
 import { useEffect, useState, useMemo } from "react";
@@ -18,7 +19,6 @@ import {
   Edit2,
 } from "lucide-react";
 import Link from "next/link";
-
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface UomItem {
@@ -350,7 +350,7 @@ export default function UomProfilePage() {
                 <label className="text-xs font-semibold uppercase tracking-wider text-blue-500 ">
                   Status
                 </label>
-                <select
+                <SearchableSelect
                   id="uom-status-input"
                   value={formStatus}
                   onChange={(e) => setFormStatus(e.target.value as "Active" | "Inactive")}
@@ -358,7 +358,7 @@ export default function UomProfilePage() {
                 >
                   <option value="Active">Active</option>
                   <option value="Inactive">Deactive</option>
-                </select>
+                </SearchableSelect>
               </div>
             </div>
 
@@ -517,7 +517,7 @@ export default function UomProfilePage() {
         {/* Status Filter */}
         <div className="flex items-center gap-2">
           <label className="text-xs font-semibold text-blue-500 uppercase tracking-wider shrink-0">Status</label>
-          <select
+          <SearchableSelect
             id="uom-status-filter"
             value={statusFilter}
             onChange={(e) => { setStatusFilter(e.target.value as StatusFilter); setPage(1); }}
@@ -526,13 +526,13 @@ export default function UomProfilePage() {
             <option value="All">All</option>
             <option value="Active">Active</option>
             <option value="Inactive">Deactive</option>
-          </select>
+          </SearchableSelect>
         </div>
 
         {/* Sort */}
         <div className="flex items-center gap-2">
           <ArrowUpDown size={14} className="text-blue-400 shrink-0" />
-          <select
+          <SearchableSelect
             id="uom-sort"
             value={sortKey}
             onChange={(e) => { setSortKey(e.target.value as SortKey); setPage(1); }}
@@ -541,7 +541,7 @@ export default function UomProfilePage() {
             {SORT_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>{o.label}</option>
             ))}
-          </select>
+          </SearchableSelect>
         </div>
       </div>
 

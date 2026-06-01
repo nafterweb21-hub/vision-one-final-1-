@@ -1,9 +1,8 @@
 "use client";
-
+import { SearchableSelect } from "@/components/SearchableSelect";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createNcr, updateNcr } from "../actions";
-
 export default function NcrForm({ initialData, formData }: { initialData?: any, formData: any }) {
   const router = useRouter();
   const isEditing = !!initialData;
@@ -134,52 +133,52 @@ export default function NcrForm({ initialData, formData }: { initialData?: any, 
         
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Customer *</label>
-          <select value={customerId} onChange={(e) => setCustomerId(e.target.value)} required className="w-full border-gray-300 rounded-md shadow-sm p-2 border">
+          <SearchableSelect value={customerId} onChange={(e) => setCustomerId(e.target.value)} required className="w-full border-gray-300 rounded-md shadow-sm p-2 border">
             <option value="">Select Customer</option>
             {formData.customers.map((c: any) => (
               <option key={c.id} value={c.id}>{c.customerName}</option>
             ))}
-          </select>
+          </SearchableSelect>
         </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Work Order No *</label>
-          <select value={workOrderNo} onChange={(e) => setWorkOrderNo(e.target.value)} required className="w-full border-gray-300 rounded-md shadow-sm p-2 border">
+          <SearchableSelect value={workOrderNo} onChange={(e) => setWorkOrderNo(e.target.value)} required className="w-full border-gray-300 rounded-md shadow-sm p-2 border">
             <option value="">Select Work Order</option>
             {formData.workOrders.filter((wo: any) => customerId ? wo.customerId === customerId : true).map((w: any) => (
               <option key={w.workOrderNo} value={w.workOrderNo}>{w.workOrderNo}</option>
             ))}
-          </select>
+          </SearchableSelect>
         </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">In-Process Description</label>
-          <select value={inProcessId} onChange={(e) => setInProcessId(e.target.value)} className="w-full border-gray-300 rounded-md shadow-sm p-2 border">
+          <SearchableSelect value={inProcessId} onChange={(e) => setInProcessId(e.target.value)} className="w-full border-gray-300 rounded-md shadow-sm p-2 border">
             <option value="">Select In-Process</option>
             {formData.workOrders.find((w: any) => w.workOrderNo === workOrderNo)?.inProcesses?.map((ip: any) => (
               <option key={ip.id} value={ip.id}>{ip.description}</option>
             ))}
-          </select>
+          </SearchableSelect>
         </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Requestor *</label>
-          <select value={requestorId} onChange={(e) => setRequestorId(e.target.value)} required className="w-full border-gray-300 rounded-md shadow-sm p-2 border">
+          <SearchableSelect value={requestorId} onChange={(e) => setRequestorId(e.target.value)} required className="w-full border-gray-300 rounded-md shadow-sm p-2 border">
             <option value="">Select Employee</option>
             {formData.employees.map((emp: any) => (
               <option key={emp.id} value={emp.id}>{emp.name}</option>
             ))}
-          </select>
+          </SearchableSelect>
         </div>
         
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Responsible Party</label>
-          <select value={responsiblePartyId} onChange={(e) => setResponsiblePartyId(e.target.value)} className="w-full border-gray-300 rounded-md shadow-sm p-2 border">
+          <SearchableSelect value={responsiblePartyId} onChange={(e) => setResponsiblePartyId(e.target.value)} className="w-full border-gray-300 rounded-md shadow-sm p-2 border">
             <option value="">Select Employee</option>
             {formData.employees.map((emp: any) => (
               <option key={emp.id} value={emp.id}>{emp.name}</option>
             ))}
-          </select>
+          </SearchableSelect>
         </div>
 
         <div className="md:col-span-2">
@@ -220,21 +219,21 @@ export default function NcrForm({ initialData, formData }: { initialData?: any, 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Department</label>
-            <select value={department} onChange={(e) => setDepartment(e.target.value)} className="w-full border-gray-300 rounded-md shadow-sm p-2 border">
+            <SearchableSelect value={department} onChange={(e) => setDepartment(e.target.value)} className="w-full border-gray-300 rounded-md shadow-sm p-2 border">
               <option value="">Select Department</option>
               {formData.departments?.map((dept: any) => (
                 <option key={dept.id} value={dept.name}>{dept.name}</option>
               ))}
-            </select>
+            </SearchableSelect>
           </div>
           
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Corrective Action Required?</label>
-            <select value={correctiveAction === null ? "" : (correctiveAction ? "Yes" : "No")} onChange={(e) => setCorrectiveAction(e.target.value === "" ? null : e.target.value === "Yes")} className="w-full border-gray-300 rounded-md shadow-sm p-2 border">
+            <SearchableSelect value={correctiveAction === null ? "" : (correctiveAction ? "Yes" : "No")} onChange={(e) => setCorrectiveAction(e.target.value === "" ? null : e.target.value === "Yes")} className="w-full border-gray-300 rounded-md shadow-sm p-2 border">
               <option value="">Select Option</option>
               <option value="Yes">Yes</option>
               <option value="No">No</option>
-            </select>
+            </SearchableSelect>
           </div>
         </div>
 

@@ -1,11 +1,10 @@
 "use client";
-
+import { SearchableSelect } from "@/components/SearchableSelect";
 import { useMemo, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { Plus, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { addRoutingProcess } from "../actions";
-
 type MainProcess = { id: string; process: string };
 type ProcessProfile = {
   id: string;
@@ -110,12 +109,12 @@ export default function AddRoutingProcessModal({
                     <label className="text-sm font-medium text-slate-700">
                       Main Process <span className="text-red-500">*</span>
                     </label>
-                    <select {...register("mainProcessId", { required: true })} className={inputCls}>
+                    <SearchableSelect {...register("mainProcessId", { required: true })} className={inputCls}>
                       <option value="">Select</option>
                       {mainProcesses.map((m) => (
                         <option key={m.id} value={m.id}>{m.process}</option>
                       ))}
-                    </select>
+                    </SearchableSelect>
                     {errors.mainProcessId && <p className="text-xs text-red-500">Required</p>}
                   </div>
 
@@ -123,7 +122,7 @@ export default function AddRoutingProcessModal({
                     <label className="text-sm font-medium text-slate-700">
                       Routing Process <span className="text-red-500">*</span>
                     </label>
-                    <select
+                    <SearchableSelect
                       {...register("routingProcessId", { required: true })}
                       className={inputCls}
                       disabled={!selectedMain}
@@ -137,7 +136,7 @@ export default function AddRoutingProcessModal({
                           {p.machining ? " (Machining)" : ""}
                         </option>
                       ))}
-                    </select>
+                    </SearchableSelect>
                     {errors.routingProcessId && <p className="text-xs text-red-500">Required</p>}
                   </div>
 

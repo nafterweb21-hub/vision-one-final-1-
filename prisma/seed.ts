@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { PrismaClient, UserRole } from "../src/generated/prisma/client";
+import { PrismaClient } from "../src/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 import bcrypt from "bcryptjs";
@@ -11,18 +11,28 @@ const prisma = new PrismaClient({ adapter });
 async function main() {
   console.log("Seeding database...");
 
+  // ---------- Roles ----------
+  const roles = ["ADMIN", "SALES", "PRODUCTION", "PURCHASING", "QC", "PLANNER", "VIEWER"];
+  for (const role of roles) {
+    await prisma.roleProfile.upsert({
+      where: { name: role },
+      create: { name: role, permissions: [] },
+      update: {},
+    });
+  }
+
   // ---------- Users ----------
   const defaultPasswordHash = await bcrypt.hash("password123", 10);
   const users: Array<{
     id: string;
     name: string;
     email: string;
-    role: UserRole;
+    role: string;
   }> = [
-    { id: "user-sy", name: "Shyue Yin", email: "sy@visionone.com", role: UserRole.PURCHASING },
-    { id: "user-danny", name: "Danny", email: "danny@visionone.com", role: UserRole.PURCHASING },
-    { id: "user-simeon", name: "Simeon", email: "simeon@visionone.com", role: UserRole.SALES },
-    { id: "user-admin", name: "Admin", email: "admin@visionone.com", role: UserRole.ADMIN },
+    { id: "user-sy", name: "Shyue Yin", email: "sy@visionone.com", role: "PURCHASING" },
+    { id: "user-danny", name: "Danny", email: "danny@visionone.com", role: "PURCHASING" },
+    { id: "user-simeon", name: "Simeon", email: "simeon@visionone.com", role: "SALES" },
+    { id: "user-admin", name: "Admin", email: "admin@visionone.com", role: "ADMIN" },
   ];
   for (const u of users) {
     await prisma.user.upsert({

@@ -1,11 +1,10 @@
 "use client";
-
+import { SearchableSelect } from "@/components/SearchableSelect";
 import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { Plus, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { addInProcess } from "../actions";
-
 type ExistingStep = { id: string; sn: number | null; description: string };
 
 type Props = {
@@ -111,14 +110,14 @@ export default function AddInProcessModal({ workOrderNo, existingSteps, disabled
 
                   <div className="space-y-1.5">
                     <label className="text-sm font-medium text-slate-700">Conditional SN</label>
-                    <select {...register("conditionalSnId")} className={inputCls}>
+                    <SearchableSelect {...register("conditionalSnId")} className={inputCls}>
                       <option value="">None</option>
                       {existingSteps.map((s) => (
                         <option key={s.id} value={s.id}>
                           {s.sn ? `${s.sn}. ` : ""}{s.description}
                         </option>
                       ))}
-                    </select>
+                    </SearchableSelect>
                   </div>
                 </div>
 

@@ -1,11 +1,12 @@
 "use client";
+import { SearchableSelect } from "@/components/SearchableSelect";
 import { customConfirm } from "@/lib/customConfirm";
 import { toast as hotToast } from "react-hot-toast";
 
 import React, { useState, useEffect, useTransition } from "react";
 import Link from "next/link";
 import {
-  getMaterialProfiles,
+getMaterialProfiles,
   toggleMaterialStatus,
   deleteMaterialProfile,
 } from "./actions";
@@ -198,7 +199,7 @@ export default function MaterialProfilePage() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="relative inline-block">
-                        <select
+                        <SearchableSelect
                           value={material.status}
                           onChange={(e) => handleToggleStatus(material.id)}
                           disabled={isPending}
@@ -210,7 +211,7 @@ export default function MaterialProfilePage() {
                         >
                           <option value="Active">Active</option>
                           <option value="Inactive">Inactive</option>
-                        </select>
+                        </SearchableSelect>
                         <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2.5">
                           <svg className={`h-3.5 w-3.5 ${material.status === "Active" ? "text-emerald-600 " : "text-blue-500 "}`} viewBox="0 0 20 20" fill="currentColor">
                             <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />

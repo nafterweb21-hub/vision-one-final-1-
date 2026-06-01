@@ -66,7 +66,7 @@ export default function DashboardPage() {
   return (
     <div className="space-y-8 animate-fade-in pb-12">
       {/* Welcome Banner */}
-      <div className="relative w-[100vw] left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] -mt-24 mb-0 overflow-hidden bg-slate-900 px-4 sm:px-8 md:px-12 lg:px-16 pt-6 pb-8 shadow-2xl sm:pt-8 sm:pb-10 rounded-b-3xl">
+      <div className="relative w-[100vw] left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] mb-0 overflow-hidden bg-slate-900 px-4 sm:px-8 md:px-12 lg:px-16 pt-6 pb-8 shadow-2xl sm:pt-8 sm:pb-10 rounded-b-3xl">
         <div className="absolute -left-20 -top-20 h-96 w-96 rounded-full bg-indigo-600/30 blur-3xl"></div>
         <div className="absolute -bottom-40 -right-20 h-96 w-96 rounded-full bg-blue-600/30 blur-3xl"></div>
         

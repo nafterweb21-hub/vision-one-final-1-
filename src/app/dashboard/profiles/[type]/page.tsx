@@ -1,4 +1,5 @@
 "use client";
+import { SearchableSelect } from "@/components/SearchableSelect";
 import { toast as hotToast } from "react-hot-toast";
 
 import { use, useEffect, useState } from "react";
@@ -15,7 +16,6 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { PROFILE_REGISTRY } from "@/lib/profiles-schema";
-
 interface FieldConfig {
   name: string;
   label: string;
@@ -323,7 +323,7 @@ export default function ProfilePage({
                 <label className="text-xs font-semibold uppercase tracking-wider text-blue-500 ">
                   Status
                 </label>
-                <select
+                <SearchableSelect
                   id="profile-status-input"
                   value={formData.status || "Active"}
                   onChange={(e) => setFormData({ ...formData, status: e.target.value })}
@@ -331,7 +331,7 @@ export default function ProfilePage({
                 >
                   <option value="Active">Active</option>
                   <option value="Inactive">Deactive</option>
-                </select>
+                </SearchableSelect>
               </div>
             </div>
 

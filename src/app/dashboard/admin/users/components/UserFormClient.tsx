@@ -1,10 +1,8 @@
 "use client";
-
+import { SearchableSelect } from "@/components/SearchableSelect";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-
-type Role = "ADMIN" | "SALES" | "PRODUCTION" | "PURCHASING" | "QC" | "PLANNER" | "VIEWER";
-const ROLES: Role[] = ["ADMIN", "SALES", "PRODUCTION", "PURCHASING", "QC", "PLANNER", "VIEWER"];
+type Role = string;
 
 interface EmployeeOption {
   id: string;
@@ -31,6 +29,7 @@ export default function UserFormClient({
 }) {
   const router = useRouter();
   const [employees, setEmployees] = useState<EmployeeOption[]>([]);
+  const [roles, setRoles] = useState<{ id: string; name: string }[]>([]);
   const [form, setForm] = useState<FormState>(
     initialData || {
       name: "",
@@ -55,6 +54,15 @@ export default function UserFormClient({
             name: e.name,
           }))
         );
+      })
+      .catch(() => {});
+
+    fetch("/api/admin/roles")
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setRoles(data);
+        }
       })
       .catch(() => {});
   }, []);
@@ -159,22 +167,23 @@ export default function UserFormClient({
               <label className="mb-1 block text-sm font-semibold text-blue-700">
                 Role <span className="text-rose-500">*</span>
               </label>
-              <select
+              <SearchableSelect
                 value={form.role}
                 onChange={(e) => setForm({ ...form, role: e.target.value as Role })}
                 disabled={isEdit && form.id === currentUserId}
                 className="w-full rounded-xl border border-blue-200 bg-blue-50/50 px-4 py-2.5 text-sm disabled:opacity-60 focus:bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
               >
-                {ROLES.map((r) => (
-                  <option key={r} value={r}>
-                    {r}
+                <option value="">— Select a role —</option>
+                {roles.map((r) => (
+                  <option key={r.id} value={r.name}>
+                    {r.name}
                   </option>
                 ))}
-              </select>
+              </SearchableSelect>
             </div>
             <div>
               <label className="mb-1 block text-sm font-semibold text-blue-700">Status</label>
-              <select
+              <SearchableSelect
                 value={form.isActive ? "ACTIVE" : "INACTIVE"}
                 onChange={(e) => setForm({ ...form, isActive: e.target.value === "ACTIVE" })}
                 disabled={isEdit && form.id === currentUserId}
@@ -182,14 +191,14 @@ export default function UserFormClient({
               >
                 <option value="ACTIVE">Active</option>
                 <option value="INACTIVE">Inactive</option>
-              </select>
+              </SearchableSelect>
             </div>
           </div>
           <div>
             <label className="mb-1 block text-sm font-semibold text-blue-700">
               Linked Employee
             </label>
-            <select
+            <SearchableSelect
               value={form.employeeId}
               onChange={(e) => setForm({ ...form, employeeId: e.target.value })}
               className="w-full rounded-xl border border-blue-200 bg-blue-50/50 px-4 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
@@ -200,7 +209,7 @@ export default function UserFormClient({
                   {emp.code} — {emp.name}
                 </option>
               ))}
-            </select>
+            </SearchableSelect>
           </div>
         </div>
 

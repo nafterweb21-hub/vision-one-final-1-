@@ -1,4 +1,5 @@
 "use client";
+import { SearchableSelect } from "@/components/SearchableSelect";
 import { customConfirm } from "@/lib/customConfirm";
 
 import React, { useState, useEffect } from "react";
@@ -6,7 +7,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Save, Loader2, Plus, Trash2, Send, AlertCircle, Copy } from "lucide-react";
 import { getInvoiceFormData, getPendingDOs, getDOItemsForInvoice, getInvoice, createInvoice, updateInvoice, reviseInvoice, submitInvoice, voidInvoice } from "../invoice.actions";
-
 export default function InvoiceFormPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -441,7 +441,7 @@ export default function InvoiceFormPage() {
           </div>
           <div className="space-y-1">
             <label className="text-sm font-semibold text-blue-900">Company <span className="text-rose-500">*</span></label>
-            <select
+            <SearchableSelect
               value={formData.companyId}
               onChange={(e) => setFormData({ ...formData, companyId: e.target.value })}
               disabled={!isDraft}
@@ -451,12 +451,12 @@ export default function InvoiceFormPage() {
               {metadata.companies.map((c: any) => (
                 <option key={c.id} value={c.id}>{c.companyName}</option>
               ))}
-            </select>
+            </SearchableSelect>
           </div>
 
           <div className="space-y-1">
             <label className="text-sm font-semibold text-blue-900">Invoice Type <span className="text-rose-500">*</span></label>
-            <select
+            <SearchableSelect
               value={formData.invoiceType}
               onChange={(e) => setFormData({ ...formData, invoiceType: e.target.value })}
               disabled={!isDraft}
@@ -465,12 +465,12 @@ export default function InvoiceFormPage() {
               <option value="Customer Invoice">Customer Invoice</option>
               <option value="Credit Note">Credit Note</option>
               <option value="Debit Note">Debit Note</option>
-            </select>
+            </SearchableSelect>
           </div>
 
           <div className="space-y-1 md:col-span-2">
             <label className="text-sm font-semibold text-blue-900">Prepared By <span className="text-rose-500">*</span></label>
-            <select
+            <SearchableSelect
               value={formData.preparedById}
               onChange={(e) => setFormData({ ...formData, preparedById: e.target.value })}
               disabled={!isDraft}
@@ -480,7 +480,7 @@ export default function InvoiceFormPage() {
               {metadata.employees.map((e: any) => (
                 <option key={e.id} value={e.id}>{e.name}</option>
               ))}
-            </select>
+            </SearchableSelect>
           </div>
           <div className="space-y-1">
             <label className="text-sm font-semibold text-blue-900">P.O. No.</label>
@@ -511,7 +511,7 @@ export default function InvoiceFormPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-1">
             <label className="text-sm font-semibold text-blue-900">Customer <span className="text-rose-500">*</span></label>
-            <select
+            <SearchableSelect
               value={formData.customerId}
               onChange={(e) => handleCustomerChange(e.target.value)}
               disabled={!isDraft}
@@ -521,7 +521,7 @@ export default function InvoiceFormPage() {
               {metadata.customers.map((c: any) => (
                 <option key={c.id} value={c.id}>{c.customerName}</option>
               ))}
-            </select>
+            </SearchableSelect>
           </div>
 
           <div className="space-y-1">
@@ -555,7 +555,7 @@ export default function InvoiceFormPage() {
 
           <div className="space-y-1">
             <label className="text-sm font-semibold text-blue-900">Contact Person <span className="text-rose-500">*</span></label>
-            <select
+            <SearchableSelect
               value={formData.contactPersonId}
               onChange={(e) => handleContactChange(e.target.value)}
               disabled={!isDraft}
@@ -565,7 +565,7 @@ export default function InvoiceFormPage() {
               {selectedCustomer?.contactPersons?.map((cp: any) => (
                 <option key={cp.id} value={cp.id}>{cp.contactPersonName}</option>
               ))}
-            </select>
+            </SearchableSelect>
           </div>
 
           <div className="space-y-1">
@@ -603,7 +603,7 @@ export default function InvoiceFormPage() {
 
           <div className="space-y-1 md:col-span-2">
             <label className="text-sm font-semibold text-blue-900">Bill To Address</label>
-            <select
+            <SearchableSelect
               value={formData.billToId}
               onChange={(e) => setFormData({ ...formData, billToId: e.target.value })}
               disabled={!isDraft}
@@ -613,7 +613,7 @@ export default function InvoiceFormPage() {
               {selectedCustomer?.addresses?.map((addr: any) => (
                 <option key={addr.id} value={addr.id}>{addr.address}</option>
               ))}
-            </select>
+            </SearchableSelect>
           </div>
         </div>
       </div>
@@ -624,7 +624,7 @@ export default function InvoiceFormPage() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div className="space-y-1 md:col-span-2">
             <label className="text-sm font-semibold text-blue-900">Payment Term <span className="text-rose-500">*</span></label>
-            <select
+            <SearchableSelect
               value={formData.paymentTermId}
               onChange={(e) => setFormData({ ...formData, paymentTermId: e.target.value })}
               disabled={!isDraft}
@@ -634,12 +634,12 @@ export default function InvoiceFormPage() {
               {metadata.paymentTerms.map((pt: any) => (
                 <option key={pt.id} value={pt.id}>{pt.name} ({pt.days} days)</option>
               ))}
-            </select>
+            </SearchableSelect>
           </div>
 
           <div className="space-y-1">
             <label className="text-sm font-semibold text-blue-900">Currency <span className="text-rose-500">*</span></label>
-            <select
+            <SearchableSelect
               value={formData.currencyId}
               onChange={(e) => handleCurrencyChange(e.target.value)}
               disabled={!isDraft}
@@ -649,7 +649,7 @@ export default function InvoiceFormPage() {
               {metadata.currencies.map((cur: any) => (
                 <option key={cur.id} value={cur.id}>{cur.code}</option>
               ))}
-            </select>
+            </SearchableSelect>
           </div>
 
           <div className="space-y-1">
@@ -665,7 +665,7 @@ export default function InvoiceFormPage() {
 
           <div className="space-y-1 md:col-span-2">
             <label className="text-sm font-semibold text-blue-900">Tax Type <span className="text-rose-500">*</span></label>
-            <select
+            <SearchableSelect
               value={formData.taxTypeId}
               onChange={(e) => handleTaxChange(e.target.value)}
               disabled={!isDraft}
@@ -675,7 +675,7 @@ export default function InvoiceFormPage() {
               {metadata.taxes.map((t: any) => (
                 <option key={t.id} value={t.id}>{t.taxType} ({t.taxRate}%)</option>
               ))}
-            </select>
+            </SearchableSelect>
           </div>
         </div>
       </div>
@@ -761,7 +761,7 @@ export default function InvoiceFormPage() {
                       />
                     </td>
                     <td className="px-4 py-2">
-                      <select
+                      <SearchableSelect
                         value={item.uomId || ""}
                         onChange={(e) => updateItem(index, "uomId", e.target.value)}
                         disabled={!isDraft || !!item.partId}
@@ -771,7 +771,7 @@ export default function InvoiceFormPage() {
                         {metadata.uoms.map((u: any) => (
                           <option key={u.id} value={u.id}>{u.uomName}</option>
                         ))}
-                      </select>
+                      </SearchableSelect>
                     </td>
                     <td className="px-4 py-2">
                        <input

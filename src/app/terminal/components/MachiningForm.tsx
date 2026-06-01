@@ -1,7 +1,6 @@
 "use client";
-
+import { SearchableSelect } from "@/components/SearchableSelect";
 import { useMemo } from "react";
-
 type Machine = {
   id: string;
   machineCode: string;
@@ -46,12 +45,12 @@ export default function MachiningForm({ value, onChange, machiningMachines }: Pr
     <div className="space-y-4">
       <Group label="Machine">
         <Field label="Machine Serial No" required>
-          <select value={value.machineSerialNoId || ""} onChange={(e) => set("machineSerialNoId", e.target.value)} className={inputCls}>
+          <SearchableSelect value={value.machineSerialNoId || ""} onChange={(e) => set("machineSerialNoId", e.target.value)} className={inputCls}>
             <option value="">Select machine</option>
             {machiningMachines.map((m) => (
               <option key={m.id} value={m.id}>{m.serialNo || m.machineCode}</option>
             ))}
-          </select>
+          </SearchableSelect>
         </Field>
         <ReadField label="Machine No/Name" value={selected?.machineNo} />
         <ReadField label="Machine Type" value={selected?.machineType} />

@@ -1,9 +1,9 @@
 "use client";
+import { SearchableSelect } from "@/components/SearchableSelect";
 import { toast as hotToast } from "react-hot-toast";
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-
 interface User {
   id: string;
   name: string;
@@ -177,7 +177,7 @@ export default function ApprovalLevelForm({ editingProfile, users }: ApprovalLev
             <label className="text-xs font-bold text-blue-700 uppercase tracking-wide">
               Module Type <span className="text-rose-500">*</span>
             </label>
-            <select
+            <SearchableSelect
               value={formModule}
               onChange={(e) => setFormModule(e.target.value)}
               disabled={saving}
@@ -185,7 +185,7 @@ export default function ApprovalLevelForm({ editingProfile, users }: ApprovalLev
             >
               <option value="Purchase Order - Material">Purchase Order - Material</option>
               <option value="Purchase Order - Subcon">Purchase Order - Subcon</option>
-            </select>
+            </SearchableSelect>
             <p className="text-[10px] text-blue-400">
               Approval level profiles govern Purchase and Subcon orders only.
             </p>
@@ -314,7 +314,7 @@ export default function ApprovalLevelForm({ editingProfile, users }: ApprovalLev
                       {/* Dropdown to pick User and Status Toggle */}
                       <div className="flex-1 min-w-0 grid gap-2">
                         <div className="flex gap-2">
-                          <select
+                          <SearchableSelect
                             value={item.userId}
                             onChange={(e) => handleApproverUserChange(index, e.target.value)}
                             disabled={saving}
@@ -325,7 +325,7 @@ export default function ApprovalLevelForm({ editingProfile, users }: ApprovalLev
                                 {u.name}
                               </option>
                             ))}
-                          </select>
+                          </SearchableSelect>
                           
                           {/* Status Toggle Button in Drawer */}
                           <button
