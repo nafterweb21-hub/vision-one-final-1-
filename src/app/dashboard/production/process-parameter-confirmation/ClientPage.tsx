@@ -427,11 +427,20 @@ export default function ClientPage({ parameters, options, currentEmployeeId }: a
   return (
     <div className="p-6">
       {toastMessage && (
-        <div className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg flex items-center gap-3 animate-in fade-in slide-in-from-top-2 ${
-          toastMessage.type === "success" ? "bg-emerald-50 text-emerald-800 border border-emerald-200" : "bg-rose-50 text-rose-800 border border-rose-200"
-        }`}>
-          {toastMessage.type === "success" ? <Check size={18} className="text-emerald-500" /> : <AlertCircle size={18} className="text-rose-500" />}
-          <span className="font-medium text-sm">{toastMessage.text}</span>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className={`p-6 rounded-2xl shadow-2xl flex items-center gap-4 animate-in zoom-in-95 duration-200 ${
+            toastMessage.type === "success" 
+              ? "bg-white border-2 border-emerald-500 text-slate-800" 
+              : "bg-white border-2 border-rose-500 text-slate-800"
+          }`}>
+            <div className={`p-3 rounded-full ${toastMessage.type === "success" ? "bg-emerald-100" : "bg-rose-100"}`}>
+              {toastMessage.type === "success" 
+                ? <Check size={28} className="text-emerald-600" /> 
+                : <AlertCircle size={28} className="text-rose-600" />
+              }
+            </div>
+            <span className="font-semibold text-lg">{toastMessage.text}</span>
+          </div>
         </div>
       )}
 

@@ -75,7 +75,7 @@ export default function SalesOrderListPage() {
         </div>
         
         <div className="flex flex-wrap items-center gap-2">
-          {["All", "Draft", "Confirmed", "Revised", "Void", "Closed"].map((status) => (
+          {["All", "Draft", "Confirmed", "Revised", "Old Revise", "Void", "Closed"].map((status) => (
             <button
               key={status}
               onClick={() => setStatusFilter(status)}
@@ -185,7 +185,7 @@ export default function SalesOrderListPage() {
                             <Link href={`/dashboard/sales/sales-order/${order.id}`} className="px-2.5 py-1.5 text-xs font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-500 transition-colors">Confirm</Link>
                           </>
                         )}
-                        {(order.status === "Closed" || order.status === "Void") && (
+                        {(order.status === "Closed" || order.status === "Void" || order.status === "Old Revise") && (
                           <Link href={`/dashboard/sales/sales-order/${order.id}`} className="px-2.5 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors">View Only</Link>
                         )}
                       </div>

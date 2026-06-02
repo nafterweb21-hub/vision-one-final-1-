@@ -86,6 +86,10 @@ export async function getPendingParameters() {
       orderBy: { createdAt: "desc" },
     }),
   ]);
+  console.log("Fetching Pending Confirmation Records...");
+  console.log(`Welding: ${welding.length} records`);
+  console.log(`Spray Painting: ${sprayPainting.length} records`);
+  console.log(`Machining: ${machining.length} records`);
 
   return {
     welding: JSON.parse(JSON.stringify(welding)),
@@ -130,6 +134,9 @@ export async function confirmParameters(
     if (type === "SprayPainting" && elcometerId) {
       data.elcometerSerialNoId = elcometerId;
     }
+
+    console.log(`Confirming [${type}] Parameters:`, ids);
+    console.log(`Confirmed By: ${employeeId}, Confirmed Date: ${data.confirmedDate.toISOString()}`);
 
     if (type === "Welding") {
       await prisma.processParameterWelding.updateMany({

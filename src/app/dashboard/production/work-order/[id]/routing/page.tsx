@@ -248,7 +248,7 @@ export default async function WorkOrderRoutingPage({
                         {ip.routingProcesses.map((rp: any) => (
                           <RoutingProcessRow 
                             key={rp.id} 
-                            rp={rp} 
+                            rp={JSON.parse(JSON.stringify(rp))} 
                             woStatus={workOrder.status} 
                             employees={employees}
                             supportData={supportData}

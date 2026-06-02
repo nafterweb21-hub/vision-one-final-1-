@@ -500,8 +500,13 @@ export async function updateProcessParameters(
           postHeatingC: payload.postHeatingC != null ? Number(payload.postHeatingC) : null,
           heatTreatmentHrc: payload.heatTreatmentHrc != null ? Number(payload.heatTreatmentHrc) : null,
           remark: payload.remark || null,
+          status: "Pending",
+          confirmedById: null,
+          confirmedDate: null,
         },
       });
+
+      console.log(`Process Parameter Updated [welding]: ${id}, Status set to Pending`);
 
       // 2. Sync materialTypeIds
       const newMaterialTypeIds = payload.materialTypeIds || [];
@@ -576,8 +581,13 @@ export async function updateProcessParameters(
           additionalRemark: payload.additionalRemark || null,
           elcometerSerialNoId: payload.elcometerSerialNoId || null,
           elcometerName: payload.elcometerName || null,
+          status: "Pending",
+          confirmedById: null,
+          confirmedDate: null,
         },
       });
+
+      console.log(`Process Parameter Updated [spray]: ${id}, Status set to Pending`);
 
     } else if (type === "machining") {
       // 1. Update basic fields
@@ -591,8 +601,13 @@ export async function updateProcessParameters(
           partRuntimeHr: payload.partRuntimeHr != null ? Number(payload.partRuntimeHr) : null,
           partRuntimeMins: payload.partRuntimeMins != null ? Number(payload.partRuntimeMins) : null,
           remark: payload.remark || null,
+          status: "Pending",
+          confirmedById: null,
+          confirmedDate: null,
         },
       });
+
+      console.log(`Process Parameter Updated [machining]: ${id}, Status set to Pending`);
 
       // 2. Recreate tool lists
       await prisma.machiningToolList.deleteMany({

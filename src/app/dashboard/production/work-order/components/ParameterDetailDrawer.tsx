@@ -93,8 +93,8 @@ export default function ParameterDetailDrawer({
       </button>
 
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-4xl flex flex-col max-h-[90vh]">
+        <div className="fixed inset-0 z-50 flex flex-col bg-white animate-in fade-in slide-in-from-bottom-4 duration-200">
+          <div className="w-full h-full flex flex-col">
             <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
               <h3 className="text-lg font-semibold text-slate-800">
                 Process Parameter — {type} {isEditing && <span className="text-sm font-normal text-indigo-600">(Editing)</span>}
@@ -107,7 +107,7 @@ export default function ParameterDetailDrawer({
               </button>
             </div>
 
-            <div className="p-6 overflow-y-auto">
+            <div className="p-6 overflow-y-auto flex-1">
               {error && (
                 <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
                   {error}

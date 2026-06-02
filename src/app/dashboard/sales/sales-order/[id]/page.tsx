@@ -367,7 +367,7 @@ export default function SalesOrderFormPage({ params }: PageProps) {
             </>
           )}
 
-          {(order.status === "Closed" || order.status === "Void") && (
+          {(order.status === "Closed" || order.status === "Void" || order.status === "Old Revise") && (
             <button
               disabled
               className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 rounded-lg flex items-center gap-2 opacity-70"

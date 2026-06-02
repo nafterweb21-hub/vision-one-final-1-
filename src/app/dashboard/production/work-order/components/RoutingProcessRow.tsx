@@ -70,19 +70,17 @@ export default function RoutingProcessRow({
       </td>
       <td className="px-3 py-2 text-center">
         {paramsTimesheets.length > 0 ? (
-          paramsTimesheets.map((ts: any) => (
-            <div key={ts.id} className="inline-block m-0.5">
-              <ParameterDetailDrawer
-                welding={ts.weldingParameter ? JSON.parse(JSON.stringify(ts.weldingParameter)) : null}
-                spray={ts.sprayParameter ? JSON.parse(JSON.stringify(ts.sprayParameter)) : null}
-                machining={ts.machiningParameter ? JSON.parse(JSON.stringify(ts.machiningParameter)) : null}
-                employees={employees}
-                workOrderNo={workOrderNo}
-                editable={editable}
-                supportData={supportData}
-              />
-            </div>
-          ))
+          <div className="inline-block m-0.5">
+            <ParameterDetailDrawer
+              welding={paramsTimesheets[0].weldingParameter ? JSON.parse(JSON.stringify(paramsTimesheets[0].weldingParameter)) : null}
+              spray={paramsTimesheets[0].sprayParameter ? JSON.parse(JSON.stringify(paramsTimesheets[0].sprayParameter)) : null}
+              machining={paramsTimesheets[0].machiningParameter ? JSON.parse(JSON.stringify(paramsTimesheets[0].machiningParameter)) : null}
+              employees={employees}
+              workOrderNo={workOrderNo}
+              editable={editable}
+              supportData={supportData}
+            />
+          </div>
         ) : (
           <span className="text-slate-400 text-xs">-</span>
         )}
