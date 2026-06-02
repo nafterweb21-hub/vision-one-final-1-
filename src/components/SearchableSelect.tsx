@@ -16,6 +16,7 @@ export interface SearchableSelectProps extends React.SelectHTMLAttributes<HTMLSe
 export function SearchableSelect({ 
   children, 
   value, 
+  defaultValue,
   onChange, 
   className = "", 
   disabled = false,
@@ -26,6 +27,14 @@ export function SearchableSelect({
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
+  
+  const [internalValue, setInternalValue] = useState(value !== undefined ? value : defaultValue);
+
+  useEffect(() => {
+    if (value !== undefined) {
+      setInternalValue(value);
+    }
+  }, [value]);
 
   // Extract options from children deeply
   const extractOptions = (nodes: any): { value: string; label: string; disabled: boolean }[] => {
@@ -49,7 +58,7 @@ export function SearchableSelect({
 
   const options = extractOptions(children);
 
-  const selectedOption = options.find((o) => String(o.value) === String(value));
+  const selectedOption = options.find((o) => String(o.value) === String(internalValue));
   
   const filteredOptions = options.filter((o) =>
     o.label.toLowerCase().includes(search.toLowerCase())
@@ -66,6 +75,10 @@ export function SearchableSelect({
   }, []);
 
   const handleSelect = (val: string) => {
+    if (value === undefined) {
+      setInternalValue(val);
+    }
+    
     if (onChange) {
       // Mock the native event object so existing handlers work seamlessly
       onChange({
@@ -93,7 +106,7 @@ export function SearchableSelect({
 
       {/* Hidden native select for form submissions and required validation if needed */}
       <select 
-        value={value} 
+        value={internalValue || ""} 
         name={name} 
         onChange={() => {}} 
         className="hidden" 
@@ -127,7 +140,7 @@ export function SearchableSelect({
                 <div
                   key={i}
                   className={`px-3 py-2 text-sm rounded-md cursor-pointer truncate ${
-                    String(value) === String(opt.value)
+                    String(internalValue) === String(opt.value)
                       ? "bg-indigo-50 text-indigo-700 font-medium"
                       : opt.disabled 
                         ? "opacity-50 cursor-not-allowed" 

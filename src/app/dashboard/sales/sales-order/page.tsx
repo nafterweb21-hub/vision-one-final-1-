@@ -60,28 +60,34 @@ export default function SalesOrderListPage() {
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center gap-4 bg-white border border-blue-200 p-4 rounded-xl shadow-sm">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-blue-400 " />
-          <input
-            type="text"
-            placeholder="Search by Order No or Customer Name..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 text-sm bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors"
-          />
+      <div className="flex flex-col gap-4 bg-white border border-blue-200 p-4 rounded-xl shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-blue-400 " />
+            <input
+              type="text"
+              placeholder="Search by Order No or Customer Name..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-9 pr-4 py-2 text-sm bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors"
+            />
+          </div>
         </div>
-        <div className="sm:w-48">
-          <SearchableSelect
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="w-full px-3 py-2 text-sm bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-blue-700 transition-colors"
-          >
-            <option value="All">All Status</option>
-            <option value="Draft">Draft</option>
-            <option value="Confirmed">Confirmed</option>
-            <option value="Closed">Closed</option>
-          </SearchableSelect>
+        
+        <div className="flex flex-wrap items-center gap-2">
+          {["All", "Draft", "Confirmed", "Revised", "Void", "Closed"].map((status) => (
+            <button
+              key={status}
+              onClick={() => setStatusFilter(status)}
+              className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-200 ${
+                statusFilter === status
+                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/20 scale-105"
+                  : "bg-blue-50/50 text-blue-600 hover:bg-blue-100 border border-blue-200"
+              }`}
+            >
+              {status === "All" ? "All Status" : status}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -157,13 +163,32 @@ export default function SalesOrderListPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <Link
-                        href={`/dashboard/sales/sales-order/${order.id}`}
-                        className="inline-flex items-center justify-center p-1.5 rounded-lg border border-blue-200 hover:bg-blue-100 :bg-blue-800 text-blue-600 transition-colors active:scale-95"
-                        title="Edit"
-                      >
-                        <Edit2 size={14} />
-                      </Link>
+                      <div className="flex items-center justify-end gap-2">
+                        {order.status === "Draft" && (
+                          <>
+                            <Link href={`/dashboard/sales/sales-order/${order.id}`} className="px-2.5 py-1.5 text-xs font-semibold text-blue-700 bg-blue-100 rounded-lg hover:bg-blue-200 transition-colors">Save</Link>
+                            <Link href={`/dashboard/sales/sales-order/${order.id}`} className="px-2.5 py-1.5 text-xs font-semibold text-blue-700 bg-blue-100 rounded-lg hover:bg-blue-200 transition-colors">Edit</Link>
+                            <Link href={`/dashboard/sales/sales-order/${order.id}`} className="px-2.5 py-1.5 text-xs font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-500 transition-colors">Confirm</Link>
+                            <Link href={`/dashboard/sales/sales-order/${order.id}`} className="px-2.5 py-1.5 text-xs font-semibold text-rose-700 bg-rose-100 rounded-lg hover:bg-rose-200 transition-colors">Void</Link>
+                          </>
+                        )}
+                        {order.status === "Confirmed" && (
+                          <>
+                            <Link href={`/dashboard/sales/sales-order/${order.id}`} className="px-2.5 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors">View</Link>
+                            <Link href={`/dashboard/sales/sales-order/${order.id}`} className="px-2.5 py-1.5 text-xs font-semibold text-amber-700 bg-amber-100 rounded-lg hover:bg-amber-200 transition-colors">Revise</Link>
+                            <Link href={`/dashboard/sales/sales-order/${order.id}`} className="px-2.5 py-1.5 text-xs font-semibold text-rose-700 bg-rose-100 rounded-lg hover:bg-rose-200 transition-colors">Stop Purchase</Link>
+                          </>
+                        )}
+                        {order.status === "Revised" && (
+                          <>
+                            <Link href={`/dashboard/sales/sales-order/${order.id}`} className="px-2.5 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors">View</Link>
+                            <Link href={`/dashboard/sales/sales-order/${order.id}`} className="px-2.5 py-1.5 text-xs font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-500 transition-colors">Confirm</Link>
+                          </>
+                        )}
+                        {(order.status === "Closed" || order.status === "Void") && (
+                          <Link href={`/dashboard/sales/sales-order/${order.id}`} className="px-2.5 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors">View Only</Link>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
