@@ -140,27 +140,9 @@ export default function Sidebar({ userEmail, userRole, isAdmin }: SidebarProps) 
             <p className="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
               ADMINISTRATOR
             </p>
-            <Link href="#" onClick={() => setIsOpen(false)} className={linkClass("#module-management")}>
-              <LayoutGrid size={16} className="text-slate-500" />
-              <span>Module Management</span>
-            </Link>
             <Link href="/dashboard/admin/roles" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/admin/roles")}>
               <Key size={16} className="text-yellow-500" />
               <span>Roles</span>
-            </Link>
-            {isAdmin && allow("/dashboard/admin/users") && (
-              <Link href="/dashboard/admin/users" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/admin/users")}>
-                <User size={16} className="text-slate-500" fill="currentColor" />
-                <span>Users</span>
-              </Link>
-            )}
-            <Link href="#" onClick={() => setIsOpen(false)} className={linkClass("#user-alert")}>
-              <Bell size={16} className="text-yellow-600" />
-              <span>User Alert</span>
-            </Link>
-            <Link href="#" onClick={() => setIsOpen(false)} className={linkClass("#user-locked-record")}>
-              <Lock size={16} className="text-yellow-600" fill="currentColor" />
-              <span>User Locked Record</span>
             </Link>
             <Link href="#" onClick={() => setIsOpen(false)} className={linkClass("#email-notification")}>
               <Mail size={16} className="text-slate-500" />
