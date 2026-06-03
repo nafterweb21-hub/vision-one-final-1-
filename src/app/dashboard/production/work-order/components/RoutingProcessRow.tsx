@@ -48,10 +48,19 @@ export default function RoutingProcessRow({
     });
   }
 
+  const allTimesheets = rp.productionTimesheets || [];
   // Find all timesheets that have process parameters
-  const paramsTimesheets = rp.productionTimesheets?.filter(
+  const paramsTimesheets = allTimesheets.filter(
     (ts: any) => ts.weldingParameter || ts.sprayParameter || ts.machiningParameter
-  ) || [];
+  );
+
+  const targetTimesheetId = paramsTimesheets.length > 0 ? paramsTimesheets[0].id : (allTimesheets.length > 0 ? allTimesheets[0].id : null);
+
+  const expectsWelding = rp.routingProcess?.welding;
+  const expectsSpray = rp.routingProcess?.sprayPainting;
+  const expectsMachining = rp.routingProcess?.machining;
+  const expectsParams = expectsWelding || expectsSpray || expectsMachining;
+  const expectedType = expectsWelding ? "Welding" : expectsSpray ? "Spray Painting" : expectsMachining ? "Machining" : null;
 
   return (
     <tr className="hover:bg-slate-50/60">
@@ -69,16 +78,18 @@ export default function RoutingProcessRow({
         )}
       </td>
       <td className="px-3 py-2 text-center">
-        {paramsTimesheets.length > 0 ? (
+        {expectsParams ? (
           <div className="inline-block m-0.5">
             <ParameterDetailDrawer
-              welding={paramsTimesheets[0].weldingParameter ? JSON.parse(JSON.stringify(paramsTimesheets[0].weldingParameter)) : null}
-              spray={paramsTimesheets[0].sprayParameter ? JSON.parse(JSON.stringify(paramsTimesheets[0].sprayParameter)) : null}
-              machining={paramsTimesheets[0].machiningParameter ? JSON.parse(JSON.stringify(paramsTimesheets[0].machiningParameter)) : null}
+              welding={paramsTimesheets.length > 0 && paramsTimesheets[0].weldingParameter ? JSON.parse(JSON.stringify(paramsTimesheets[0].weldingParameter)) : null}
+              spray={paramsTimesheets.length > 0 && paramsTimesheets[0].sprayParameter ? JSON.parse(JSON.stringify(paramsTimesheets[0].sprayParameter)) : null}
+              machining={paramsTimesheets.length > 0 && paramsTimesheets[0].machiningParameter ? JSON.parse(JSON.stringify(paramsTimesheets[0].machiningParameter)) : null}
+              expectedType={expectedType}
               employees={employees}
               workOrderNo={workOrderNo}
               editable={editable}
               supportData={supportData}
+              targetTimesheetId={targetTimesheetId}
             />
           </div>
         ) : (

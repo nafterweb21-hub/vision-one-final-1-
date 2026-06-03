@@ -476,44 +476,54 @@ export async function getUomList() {
 // Update Process Parameters (Welding, Spray Painting, Machining)
 // ──────────────────────────────────────────────────────────────────────────────
 export async function updateProcessParameters(
-  id: string, // Parameter ID
+  idOrTimesheetId: string, // Parameter ID (if exists) or Timesheet ID (for creation)
   type: "welding" | "spray" | "machining",
   workOrderNo: string,
-  payload: any
+  payload: any,
+  isCreate: boolean = false
 ) {
   try {
     if (type === "welding") {
-      // 1. Update basic fields
-      await prisma.processParameterWelding.update({
-        where: { id },
-        data: {
-          weldingMachineId: payload.weldingMachineId || null,
-          typeOfJointId: payload.typeOfJointId || null,
-          electrodeType: payload.electrodeType || null,
-          weldingPosition: payload.weldingPosition || null,
-          weldingJoint: payload.weldingJoint != null ? Number(payload.weldingJoint) : null,
-          weldingSizeMm: payload.weldingSizeMm != null ? Number(payload.weldingSizeMm) : null,
-          voltageVolts: payload.voltageVolts != null ? Number(payload.voltageVolts) : null,
-          currentAmp: payload.currentAmp != null ? Number(payload.currentAmp) : null,
-          coolingTimeMins: payload.coolingTimeMins != null ? Number(payload.coolingTimeMins) : null,
-          preHeatingC: payload.preHeatingC != null ? Number(payload.preHeatingC) : null,
-          postHeatingC: payload.postHeatingC != null ? Number(payload.postHeatingC) : null,
-          heatTreatmentHrc: payload.heatTreatmentHrc != null ? Number(payload.heatTreatmentHrc) : null,
-          remark: payload.remark || null,
-          status: "Pending",
-          confirmedById: null,
-          confirmedDate: null,
-        },
-      });
+      const dataPayload = {
+        weldingMachineId: payload.weldingMachineId || null,
+        typeOfJointId: payload.typeOfJointId || null,
+        electrodeType: payload.electrodeType || null,
+        weldingPosition: payload.weldingPosition || null,
+        weldingJoint: payload.weldingJoint != null && payload.weldingJoint !== "" ? Number(payload.weldingJoint) : null,
+        weldingSizeMm: payload.weldingSizeMm != null && payload.weldingSizeMm !== "" ? Number(payload.weldingSizeMm) : null,
+        voltageVolts: payload.voltageVolts != null && payload.voltageVolts !== "" ? Number(payload.voltageVolts) : null,
+        currentAmp: payload.currentAmp != null && payload.currentAmp !== "" ? Number(payload.currentAmp) : null,
+        coolingTimeMins: payload.coolingTimeMins != null && payload.coolingTimeMins !== "" ? Number(payload.coolingTimeMins) : null,
+        preHeatingC: payload.preHeatingC != null && payload.preHeatingC !== "" ? Number(payload.preHeatingC) : null,
+        postHeatingC: payload.postHeatingC != null && payload.postHeatingC !== "" ? Number(payload.postHeatingC) : null,
+        heatTreatmentHrc: payload.heatTreatmentHrc != null && payload.heatTreatmentHrc !== "" ? Number(payload.heatTreatmentHrc) : null,
+        remark: payload.remark || null,
+        status: "Pending",
+        confirmedById: null,
+        confirmedDate: null,
+      };
 
-      console.log(`Process Parameter Updated [welding]: ${id}, Status set to Pending`);
+      let paramId = idOrTimesheetId;
+      if (isCreate) {
+        const created = await prisma.processParameterWelding.create({
+          data: { ...dataPayload, timesheetId: idOrTimesheetId },
+        });
+        paramId = created.id;
+      } else {
+        await prisma.processParameterWelding.update({
+          where: { id: idOrTimesheetId },
+          data: dataPayload,
+        });
+      }
+
+      console.log(`Process Parameter Updated/Created [welding]: ${paramId}, Status set to Pending`);
 
       // 2. Sync materialTypeIds
       const newMaterialTypeIds = payload.materialTypeIds || [];
       // Set others to null
       await prisma.materialType.updateMany({
         where: { 
-          processParameterWeldingId: id,
+          processParameterWeldingId: paramId,
           id: { notIn: newMaterialTypeIds }
         },
         data: { processParameterWeldingId: null }
@@ -522,7 +532,7 @@ export async function updateProcessParameters(
       if (newMaterialTypeIds.length > 0) {
         await prisma.materialType.updateMany({
           where: { id: { in: newMaterialTypeIds } },
-          data: { processParameterWeldingId: id }
+          data: { processParameterWeldingId: paramId }
         });
       }
 
@@ -531,7 +541,7 @@ export async function updateProcessParameters(
       // Set others to null
       await prisma.weldingTypeProfile.updateMany({
         where: { 
-          processParameterWeldingId: id,
+          processParameterWeldingId: paramId,
           id: { notIn: newWeldingTypeIds }
         },
         data: { processParameterWeldingId: null }
@@ -540,84 +550,102 @@ export async function updateProcessParameters(
       if (newWeldingTypeIds.length > 0) {
         await prisma.weldingTypeProfile.updateMany({
           where: { id: { in: newWeldingTypeIds } },
-          data: { processParameterWeldingId: id }
+          data: { processParameterWeldingId: paramId }
         });
       }
 
     } else if (type === "spray") {
-      await prisma.processParameterSprayPainting.update({
-        where: { id },
-        data: {
-          paintTankPressurePsi: payload.paintTankPressurePsi != null ? Number(payload.paintTankPressurePsi) : 0,
-          sprayNozzleSize: payload.sprayNozzleSize != null ? Number(payload.sprayNozzleSize) : 0,
-          typeOfPaint: payload.typeOfPaint || "",
-          remark: payload.remark || null,
-          surfaceStartDatetime: payload.surfaceStartDatetime ? new Date(payload.surfaceStartDatetime) : null,
-          surfaceEndDatetime: payload.surfaceEndDatetime ? new Date(payload.surfaceEndDatetime) : null,
-          surfaceGeneralWeather: payload.surfaceGeneralWeather || null,
-          surfaceEnvTemperature: payload.surfaceEnvTemperature || null,
-          surfaceRelativeHumidity: payload.surfaceRelativeHumidity || null,
-          surfaceAbrasiveType: payload.surfaceAbrasiveType || null,
-          surfaceSandpaperGrit: payload.surfaceSandpaperGrit || null,
-          primerStartDatetime: payload.primerStartDatetime ? new Date(payload.primerStartDatetime) : null,
-          primerEndDatetime: payload.primerEndDatetime ? new Date(payload.primerEndDatetime) : null,
-          primerGeneralWeather: payload.primerGeneralWeather || null,
-          primerEnvTemperature: payload.primerEnvTemperature || null,
-          primerRelativeHumidity: payload.primerRelativeHumidity || null,
-          primerPaintBatchNo: payload.primerPaintBatchNo || null,
-          primerExpiryDate: payload.primerExpiryDate ? new Date(payload.primerExpiryDate) : null,
-          primerDftMeasurement: payload.primerDftMeasurement || null,
-          topcoatStartDatetime2: payload.topcoatStartDatetime2 ? new Date(payload.topcoatStartDatetime2) : null,
-          topcoatEndDatetime2: payload.topcoatEndDatetime2 ? new Date(payload.topcoatEndDatetime2) : null,
-          topcoatGeneralWeather2: payload.topcoatGeneralWeather2 || null,
-          topcoatEnvTemperature2: payload.topcoatEnvTemperature2 || null,
-          topcoatRelativeHumidity2: payload.topcoatRelativeHumidity2 || null,
-          topcoatAbrasiveType: payload.topcoatAbrasiveType || null,
-          topcoatSandpaperGrit: payload.topcoatSandpaperGrit || null,
-          topcoatPaintBatchNo: payload.topcoatPaintBatchNo || null,
-          topcoatExpiryDate: payload.topcoatExpiryDate ? new Date(payload.topcoatExpiryDate) : null,
-          topcoatDftMeasurement: payload.topcoatDftMeasurement || null,
-          topcoatAdhesiveTestResult: payload.topcoatAdhesiveTestResult || null,
-          additionalRemark: payload.additionalRemark || null,
-          elcometerSerialNoId: payload.elcometerSerialNoId || null,
-          elcometerName: payload.elcometerName || null,
-          status: "Pending",
-          confirmedById: null,
-          confirmedDate: null,
-        },
-      });
+      const sprayPayload = {
+        paintTankPressurePsi: payload.paintTankPressurePsi != null && payload.paintTankPressurePsi !== "" ? Number(payload.paintTankPressurePsi) : 0,
+        sprayNozzleSize: payload.sprayNozzleSize != null && payload.sprayNozzleSize !== "" ? Number(payload.sprayNozzleSize) : 0,
+        typeOfPaint: payload.typeOfPaint || "",
+        remark: payload.remark || null,
+        surfaceStartDatetime: payload.surfaceStartDatetime ? new Date(payload.surfaceStartDatetime) : null,
+        surfaceEndDatetime: payload.surfaceEndDatetime ? new Date(payload.surfaceEndDatetime) : null,
+        surfaceGeneralWeather: payload.surfaceGeneralWeather || null,
+        surfaceEnvTemperature: payload.surfaceEnvTemperature || null,
+        surfaceRelativeHumidity: payload.surfaceRelativeHumidity || null,
+        surfaceAbrasiveType: payload.surfaceAbrasiveType || null,
+        surfaceSandpaperGrit: payload.surfaceSandpaperGrit || null,
+        primerStartDatetime: payload.primerStartDatetime ? new Date(payload.primerStartDatetime) : null,
+        primerEndDatetime: payload.primerEndDatetime ? new Date(payload.primerEndDatetime) : null,
+        primerGeneralWeather: payload.primerGeneralWeather || null,
+        primerEnvTemperature: payload.primerEnvTemperature || null,
+        primerRelativeHumidity: payload.primerRelativeHumidity || null,
+        primerPaintBatchNo: payload.primerPaintBatchNo || null,
+        primerExpiryDate: payload.primerExpiryDate ? new Date(payload.primerExpiryDate) : null,
+        primerDftMeasurement: payload.primerDftMeasurement || null,
+        topcoatStartDatetime2: payload.topcoatStartDatetime2 ? new Date(payload.topcoatStartDatetime2) : null,
+        topcoatEndDatetime2: payload.topcoatEndDatetime2 ? new Date(payload.topcoatEndDatetime2) : null,
+        topcoatGeneralWeather2: payload.topcoatGeneralWeather2 || null,
+        topcoatEnvTemperature2: payload.topcoatEnvTemperature2 || null,
+        topcoatRelativeHumidity2: payload.topcoatRelativeHumidity2 || null,
+        topcoatAbrasiveType: payload.topcoatAbrasiveType || null,
+        topcoatSandpaperGrit: payload.topcoatSandpaperGrit || null,
+        topcoatPaintBatchNo: payload.topcoatPaintBatchNo || null,
+        topcoatExpiryDate: payload.topcoatExpiryDate ? new Date(payload.topcoatExpiryDate) : null,
+        topcoatDftMeasurement: payload.topcoatDftMeasurement || null,
+        topcoatAdhesiveTestResult: payload.topcoatAdhesiveTestResult || null,
+        additionalRemark: payload.additionalRemark || null,
+        elcometerSerialNoId: payload.elcometerSerialNoId || null,
+        elcometerName: payload.elcometerName || null,
+        status: "Pending",
+        confirmedById: null,
+        confirmedDate: null,
+      };
 
-      console.log(`Process Parameter Updated [spray]: ${id}, Status set to Pending`);
+      if (isCreate) {
+        await prisma.processParameterSprayPainting.create({
+          data: { ...sprayPayload, timesheetId: idOrTimesheetId }
+        });
+      } else {
+        await prisma.processParameterSprayPainting.update({
+          where: { id: idOrTimesheetId },
+          data: sprayPayload,
+        });
+      }
+
+      console.log(`Process Parameter Updated/Created [spray]: ${idOrTimesheetId}, Status set to Pending`);
 
     } else if (type === "machining") {
       // 1. Update basic fields
-      await prisma.processParameterMachining.update({
-        where: { id },
-        data: {
-          machineSerialNoId: payload.machineSerialNoId,
-          cncProgramNo: payload.cncProgramNo || null,
-          testRun: payload.testRun || null,
-          specialTooling: payload.specialTooling || null,
-          partRuntimeHr: payload.partRuntimeHr != null ? Number(payload.partRuntimeHr) : null,
-          partRuntimeMins: payload.partRuntimeMins != null ? Number(payload.partRuntimeMins) : null,
-          remark: payload.remark || null,
-          status: "Pending",
-          confirmedById: null,
-          confirmedDate: null,
-        },
-      });
+      const machinePayload = {
+        machineSerialNoId: payload.machineSerialNoId,
+        cncProgramNo: payload.cncProgramNo || null,
+        testRun: payload.testRun || null,
+        specialTooling: payload.specialTooling || null,
+        partRuntimeHr: payload.partRuntimeHr != null && payload.partRuntimeHr !== "" ? Number(payload.partRuntimeHr) : null,
+        partRuntimeMins: payload.partRuntimeMins != null && payload.partRuntimeMins !== "" ? Number(payload.partRuntimeMins) : null,
+        remark: payload.remark || null,
+        status: "Pending",
+        confirmedById: null,
+        confirmedDate: null,
+      };
 
-      console.log(`Process Parameter Updated [machining]: ${id}, Status set to Pending`);
+      let paramId = idOrTimesheetId;
+      if (isCreate) {
+        const created = await prisma.processParameterMachining.create({
+          data: { ...machinePayload, timesheetId: idOrTimesheetId }
+        });
+        paramId = created.id;
+      } else {
+        await prisma.processParameterMachining.update({
+          where: { id: idOrTimesheetId },
+          data: machinePayload,
+        });
+      }
+
+      console.log(`Process Parameter Updated/Created [machining]: ${paramId}, Status set to Pending`);
 
       // 2. Recreate tool lists
       await prisma.machiningToolList.deleteMany({
-        where: { machiningParamId: id }
+        where: { machiningParamId: paramId }
       });
 
       if (payload.toolList && payload.toolList.length > 0) {
         await prisma.machiningToolList.createMany({
           data: payload.toolList.map((val: number) => ({
-            machiningParamId: id,
+            machiningParamId: paramId,
             toolValue: val
           }))
         });

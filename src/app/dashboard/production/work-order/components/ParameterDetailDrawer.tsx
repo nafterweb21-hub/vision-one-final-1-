@@ -8,6 +8,7 @@ type Props = {
   welding?: any;
   spray?: any;
   machining?: any;
+  expectedType?: string | null;
   employees?: any[];
   workOrderNo?: string;
   editable?: boolean;
@@ -19,6 +20,7 @@ type Props = {
     materialTypes?: any[];
     weldingTypes?: any[];
   };
+  targetTimesheetId?: string | null;
 };
 
 function formatDateTimeLocal(dStr?: string | Date | null) {
@@ -51,6 +53,8 @@ export default function ParameterDetailDrawer({
   workOrderNo = "",
   editable = false,
   supportData = {},
+  expectedType = null,
+  targetTimesheetId = null,
 }: Props) {
   const router = useRouter();
   const [isOpen, setOpen] = useState(false);
@@ -60,16 +64,24 @@ export default function ParameterDetailDrawer({
   const [error, setError] = useState("");
 
   const has = welding || spray || machining;
-  if (!has) return <span className="text-slate-400 text-xs">None</span>;
 
-  const type = welding ? "Welding" : spray ? "Spray Painting" : "Machining";
+  const type = welding ? "Welding" : spray ? "Spray Painting" : machining ? "Machining" : expectedType || "Process Parameter";
   const parameter = welding || spray || machining;
 
   const handleSave = () => {
     setError("");
     startTransition(async () => {
-      const typeKey = welding ? "welding" : spray ? "spray" : "machining";
-      const res = await updateProcessParameters(parameter.id, typeKey, workOrderNo, formPayload);
+      const typeKey = welding ? "welding" : spray ? "spray" : machining ? "machining" : 
+                      expectedType?.toLowerCase().includes("weld") ? "welding" : 
+                      expectedType?.toLowerCase().includes("spray") ? "spray" : "machining";
+      
+      const idOrTs = parameter?.id || targetTimesheetId;
+      if (!idOrTs) {
+        setError("Cannot save: No process parameter and no timesheet provided.");
+        return;
+      }
+      
+      const res = await updateProcessParameters(idOrTs, typeKey as any, workOrderNo, formPayload, !parameter);
       if (!res.success) {
         setError(res.error || "Failed to update process parameters");
       } else {
@@ -87,9 +99,9 @@ export default function ParameterDetailDrawer({
           setIsEditing(false);
           setError("");
         }}
-        className="text-blue-600 hover:text-blue-800 hover:underline text-xs font-medium"
+        className="px-3 py-1.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg text-xs font-semibold hover:bg-blue-100 transition-colors shadow-sm"
       >
-        View Detail
+        View
       </button>
 
       {isOpen && (
@@ -119,26 +131,39 @@ export default function ParameterDetailDrawer({
                   {welding && <WeldingDetail data={welding} />}
                   {spray && <SprayDetail data={spray} />}
                   {machining && <MachiningDetail data={machining} />}
+                  {!has && (
+                    <div className="text-center py-10 text-slate-500 text-sm">
+                      <p className="mb-2 text-base font-semibold text-slate-700">No parameters recorded yet.</p>
+                      {!targetTimesheetId ? (
+                        <>
+                          <p>Please create a Production Timesheet for this process first.</p>
+                          <p className="mt-1 text-xs text-slate-400">Process parameters must be attached to a specific timesheet.</p>
+                        </>
+                      ) : (
+                        <p>A timesheet exists. You can now add parameters.</p>
+                      )}
+                    </div>
+                  )}
                 </>
               ) : (
                 <>
-                  {welding && (
+                  {(welding || expectedType === "Welding") && (
                     <WeldingEdit
-                      data={welding}
+                      data={welding || {}}
                       supportData={supportData}
                       onChange={setFormPayload}
                     />
                   )}
-                  {spray && (
+                  {(spray || expectedType === "Spray Painting") && (
                     <SprayEdit
-                      data={spray}
+                      data={spray || {}}
                       supportData={supportData}
                       onChange={setFormPayload}
                     />
                   )}
-                  {machining && (
+                  {(machining || expectedType === "Machining") && (
                     <MachiningEdit
-                      data={machining}
+                      data={machining || {}}
                       supportData={supportData}
                       onChange={setFormPayload}
                     />
@@ -149,82 +174,82 @@ export default function ParameterDetailDrawer({
 
             <div className="px-6 py-3 border-t border-slate-100 bg-slate-50 flex justify-between items-center">
               <div>
-                {editable && !isEditing && (
+                {editable && !isEditing && (has || targetTimesheetId) && (
                   <button
                     onClick={() => {
                       setIsEditing(true);
                       // Initialize form payload with current data
-                      if (welding) {
+                      if (welding || expectedType === "Welding") {
                         setFormPayload({
-                          weldingMachineId: welding.weldingMachineId || "",
-                          typeOfJointId: welding.typeOfJointId || "",
-                          electrodeType: welding.electrodeType || "",
-                          weldingPosition: welding.weldingPosition || "",
-                          weldingJoint: welding.weldingJoint ?? "",
-                          weldingSizeMm: welding.weldingSizeMm ?? "",
-                          voltageVolts: welding.voltageVolts ?? "",
-                          currentAmp: welding.currentAmp ?? "",
-                          coolingTimeMins: welding.coolingTimeMins ?? "",
-                          preHeatingC: welding.preHeatingC ?? "",
-                          postHeatingC: welding.postHeatingC ?? "",
-                          heatTreatmentHrc: welding.heatTreatmentHrc ?? "",
-                          remark: welding.remark || "",
-                          materialTypeIds: (welding.materialTypes ?? []).map((m: any) => m.id),
-                          weldingTypeIds: (welding.weldingTypes ?? []).map((w: any) => w.id),
+                          weldingMachineId: welding?.weldingMachineId || "",
+                          typeOfJointId: welding?.typeOfJointId || "",
+                          electrodeType: welding?.electrodeType || "",
+                          weldingPosition: welding?.weldingPosition || "",
+                          weldingJoint: welding?.weldingJoint ?? "",
+                          weldingSizeMm: welding?.weldingSizeMm ?? "",
+                          voltageVolts: welding?.voltageVolts ?? "",
+                          currentAmp: welding?.currentAmp ?? "",
+                          coolingTimeMins: welding?.coolingTimeMins ?? "",
+                          preHeatingC: welding?.preHeatingC ?? "",
+                          postHeatingC: welding?.postHeatingC ?? "",
+                          heatTreatmentHrc: welding?.heatTreatmentHrc ?? "",
+                          remark: welding?.remark || "",
+                          materialTypeIds: (welding?.materialTypes ?? []).map((m: any) => m.id),
+                          weldingTypeIds: (welding?.weldingTypes ?? []).map((w: any) => w.id),
                         });
-                      } else if (spray) {
+                      } else if (spray || expectedType === "Spray Painting") {
                         setFormPayload({
-                          paintTankPressurePsi: spray.paintTankPressurePsi ?? "",
-                          sprayNozzleSize: spray.sprayNozzleSize ?? "",
-                          typeOfPaint: spray.typeOfPaint || "",
-                          remark: spray.remark || "",
-                          surfaceStartDatetime: formatDateTimeLocal(spray.surfaceStartDatetime),
-                          surfaceEndDatetime: formatDateTimeLocal(spray.surfaceEndDatetime),
-                          surfaceGeneralWeather: spray.surfaceGeneralWeather || "",
-                          surfaceEnvTemperature: spray.surfaceEnvTemperature || "",
-                          surfaceRelativeHumidity: spray.surfaceRelativeHumidity || "",
-                          surfaceAbrasiveType: spray.surfaceAbrasiveType || "",
-                          surfaceSandpaperGrit: spray.surfaceSandpaperGrit || "",
-                          primerStartDatetime: formatDateTimeLocal(spray.primerStartDatetime),
-                          primerEndDatetime: formatDateTimeLocal(spray.primerEndDatetime),
-                          primerGeneralWeather: spray.primerGeneralWeather || "",
-                          primerEnvTemperature: spray.primerEnvTemperature || "",
-                          primerRelativeHumidity: spray.primerRelativeHumidity || "",
-                          primerPaintBatchNo: spray.primerPaintBatchNo || "",
-                          primerExpiryDate: formatDateLocal(spray.primerExpiryDate),
-                          primerDftMeasurement: spray.primerDftMeasurement || "",
-                          topcoatStartDatetime2: formatDateTimeLocal(spray.topcoatStartDatetime2),
-                          topcoatEndDatetime2: formatDateTimeLocal(spray.topcoatEndDatetime2),
-                          topcoatGeneralWeather2: spray.topcoatGeneralWeather2 || "",
-                          topcoatEnvTemperature2: spray.topcoatEnvTemperature2 || "",
-                          topcoatRelativeHumidity2: spray.topcoatRelativeHumidity2 || "",
-                          topcoatAbrasiveType: spray.topcoatAbrasiveType || "",
-                          topcoatSandpaperGrit: spray.topcoatSandpaperGrit || "",
-                          topcoatPaintBatchNo: spray.topcoatPaintBatchNo || "",
-                          topcoatExpiryDate: formatDateLocal(spray.topcoatExpiryDate),
-                          topcoatDftMeasurement: spray.topcoatDftMeasurement || "",
-                          topcoatAdhesiveTestResult: spray.topcoatAdhesiveTestResult || "",
-                          additionalRemark: spray.additionalRemark || "",
-                          elcometerSerialNoId: spray.elcometerSerialNoId || "",
-                          elcometerName: spray.elcometerName || "",
+                          paintTankPressurePsi: spray?.paintTankPressurePsi ?? "",
+                          sprayNozzleSize: spray?.sprayNozzleSize ?? "",
+                          typeOfPaint: spray?.typeOfPaint || "",
+                          remark: spray?.remark || "",
+                          surfaceStartDatetime: formatDateTimeLocal(spray?.surfaceStartDatetime),
+                          surfaceEndDatetime: formatDateTimeLocal(spray?.surfaceEndDatetime),
+                          surfaceGeneralWeather: spray?.surfaceGeneralWeather || "",
+                          surfaceEnvTemperature: spray?.surfaceEnvTemperature || "",
+                          surfaceRelativeHumidity: spray?.surfaceRelativeHumidity || "",
+                          surfaceAbrasiveType: spray?.surfaceAbrasiveType || "",
+                          surfaceSandpaperGrit: spray?.surfaceSandpaperGrit || "",
+                          primerStartDatetime: formatDateTimeLocal(spray?.primerStartDatetime),
+                          primerEndDatetime: formatDateTimeLocal(spray?.primerEndDatetime),
+                          primerGeneralWeather: spray?.primerGeneralWeather || "",
+                          primerEnvTemperature: spray?.primerEnvTemperature || "",
+                          primerRelativeHumidity: spray?.primerRelativeHumidity || "",
+                          primerPaintBatchNo: spray?.primerPaintBatchNo || "",
+                          primerExpiryDate: formatDateLocal(spray?.primerExpiryDate),
+                          primerDftMeasurement: spray?.primerDftMeasurement || "",
+                          topcoatStartDatetime2: formatDateTimeLocal(spray?.topcoatStartDatetime2),
+                          topcoatEndDatetime2: formatDateTimeLocal(spray?.topcoatEndDatetime2),
+                          topcoatGeneralWeather2: spray?.topcoatGeneralWeather2 || "",
+                          topcoatEnvTemperature2: spray?.topcoatEnvTemperature2 || "",
+                          topcoatRelativeHumidity2: spray?.topcoatRelativeHumidity2 || "",
+                          topcoatAbrasiveType: spray?.topcoatAbrasiveType || "",
+                          topcoatSandpaperGrit: spray?.topcoatSandpaperGrit || "",
+                          topcoatPaintBatchNo: spray?.topcoatPaintBatchNo || "",
+                          topcoatExpiryDate: formatDateLocal(spray?.topcoatExpiryDate),
+                          topcoatDftMeasurement: spray?.topcoatDftMeasurement || "",
+                          topcoatAdhesiveTestResult: spray?.topcoatAdhesiveTestResult || "",
+                          additionalRemark: spray?.additionalRemark || "",
+                          elcometerSerialNoId: spray?.elcometerSerialNoId || "",
+                          elcometerName: spray?.elcometerName || "",
                         });
-                      } else if (machining) {
+                      } else if (machining || expectedType === "Machining") {
                         setFormPayload({
-                          machineSerialNoId: machining.machineSerialNoId || "",
-                          cncProgramNo: machining.cncProgramNo || "",
-                          testRun: machining.testRun || "",
-                          specialTooling: machining.specialTooling || "",
-                          partRuntimeHr: machining.partRuntimeHr ?? "",
-                          partRuntimeMins: machining.partRuntimeMins ?? "",
-                          remark: machining.remark || "",
-                          toolList: (machining.toolLists ?? []).map((t: any) => Number(t.toolValue)),
+                          machineSerialNoId: machining?.machineSerialNoId || "",
+                          cncProgramNo: machining?.cncProgramNo || "",
+                          testRun: machining?.testRun || "",
+                          specialTooling: machining?.specialTooling || "",
+                          partRuntimeHr: machining?.partRuntimeHr ?? "",
+                          partRuntimeMins: machining?.partRuntimeMins ?? "",
+                          remark: machining?.remark || "",
+                          toolList: (machining?.toolLists ?? []).map((t: any) => Number(t.toolValue)),
                         });
                       }
                     }}
                     className="inline-flex items-center gap-1.5 px-4 py-2 border border-indigo-200 text-indigo-600 rounded-lg hover:bg-indigo-50 text-sm font-semibold transition-colors"
                   >
                     <Edit size={16} />
-                    Update
+                    {has ? "Update" : "Add Parameters"}
                   </button>
                 )}
               </div>
