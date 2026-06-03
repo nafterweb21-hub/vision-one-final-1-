@@ -156,8 +156,7 @@ export default function TerminalClient({ support, loggedInEmployee, initialSessi
           </div>
           <button 
             onClick={openScanInModal}
-            disabled={displayEmployee?.code === "UNLINKED_USER"}
-            className={`font-bold rounded-2xl px-6 py-3 flex items-center gap-2 transition-colors h-full shadow-lg ${displayEmployee?.code === "UNLINKED_USER" ? 'bg-slate-300 text-slate-500 cursor-not-allowed shadow-none' : 'bg-cyan-500 hover:bg-cyan-400 text-white shadow-cyan-500/20'}`}
+            className="font-bold rounded-2xl px-6 py-3 flex items-center gap-2 transition-colors h-full shadow-lg bg-cyan-500 hover:bg-cyan-400 text-white shadow-cyan-500/20"
           >
             <Plus size={20} strokeWidth={3} />
             Scan In

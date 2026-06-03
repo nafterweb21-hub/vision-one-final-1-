@@ -305,7 +305,7 @@ export default function Sidebar({ userEmail, userRole, isAdmin }: SidebarProps) 
                 <span className="flex-1">Receipt / Payment Record</span>
               </Link>
             )}
-            <Link href="#" onClick={() => setIsOpen(false)} className={linkClass("#cost-monitoring")}>
+            <Link href="/dashboard/cost-monitoring" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/cost-monitoring")}>
               <BarChart2 size={16} className="text-blue-500" fill="currentColor" />
               <span>Cost Monitoring</span>
             </Link>

@@ -10,6 +10,7 @@ export default function NcrForm({ initialData, formData }: { initialData?: any, 
   const [error, setError] = useState("");
 
   const [ncrDate, setNcrDate] = useState(initialData?.ncrDate ? new Date(initialData.ncrDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]);
+  const [status, setStatus] = useState(initialData?.status || "Draft");
   const [customerId, setCustomerId] = useState(initialData?.customerId || "");
   const [workOrderNo, setWorkOrderNo] = useState(initialData?.workOrderNo || "");
   const [inProcessId, setInProcessId] = useState(initialData?.inProcessId || "");
@@ -59,14 +60,18 @@ export default function NcrForm({ initialData, formData }: { initialData?: any, 
 
     // Validation
     const selectedWO = formData.workOrders.find((w: any) => w.workOrderNo === workOrderNo);
+    // Removed strict quantity validation to allow NCRs for batch/lot-based Work Orders
+    /*
     if (selectedWO && ncrQuantity > Number(selectedWO.quantity)) {
         setError(`NCR Quantity (${ncrQuantity}) cannot be more than Work Order Quantity (${selectedWO.quantity})`);
         setLoading(false);
         return;
     }
+    */
 
     const payload = {
       ncrDate: new Date(ncrDate),
+      status,
       customerId,
       workOrderNo,
       inProcessId: inProcessId || undefined,
@@ -129,6 +134,11 @@ export default function NcrForm({ initialData, formData }: { initialData?: any, 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">NCR Date *</label>
           <input type="date" value={ncrDate} onChange={(e) => setNcrDate(e.target.value)} required className="w-full border-gray-300 rounded-md shadow-sm p-2 border" />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+          <input type="text" value={status} readOnly className="w-full bg-gray-100 text-gray-500 border-gray-300 rounded-md shadow-sm p-2 border cursor-not-allowed" />
         </div>
         
         <div>
@@ -259,8 +269,17 @@ export default function NcrForm({ initialData, formData }: { initialData?: any, 
 
       <div className="flex justify-end space-x-4 print:hidden">
         <button type="button" onClick={() => router.back()} className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">Cancel</button>
-        <button type="submit" disabled={loading} className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 disabled:opacity-50">
-          {loading ? "Saving..." : "Save NCR"}
+        
+        <button type="submit" onClick={() => setStatus("Void")} disabled={loading} className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 disabled:opacity-50">
+          {loading && status === "Void" ? "Voiding..." : "Void"}
+        </button>
+        
+        <button type="submit" onClick={() => setStatus("Draft")} disabled={loading} className="px-4 py-2 text-sm font-medium text-white bg-gray-600 border border-transparent rounded-md hover:bg-gray-700 disabled:opacity-50">
+          {loading && status === "Draft" ? "Saving..." : "Draft"}
+        </button>
+        
+        <button type="submit" onClick={() => setStatus("Closed")} disabled={loading} className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 disabled:opacity-50">
+          {loading && status === "Closed" ? "Closing..." : "Closed"}
         </button>
       </div>
     </form>

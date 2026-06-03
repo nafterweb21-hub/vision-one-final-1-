@@ -3,8 +3,8 @@ import { SearchableSelect } from "@/components/SearchableSelect";
 import React, { useState, useEffect, useMemo, use } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Save, X, Plus, Trash2, ArrowLeft, Loader2, FileText, CheckCircle2, AlertCircle } from "lucide-react";
-import { getFormData } from "./actions";
+import { FileText, Save, CheckCircle2, ChevronDown, ChevronRight, Loader2, Factory, X, Plus, Trash2, ArrowLeft, AlertCircle } from "lucide-react";
+import { getFormData, convertSalesOrder } from "./actions";
 type PageProps = {
   params: Promise<{ id: string }>;
 };
@@ -251,6 +251,24 @@ export default function SalesOrderFormPage({ params }: PageProps) {
     }
   };
 
+  const handleConvertToWorkOrder = async () => {
+    if (!id || id === "new") return;
+    setSaving(true);
+    setErrorMsg("");
+    try {
+      const res = await convertSalesOrder(id);
+      if (!res.success) {
+        throw new Error(res.error || "Failed to convert to Work Order");
+      }
+      alert(`Successfully created ${res.count} Work Order(s)!`);
+      router.push("/dashboard/production/work-order");
+    } catch (err: any) {
+      setErrorMsg(err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -294,22 +312,7 @@ export default function SalesOrderFormPage({ params }: PageProps) {
                 className="px-4 py-2 text-sm font-medium text-blue-700 bg-blue-100 rounded-lg hover:bg-blue-200 disabled:opacity-50 flex items-center gap-2"
               >
                 {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-                Save
-              </button>
-              <button
-                onClick={() => {}}
-                disabled={saving}
-                className="px-4 py-2 text-sm font-medium text-blue-700 bg-blue-100 rounded-lg hover:bg-blue-200 disabled:opacity-50 flex items-center gap-2"
-              >
-                Edit
-              </button>
-              <button
-                onClick={() => handleSave("Confirmed")}
-                disabled={saving}
-                className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-500 disabled:opacity-50 flex items-center gap-2"
-              >
-                {saving ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle2 size={16} />}
-                Confirm
+                Draft
               </button>
               {!isNew && (
                 <button
@@ -326,24 +329,33 @@ export default function SalesOrderFormPage({ params }: PageProps) {
           {order.status === "Confirmed" && (
             <>
               <button
-                disabled
-                className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 rounded-lg flex items-center gap-2 opacity-70"
+                onClick={handleConvertToWorkOrder}
+                disabled={saving}
+                className="px-4 py-2 text-sm font-medium text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-lg hover:bg-indigo-100 disabled:opacity-50 flex items-center gap-2"
               >
-                View
+                {saving ? <Loader2 size={16} className="animate-spin" /> : <Factory size={16} />}
+                Convert to Work Order
               </button>
               <button
                 onClick={() => handleSave("Revised")}
                 disabled={saving}
                 className="px-4 py-2 text-sm font-medium text-amber-700 bg-amber-100 rounded-lg hover:bg-amber-200 disabled:opacity-50 flex items-center gap-2"
               >
-                Revise
+                Revised
               </button>
               <button
-                onClick={() => handleSave("Stop Purchase")}
+                onClick={() => handleSave("Closed")}
                 disabled={saving}
-                className="px-4 py-2 text-sm font-medium text-rose-700 bg-rose-100 rounded-lg hover:bg-rose-200 disabled:opacity-50 flex items-center gap-2"
+                className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-200 rounded-lg hover:bg-slate-300 disabled:opacity-50 flex items-center gap-2"
               >
-                Stop Purchase
+                Closed
+              </button>
+              <button
+                onClick={() => handleSave("Old Version")}
+                disabled={saving}
+                className="px-4 py-2 text-sm font-medium text-slate-600 bg-slate-100 border border-slate-200 rounded-lg hover:bg-slate-200 disabled:opacity-50 flex items-center gap-2"
+              >
+                Old Version
               </button>
             </>
           )}
@@ -351,18 +363,26 @@ export default function SalesOrderFormPage({ params }: PageProps) {
           {order.status === "Revised" && (
             <>
               <button
-                disabled
-                className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 rounded-lg flex items-center gap-2 opacity-70"
-              >
-                View
-              </button>
-              <button
                 onClick={() => handleSave("Confirmed")}
                 disabled={saving}
                 className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-500 disabled:opacity-50 flex items-center gap-2"
               >
                 {saving ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle2 size={16} />}
-                Confirm
+                Confirmed
+              </button>
+              <button
+                onClick={() => handleSave("Closed")}
+                disabled={saving}
+                className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-200 rounded-lg hover:bg-slate-300 disabled:opacity-50 flex items-center gap-2"
+              >
+                Closed
+              </button>
+              <button
+                onClick={() => handleSave("Old Version")}
+                disabled={saving}
+                className="px-4 py-2 text-sm font-medium text-slate-600 bg-slate-100 border border-slate-200 rounded-lg hover:bg-slate-200 disabled:opacity-50 flex items-center gap-2"
+              >
+                Old Version
               </button>
             </>
           )}

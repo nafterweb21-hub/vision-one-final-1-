@@ -84,6 +84,47 @@ export default function ProductionIntake({ isOpen, onClose, support, onSuccess, 
         return;
       }
       setWo(res.wo);
+
+      // Auto-select logic if there is only 1 option for each step
+      let newInProcessId = "";
+      let newMainProcessId = "";
+      let newRoutingProcessId = "";
+
+      const ipOptions = res.wo.inProcesses ?? [];
+      if (ipOptions.length === 1) {
+        newInProcessId = ipOptions[0].id;
+        
+        const seenMp = new Map<string, { id: string }>();
+        ipOptions[0].routingProcesses.forEach((rp: any) => {
+          if (rp.mainProcess && !seenMp.has(rp.mainProcess.id)) {
+            seenMp.set(rp.mainProcess.id, { id: rp.mainProcess.id });
+          }
+        });
+        const mpOptions = Array.from(seenMp.values());
+        if (mpOptions.length === 1) {
+          newMainProcessId = mpOptions[0].id;
+
+          const seenRp = new Map<string, { id: string }>();
+          ipOptions[0].routingProcesses
+            .filter((rp: any) => rp.mainProcessId === newMainProcessId)
+            .forEach((rp: any) => {
+              if (rp.routingProcess && !seenRp.has(rp.routingProcess.id)) {
+                seenRp.set(rp.routingProcess.id, { id: rp.routingProcess.id });
+              }
+            });
+          const rpOptions = Array.from(seenRp.values());
+          if (rpOptions.length === 1) {
+            newRoutingProcessId = rpOptions[0].id;
+          }
+        }
+      }
+
+      setInForm(prev => ({
+        ...prev,
+        inProcessId: newInProcessId,
+        mainProcessId: newMainProcessId,
+        routingProcessProfileId: newRoutingProcessId
+      }));
     });
   }
 
@@ -157,7 +198,7 @@ export default function ProductionIntake({ isOpen, onClose, support, onSuccess, 
         </div>
       </div>
 
-      <div className="flex-1 p-6 md:p-8 max-w-[1600px] mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-8 min-h-0">
+      <div className="flex-1 p-6 md:p-8 max-w-5xl mx-auto w-full grid grid-cols-1 md:grid-cols-2 gap-8 min-h-0">
         
         {/* LEFT PANEL: WORK ORDER CAPTURE */}
         <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm flex flex-col min-h-0">
@@ -352,11 +393,8 @@ export default function ProductionIntake({ isOpen, onClose, support, onSuccess, 
                               onClick={() => {
                                 setWoNo(w.workOrderNo);
                                 setShowDropdown(false);
-                                // The lookup happens automatically if they press Enter, or they can click Search on left. 
-                                // Actually, let's auto-lookup when selected from the dropdown:
                                 setTimeout(() => {
-                                  // Wait for state to settle then submit (we simulate by relying on the user to click search or we can trigger it)
-                                  // Let's just update the input for now, the user can press Search or we can auto lookup if we modify lookup() to take woNo as param
+                                  lookup(w.workOrderNo);
                                 }, 0);
                               }}
                             >
@@ -371,40 +409,47 @@ export default function ProductionIntake({ isOpen, onClose, support, onSuccess, 
           </div>
 
           {wo && (
-            <div className="space-y-4 mb-6 flex-1 overflow-y-auto pr-2">
-              <Select
-                label="In-Process"
-                value={inForm.inProcessId}
-                onChange={(v) =>
-                  setInForm({ inProcessId: v, mainProcessId: "", routingProcessProfileId: "", employeeId: inForm.employeeId })
-                }
-                options={inProcessOptions.map((ip: any) => ({ id: ip.id, label: `${ip.sn}. ${ip.description}` }))}
-              />
-              <Select
-                label="Main Process"
-                value={inForm.mainProcessId}
-                onChange={(v) => setInForm({ ...inForm, mainProcessId: v, routingProcessProfileId: "" })}
-                options={mainProcessOptions}
-                disabled={!inForm.inProcessId}
-              />
-              <Select
-                label="Routing Process"
-                value={inForm.routingProcessProfileId}
-                onChange={(v) => setInForm({ ...inForm, routingProcessProfileId: v })}
-                options={routingProcessOptions}
-                disabled={!inForm.mainProcessId}
-              />
-              
-              {/* Employee Pre-filled Option */}
-              <Select
-                label="Employee"
-                value={inForm.employeeId}
-                onChange={(v) => setInForm({ ...inForm, employeeId: v })}
-                options={support.employees.map((e) => ({
-                  id: e.id,
-                  label: `${e.name} (${e.code})`,
-                }))}
-              />
+            <div className="grid grid-cols-2 gap-4 mb-6 flex-1 overflow-y-auto pr-2 content-start">
+              <div className="col-span-2 sm:col-span-1">
+                <Select
+                  label="In-Process"
+                  value={inForm.inProcessId}
+                  onChange={(v) =>
+                    setInForm({ inProcessId: v, mainProcessId: "", routingProcessProfileId: "", employeeId: inForm.employeeId })
+                  }
+                  options={inProcessOptions.map((ip: any) => ({ id: ip.id, label: `${ip.sn}. ${ip.description}` }))}
+                />
+              </div>
+              <div className="col-span-2 sm:col-span-1">
+                <Select
+                  label="Main Process"
+                  value={inForm.mainProcessId}
+                  onChange={(v) => setInForm({ ...inForm, mainProcessId: v, routingProcessProfileId: "" })}
+                  options={mainProcessOptions}
+                  disabled={!inForm.inProcessId}
+                />
+              </div>
+              <div className="col-span-2 sm:col-span-1">
+                <Select
+                  label="Routing Process"
+                  value={inForm.routingProcessProfileId}
+                  onChange={(v) => setInForm({ ...inForm, routingProcessProfileId: v })}
+                  options={routingProcessOptions}
+                  disabled={!inForm.mainProcessId}
+                />
+              </div>
+              <div className="col-span-2 sm:col-span-1">
+                {/* Employee Pre-filled Option */}
+                <Select
+                  label="Employee"
+                  value={inForm.employeeId}
+                  onChange={(v) => setInForm({ ...inForm, employeeId: v })}
+                  options={support.employees.map((e) => ({
+                    id: e.id,
+                    label: `${e.name} (${e.code})`,
+                  }))}
+                />
+              </div>
             </div>
           )}
 

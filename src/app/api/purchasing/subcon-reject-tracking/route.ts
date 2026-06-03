@@ -53,13 +53,13 @@ export async function GET(request: Request) {
       id: t.id,
       srjNo: t.srjNo,
       srjDate: t.srjDate,
-      companyName: t.company.companyName,
-      supplierName: t.supplier.supplierName,
-      poNo: t.purchaseOrder.poNo,
-      srfNo: t.subconRequestForm.srfNo,
-      workOrderNo: t.purchaseOrder.workOrderNo,
-      description: t.subconRequestForm.purchaseOrderItem.description,
-      uom: t.subconRequestForm.purchaseOrderItem.poUom.uomName,
+      companyName: t.company?.companyName || "—",
+      supplierName: t.supplier?.supplierName || "—",
+      poNo: t.purchaseOrder?.poNo || "—",
+      srfNo: t.subconRequestForm?.srfNo || "—",
+      workOrderNo: t.purchaseOrder?.workOrderNo || "—",
+      description: t.subconRequestForm?.purchaseOrderItem?.description || "—",
+      uom: t.subconRequestForm?.purchaseOrderItem?.poUom?.uomName || t.uom || "—",
       rejectedQty: t.rejectedQty,
       status: t.status,
       remark: t.remark,
@@ -69,7 +69,7 @@ export async function GET(request: Request) {
   } catch (error: any) {
     console.error("Error fetching Subcon Reject Trackings:", error);
     return NextResponse.json(
-      { error: "Failed to fetch Subcon Reject Trackings" },
+      { error: "Failed to fetch Subcon Reject Trackings", details: error?.message || String(error) },
       { status: 500 }
     );
   }

@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { createWorkOrderFromBatch } from "@/app/dashboard/production/work-order/actions";
 
 export async function getFormData() {
   try {
@@ -34,5 +35,27 @@ export async function getFormData() {
   } catch (error) {
     console.error("Error fetching form data:", error);
     throw new Error("Failed to load prerequisite data");
+  }
+}
+
+export async function convertSalesOrder(salesOrderId: string) {
+  try {
+    const batches = await prisma.salesOrderItemBatch.findMany({
+      where: {
+        salesOrderItem: { salesOrderId: salesOrderId },
+        workOrderNo: { not: null },
+        noRoutingProcess: false,
+      }
+    });
+
+    let count = 0;
+    for (const b of batches) {
+      const res = await createWorkOrderFromBatch(b.id);
+      if (res.success) count++;
+    }
+    return { success: true, count };
+  } catch (error: any) {
+    console.error("Error converting to Work Order:", error);
+    return { success: false, error: error.message || "Conversion failed" };
   }
 }

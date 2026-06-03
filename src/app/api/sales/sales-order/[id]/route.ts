@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { createWorkOrderFromBatch } from "@/app/dashboard/production/work-order/actions";
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -135,6 +136,11 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       },
       include: { items: true },
     });
+
+    // Do not automatically create Work Orders here.
+    // The spec states: "On SO confirmation, a Work Order No is auto-generated per batch 
+    // (but the WO must still be created in the Work Order module to start operations)."
+    // The 'Outstanding Work' list depends on the Work Order *not* being created yet.
 
     return NextResponse.json(updatedOrder);
   } catch (error: any) {

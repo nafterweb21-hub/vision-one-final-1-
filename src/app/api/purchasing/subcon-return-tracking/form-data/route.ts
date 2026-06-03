@@ -16,8 +16,7 @@ export async function GET() {
       }),
       prisma.subconRequestForm.findMany({
         where: {
-          status: { not: "Void" },
-          receiveStatus: { not: "Fully Received" },
+          status: { not: "Void" }
         },
         include: {
           purchaseOrderItem: {

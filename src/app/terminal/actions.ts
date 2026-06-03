@@ -26,6 +26,11 @@ export async function lookupWorkOrder(woNo: string) {
     },
   });
   if (!wo) return { ok: false as const, error: `Work Order ${woNo} not found` };
+  
+  if (wo.status !== "Proceed" && wo.status !== "WIP") {
+    return { ok: false as const, error: `Cannot process this Work Order. Status is currently: ${wo.status}` };
+  }
+
   return { ok: true as const, wo: JSON.parse(JSON.stringify(wo)) };
 }
 
@@ -34,10 +39,7 @@ export async function getTerminalSupportData() {
     await Promise.all([
       prisma.employee.findMany({
         where: { 
-          status: "ACTIVE",
-          user: {
-            role: "PRODUCTION"
-          }
+          status: "ACTIVE"
         },
         select: { id: true, name: true, code: true },
         orderBy: { name: "asc" },

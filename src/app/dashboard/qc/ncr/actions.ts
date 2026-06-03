@@ -18,13 +18,8 @@ export async function getNcrFormData() {
       prisma.failureModeProfile.findMany({ where: { status: "Active", isDeleted: false }, select: { id: true, failureMode: true } }),
       prisma.mainProcess.findMany({ where: { status: "Active" }, select: { id: true, process: true } }),
       prisma.workOrder.findMany({ 
-        where: { 
-          OR: [
-            { status: "Proceed" },
-            { status: "WIP" },
-            { status: "Pending for QC" },
-            { qcAcceptance: "Rejected" }
-          ] 
+        where: {
+          status: { not: "Void" }
         }, 
         select: { 
           workOrderNo: true, 
@@ -135,7 +130,7 @@ export async function createNcr(data: any) {
         ...ncrData,
         id: crypto.randomUUID(), // Assuming cuid/uuid handled by client/DB, but let's provide explicit if @id doesn't default
         ncrNo,
-        status: "Draft",
+        status: ncrData.status || "Draft",
         NcrFailureMode: {
           create: (failureModeIds || []).map((fmId: string) => ({
             id: crypto.randomUUID(),

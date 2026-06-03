@@ -59,7 +59,7 @@ export default function NewSubconRequestFormPage() {
 
   const fetchEmployees = async () => {
     try {
-      const res = await fetch("/api/master-profile/employee");
+      const res = await fetch("/api/employees");
       if (res.ok) setEmployees(await res.json());
     } catch (e) {
       console.error(e);
