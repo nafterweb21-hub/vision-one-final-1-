@@ -1,7 +1,7 @@
-import { SearchableSelect } from "@/components/SearchableSelect";
-// src/app/dashboard/profiles/process-profiles/edit/[id]/page.tsx
 "use client";
+// src/app/dashboard/profiles/process-profiles/edit/[id]/page.tsx
 
+import { SearchableSelect } from "@/components/SearchableSelect";
 import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useParams } from "next/navigation";

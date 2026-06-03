@@ -7,10 +7,15 @@ export async function GET(req: Request) {
     const search = url.searchParams.get("search") || "";
     // Only fetch POs that are pending approval
     const status = url.searchParams.get("status") || "All";
+    const type = url.searchParams.get("type");
 
     const where: any = {
       status: "Pending For Approval",
     };
+
+    if (type) {
+      where.type = type;
+    }
 
     if (status !== "All") {
       where.status = status;

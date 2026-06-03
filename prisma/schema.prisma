@@ -322,6 +322,7 @@ model SupplierProfile {
   goodsReturns          GoodsReturn[]
   purchaseOrders        PurchaseOrder[]
   subconReturnTrackings SubconReturnTracking[]
+  subconRejectTrackings SubconRejectTracking[]
   addresses             SupplierAddress[]
   contactPersons        SupplierContactPerson[]
 }
@@ -768,6 +769,7 @@ model CompanyProfile {
   purchaseOrders        PurchaseOrder[]
   purchaseRequisitions  PurchaseRequisition[]
   subconReturnTrackings SubconReturnTracking[]
+  subconRejectTrackings SubconRejectTracking[]
   invoices              Invoice[]
   receipts              Receipt[]
   msmeNo                String?
@@ -923,6 +925,7 @@ model PurchaseOrder {
   workOrder             WorkOrder?             @relation(fields: [workOrderNo], references: [workOrderNo])
   items                 PurchaseOrderItem[]
   subconReturnTrackings SubconReturnTracking[]
+  subconRejectTrackings SubconRejectTracking[]
 
   @@unique([poNo, revision])
 }
@@ -1134,6 +1137,7 @@ model SubconRequestForm {
   purchaseOrderItem     PurchaseOrderItem      @relation(fields: [purchaseOrderItemId], references: [id])
   receivedBy            SupplierContactPerson? @relation(fields: [receivedById], references: [id])
   subconReturnTrackings SubconReturnTracking[]
+  subconRejectTrackings SubconRejectTracking[]
 }
 
 model SubconReturnTracking {
@@ -1348,4 +1352,24 @@ model RoleProfile {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   users       User[]
+}
+
+model SubconRejectTracking {
+  id                  String            @id @default(cuid())
+  srjNo               String            @unique
+  srjDate             DateTime
+  companyId           String
+  supplierId          String
+  purchaseOrderId     String
+  subconRequestFormId String
+  rejectedQty         Decimal
+  uom                 String            @default("Pcs")
+  remark              String?
+  status              String            @default("Draft")
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+  company             CompanyProfile    @relation(fields: [companyId], references: [id])
+  purchaseOrder       PurchaseOrder     @relation(fields: [purchaseOrderId], references: [id])
+  subconRequestForm   SubconRequestForm @relation(fields: [subconRequestFormId], references: [id])
+  supplier            SupplierProfile   @relation(fields: [supplierId], references: [id])
 }

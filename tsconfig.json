@@ -30,5 +30,20 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules", "seed-process-params.ts", "scratch-clean-db.ts"]
+  "exclude": [
+    "node_modules",
+    "scratch",
+    "seed-process-params.ts",
+    "seed_params.ts",
+    "scratch-clean-db.ts",
+    "fix-batches.ts",
+    "get_user.ts",
+    "query.ts",
+    "test_db.ts",
+    "test_fm.ts",
+    "test_prisma.ts",
+    "test-access.ts",
+    "test-load.ts",
+    "test-query.ts"
+  ]
 }

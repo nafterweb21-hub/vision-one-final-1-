@@ -13,9 +13,9 @@ import {
   LayoutGrid,
   Key,
   User,
+  Users,
   Bell,
   Lock,
-  Mail,
   Diamond,
   CircleDot,
   Circle,
@@ -140,13 +140,13 @@ export default function Sidebar({ userEmail, userRole, isAdmin }: SidebarProps) 
             <p className="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
               ADMINISTRATOR
             </p>
+            <Link href="/dashboard/admin/users" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/admin/users")}>
+              <Users size={16} className="text-blue-500" />
+              <span>Users</span>
+            </Link>
             <Link href="/dashboard/admin/roles" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/admin/roles")}>
               <Key size={16} className="text-yellow-500" />
               <span>Roles</span>
-            </Link>
-            <Link href="#" onClick={() => setIsOpen(false)} className={linkClass("#email-notification")}>
-              <Mail size={16} className="text-slate-500" />
-              <span>Email Notification</span>
             </Link>
           </div>
 
@@ -255,10 +255,12 @@ export default function Sidebar({ userEmail, userRole, isAdmin }: SidebarProps) 
                 <span>Purchase Order Subcon</span>
               </Link>
             )}
-            <Link href="#" onClick={() => setIsOpen(false)} className={linkClass("#po-subcon-approval")}>
-              <CheckSquare size={16} className="text-green-500" fill="currentColor" />
-              <span>PO Subcon Approval</span>
-            </Link>
+            {allow("/dashboard/purchasing/purchase-order-subcon-approval") && (
+              <Link href="/dashboard/purchasing/purchase-order-subcon-approval" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/purchasing/purchase-order-subcon-approval")}>
+                <CheckSquare size={16} className="text-green-500" fill="currentColor" />
+                <span>PO Subcon Approval</span>
+              </Link>
+            )}
             {allow("/dashboard/purchasing/subcon-request-form") && (
               <Link href="/dashboard/purchasing/subcon-request-form" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/purchasing/subcon-request-form")}>
                 <Clipboard size={16} className="text-slate-500" fill="currentColor" />
@@ -271,10 +273,12 @@ export default function Sidebar({ userEmail, userRole, isAdmin }: SidebarProps) 
                 <span>Subcon Return Tracking</span>
               </Link>
             )}
-            <Link href="#" onClick={() => setIsOpen(false)} className={linkClass("#subcon-reject-tracking")}>
-              <AlertTriangle size={16} className="text-slate-500" />
-              <span>Subcon Reject Tracking</span>
-            </Link>
+            {allow("/dashboard/purchasing/subcon-reject-tracking") && (
+              <Link href="/dashboard/purchasing/subcon-reject-tracking" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/purchasing/subcon-reject-tracking")}>
+                <AlertTriangle size={16} className="text-slate-500" />
+                <span>Subcon Reject Tracking</span>
+              </Link>
+            )}
           </div>
 
           {/* FINANCE */}

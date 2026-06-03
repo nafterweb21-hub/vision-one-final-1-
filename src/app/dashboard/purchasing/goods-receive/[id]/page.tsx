@@ -260,8 +260,8 @@ export default function GoodsReceiveFormPage({ params }: { params: Promise<{ id:
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           {/* Main Details */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="px-5 py-4 border-b border-slate-200 bg-slate-50">
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
+            <div className="px-5 py-4 border-b border-slate-200 bg-slate-50 rounded-t-xl">
               <h3 className="font-semibold text-slate-800">Basic Information</h3>
             </div>
             <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -327,8 +327,8 @@ export default function GoodsReceiveFormPage({ params }: { params: Promise<{ id:
           </div>
 
           {/* Reference Documents */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="px-5 py-4 border-b border-slate-200 bg-slate-50">
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
+            <div className="px-5 py-4 border-b border-slate-200 bg-slate-50 rounded-t-xl">
               <h3 className="font-semibold text-slate-800">Reference Documents</h3>
             </div>
             <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -376,8 +376,8 @@ export default function GoodsReceiveFormPage({ params }: { params: Promise<{ id:
           </div>
 
           {/* Items */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="px-5 py-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
+            <div className="px-5 py-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between rounded-t-xl">
               <h3 className="font-semibold text-slate-800">Received Items</h3>
             </div>
             {items.length === 0 ? (
@@ -431,8 +431,8 @@ export default function GoodsReceiveFormPage({ params }: { params: Promise<{ id:
 
         <div className="space-y-6">
           {/* PO Details Pane */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="px-5 py-4 border-b border-slate-200 bg-slate-50">
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
+            <div className="px-5 py-4 border-b border-slate-200 bg-slate-50 rounded-t-xl">
               <h3 className="font-semibold text-slate-800">PO Summary</h3>
             </div>
             <div className="p-5 space-y-4">
@@ -459,8 +459,8 @@ export default function GoodsReceiveFormPage({ params }: { params: Promise<{ id:
             </div>
           </div>
 
-          <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="px-5 py-4 border-b border-slate-200 bg-slate-50">
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
+            <div className="px-5 py-4 border-b border-slate-200 bg-slate-50 rounded-t-xl">
               <h3 className="font-semibold text-slate-800">Other Details</h3>
             </div>
             <div className="p-5 space-y-4">

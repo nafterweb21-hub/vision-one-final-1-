@@ -32,7 +32,7 @@ type PurchaseOrder = {
   workOrder?: { jobDescription: string | null } | null;
 };
 
-export default function PurchaseOrderApprovalListPage() {
+export default function PurchaseOrderSubconApprovalListPage() {
   const router = useRouter();
   const [rows, setRows] = useState<PurchaseOrder[]>([]);
   const [loading, setLoading] = useState(true);
@@ -46,7 +46,7 @@ export default function PurchaseOrderApprovalListPage() {
     setErrorMsg("");
     try {
       const res = await fetch(
-        `/api/purchasing/purchase-order-approval?search=${encodeURIComponent(search)}&status=${tab}&type=MATERIAL`
+        `/api/purchasing/purchase-order-approval?search=${encodeURIComponent(search)}&status=${tab}&type=SUBCON`
       );
       if (!res.ok) throw new Error("Failed to fetch purchase orders pending approval");
       setRows(await res.json());
@@ -74,7 +74,7 @@ export default function PurchaseOrderApprovalListPage() {
 
   function onView() {
     if (!selected) return;
-    router.push(`/dashboard/purchasing/purchase-order-approval/${selected.id}`);
+    router.push(`/dashboard/purchasing/purchase-order-subcon-approval/${selected.id}`);
   }
 
   return (
@@ -86,15 +86,15 @@ export default function PurchaseOrderApprovalListPage() {
             <span>/</span>
             <span className="text-blue-500">Purchasing</span>
             <span>/</span>
-            <span className="text-blue-500">Purchase Order Approval</span>
+            <span className="text-blue-500">PO Subcon Approval</span>
           </div>
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-lg bg-blue-500/10 text-blue-600">
               <CheckCircle2 size={20} />
             </div>
             <div>
-              <h2 className="text-2xl font-bold tracking-tight text-blue-900">Purchase Order Approval</h2>
-              <p className="text-sm text-blue-500 mt-0.5">Review and approve pending purchase orders.</p>
+              <h2 className="text-2xl font-bold tracking-tight text-blue-900">PO Subcon Approval</h2>
+              <p className="text-sm text-blue-500 mt-0.5">Review and approve pending subcon purchase orders.</p>
             </div>
           </div>
         </div>
@@ -199,7 +199,7 @@ export default function PurchaseOrderApprovalListPage() {
                     </td>
                     <td className="px-4 py-3 font-bold text-blue-900">
                       <Link
-                        href={`/dashboard/purchasing/purchase-order-approval/${r.id}`}
+                        href={`/dashboard/purchasing/purchase-order-subcon-approval/${r.id}`}
                         className="hover:text-blue-600"
                         onClick={(e) => e.stopPropagation()}
                       >

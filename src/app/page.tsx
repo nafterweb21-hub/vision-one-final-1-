@@ -47,25 +47,13 @@ export default function Home() {
               for modern businesses.
             </p>
             
-            <div className="mt-12 flex items-center gap-4">
-              <div className="flex -space-x-4">
-                {[1, 2, 3, 4].map((i) => (
-                  <div
-                    key={i}
-                    className="inline-block h-10 w-10 rounded-full border-2 border-slate-900 bg-slate-700"
-                  />
-                ))}
-              </div>
-              <p className="text-sm font-medium text-slate-300">
-                Trusted by 10,000+ users worldwide
-              </p>
-            </div>
+
           </div>
         </div>
       </div>
 
       {/* Right side - Login Form */}
-      <div className="flex w-full flex-col justify-center px-4 py-12 sm:px-6 lg:w-1/2 lg:px-8 xl:px-24">
+      <div className="relative flex w-full flex-col justify-center px-4 py-12 sm:px-6 lg:w-1/2 lg:px-8 xl:px-24">
         <div className="mx-auto w-full max-w-sm lg:max-w-md">
           {/* Mobile Logo */}
           <div className="mb-10 flex items-center gap-3 lg:hidden">
@@ -98,6 +86,19 @@ export default function Home() {
           }>
             <LoginForm />
           </Suspense>
+        </div>
+
+        {/* Footer */}
+        <div className="absolute bottom-6 left-0 w-full px-4 text-center text-sm text-slate-500">
+          &copy; {new Date().getFullYear()} Vision One Fab Pvt Ltd. Developed by{" "}
+          <a
+            href="https://nafter.in"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-indigo-600 hover:underline font-medium"
+          >
+            Nafter.in
+          </a>
         </div>
       </div>
     </div>

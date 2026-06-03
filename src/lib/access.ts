@@ -17,7 +17,11 @@ export const ALL_ROLES: string[] = [
 // A request to /dashboard/admin/users matches /dashboard/admin before /dashboard.
 export const ACCESS_RULES: Array<{ prefix: string; roles: Role[] }> = [
   { prefix: "/dashboard/admin", roles: ["ADMIN"] },
+  { prefix: "/dashboard/purchasing/purchase-order-subcon-approval", roles: ALL_ROLES },
   { prefix: "/dashboard/purchasing/purchase-order-approval", roles: ALL_ROLES },
+  { prefix: "/dashboard/purchasing/subcon-request-form", roles: ["ADMIN", "PURCHASING", "PRODUCTION"] },
+  { prefix: "/dashboard/purchasing/subcon-return-tracking", roles: ["ADMIN", "PURCHASING", "QC", "PRODUCTION"] },
+  { prefix: "/dashboard/purchasing/subcon-reject-tracking", roles: ["ADMIN", "PURCHASING", "QC", "PRODUCTION"] },
   { prefix: "/dashboard/sales", roles: ["ADMIN", "SALES"] },
   { prefix: "/dashboard/production", roles: ["ADMIN", "PRODUCTION", "PLANNER", "QC"] },
   { prefix: "/dashboard/purchasing", roles: ["ADMIN", "PURCHASING"] },

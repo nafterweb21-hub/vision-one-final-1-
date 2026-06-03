@@ -201,8 +201,8 @@ export default function PurchaseOrderApprovalDetailPage() {
       <div className="flex items-center justify-between pb-6 border-b border-blue-200">
         <div>
           <div className="flex items-center gap-2 text-xs text-blue-400 font-semibold uppercase mb-1">
-            <Link href="/dashboard/purchasing/purchase-order-approval" className="hover:text-blue-600 inline-flex items-center gap-1">
-              <ArrowLeft size={12} /> Purchase Order Approvals
+            <Link href="/dashboard/purchasing/purchase-order-subcon-approval" className="hover:text-blue-600 inline-flex items-center gap-1">
+              <ArrowLeft size={12} /> PO Subcon Approval
             </Link>
             {meta.poNo && (
               <>
