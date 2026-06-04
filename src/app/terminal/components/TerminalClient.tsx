@@ -2,12 +2,12 @@
 import { SearchableSelect } from "@/components/SearchableSelect";
 import { toast as hotToast } from "react-hot-toast";
 
-import { useMemo, useState, useTransition, useEffect } from "react";
+import { useMemo, useState, useTransition, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Monitor, Plus, ChevronRight, CheckCircle2, Info, AlertCircle, Minus, ChevronDown, Check, Zap, Clock, Box, LogOut } from "lucide-react";
+import { Monitor, Plus, ChevronRight, CheckCircle2, Info, AlertCircle, Minus, ChevronDown, Check, Zap, Clock, Box, LogOut, Keyboard } from "lucide-react";
 import ProductionIntake from "./ProductionIntake";
 import {
-lookupWorkOrder,
+  lookupWorkOrder,
   getOpenScans,
   scanOut,
   type ScanOutPayload,
@@ -83,6 +83,11 @@ export default function TerminalClient({ support, loggedInEmployee, initialSessi
   const [defectReason, setDefectReason] = useState("");
   const [sessionNote, setSessionNote] = useState("");
   const [isPending, startTransition] = useTransition();
+
+  const [isManualProduced, setIsManualProduced] = useState(false);
+  const [isManualDefect, setIsManualDefect] = useState(false);
+  const producedInputRef = useRef<HTMLInputElement>(null);
+  const defectInputRef = useRef<HTMLInputElement>(null);
 
   // loggedInEmployee is now provided directly by the server page
 
@@ -323,16 +328,31 @@ export default function TerminalClient({ support, loggedInEmployee, initialSessi
                 <div className="grid grid-cols-1 md:grid-cols-[1.5fr_1fr] gap-6 mb-8 relative z-10">
                   
                   {/* TOTAL PRODUCED */}
-                  <div className="bg-slate-50 border border-slate-200 rounded-[2rem] p-8 flex flex-col items-center justify-center shadow-inner">
+                  <div className="bg-slate-50 border border-slate-200 rounded-[2rem] p-8 flex flex-col items-center justify-center shadow-inner relative group">
+                    <div className="absolute top-6 right-6 transition-opacity">
+                      <button
+                        onClick={() => {
+                          setIsManualProduced(true);
+                          setTimeout(() => producedInputRef.current?.focus(), 10);
+                        }}
+                        className={`p-2 rounded-xl transition-colors ${isManualProduced ? 'bg-cyan-100 text-cyan-600' : 'bg-white text-slate-400 hover:text-cyan-500 shadow-sm border border-slate-200'}`}
+                        title="Manual Typing"
+                      >
+                        <Keyboard size={20} />
+                      </button>
+                    </div>
                     <div className="text-[10px] font-bold text-cyan-600 tracking-widest uppercase mb-8">Total Produced</div>
                     <div className="flex items-center justify-center gap-8 w-full">
                       <button 
                         onClick={() => setProducedCount(Math.max(0, (Number(producedCount) || 0) - 1))}
-                        className="w-16 h-16 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center hover:bg-slate-200 transition-colors"
+                        className="w-16 h-16 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center hover:bg-slate-200 transition-colors shrink-0"
                       >
                         <Minus size={24} className="text-slate-500" />
                       </button>
                       <input 
+                        ref={producedInputRef}
+                        readOnly={!isManualProduced}
+                        onBlur={() => setIsManualProduced(false)}
                         type="number"
                         min="0"
                         value={producedCount}
@@ -344,7 +364,7 @@ export default function TerminalClient({ support, loggedInEmployee, initialSessi
                             setProducedCount(isNaN(val) ? "" : Math.max(0, val));
                           }
                         }}
-                        className="text-[100px] leading-none font-bold tracking-tighter w-48 text-center text-slate-900 bg-transparent border-none outline-none focus:ring-0 p-0 m-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        className={`text-[2rem] leading-none font-bold tracking-tighter w-48 text-center outline-none focus:ring-0 p-2 m-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none transition-all ${isManualProduced ? 'text-cyan-600 bg-white border-2 border-cyan-500 rounded-2xl shadow-[0_0_0_4px_rgba(6,182,212,0.15)]' : 'text-slate-900 cursor-default border-2 border-transparent bg-transparent'}`}
                       />
                       <button 
                         onClick={() => setProducedCount((Number(producedCount) || 0) + 1)}
@@ -356,7 +376,19 @@ export default function TerminalClient({ support, loggedInEmployee, initialSessi
                   </div>
 
                   {/* QUALITY FAILURES */}
-                  <div className="bg-rose-50/50 border border-rose-100 rounded-[2rem] p-8 flex flex-col shadow-inner">
+                  <div className="bg-rose-50/50 border border-rose-100 rounded-[2rem] p-8 flex flex-col shadow-inner relative group">
+                    <div className="absolute top-6 right-6 transition-opacity">
+                      <button
+                        onClick={() => {
+                          setIsManualDefect(true);
+                          setTimeout(() => defectInputRef.current?.focus(), 10);
+                        }}
+                        className={`p-2 rounded-xl transition-colors ${isManualDefect ? 'bg-rose-100 text-rose-600' : 'bg-white text-rose-400 hover:text-rose-500 shadow-sm border border-rose-200'}`}
+                        title="Manual Typing"
+                      >
+                        <Keyboard size={20} />
+                      </button>
+                    </div>
                     <div className="flex items-center gap-2 mb-8">
                       <AlertCircle size={16} className="text-rose-500" />
                       <div className="text-[10px] font-bold text-rose-500 tracking-widest uppercase">Quality Failures</div>
@@ -365,11 +397,14 @@ export default function TerminalClient({ support, loggedInEmployee, initialSessi
                     <div className="flex items-center justify-between mb-8">
                       <button 
                         onClick={() => setDefectCount(Math.max(0, (Number(defectCount) || 0) - 1))}
-                        className="w-14 h-14 rounded-2xl bg-white border border-rose-200 flex items-center justify-center hover:bg-rose-50 transition-colors"
+                        className="w-14 h-14 rounded-2xl bg-white border border-rose-200 flex items-center justify-center hover:bg-rose-50 transition-colors shrink-0"
                       >
                         <Minus size={20} className="text-rose-400" />
                       </button>
                       <input
+                        ref={defectInputRef}
+                        readOnly={!isManualDefect}
+                        onBlur={() => setIsManualDefect(false)}
                         type="number"
                         min="0"
                         value={defectCount}
@@ -381,7 +416,7 @@ export default function TerminalClient({ support, loggedInEmployee, initialSessi
                             setDefectCount(isNaN(val) ? "" : Math.max(0, val));
                           }
                         }}
-                        className="text-5xl font-bold tracking-tighter w-24 text-center text-slate-900 bg-transparent border-none outline-none focus:ring-0 p-0 m-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        className={`text-[2rem] font-bold tracking-tighter w-24 text-center outline-none focus:ring-0 p-2 m-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none transition-all ${isManualDefect ? 'text-rose-500 bg-white border-2 border-rose-400 rounded-2xl shadow-[0_0_0_4px_rgba(244,63,94,0.15)]' : 'text-slate-900 cursor-default border-2 border-transparent bg-transparent'}`}
                       />
                       <button 
                         onClick={() => setDefectCount((Number(defectCount) || 0) + 1)}
