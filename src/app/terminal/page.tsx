@@ -50,6 +50,10 @@ export default async function TerminalPage() {
     // Fetch active sessions and recent completes ONLY if we actually have an employee
     initialSessions = await getTerminalActiveSessions(loggedInEmployee.id);
     initialRecentCompletes = await getTerminalRecentCompletes(10, loggedInEmployee.id);
+  } else {
+    // If unlinked, fetch all active sessions so they can at least see data
+    initialSessions = await getTerminalActiveSessions();
+    initialRecentCompletes = await getTerminalRecentCompletes(10);
   }
 
   return (

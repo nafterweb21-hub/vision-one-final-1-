@@ -23,6 +23,7 @@ export default function EditEmployeePage() {
   const router = useRouter();
   const params = useParams();
   const id = params.id as string;
+  const [designations, setDesignations] = useState<{ id: string; designation: string }[]>([]);
 
   const [isLoading, setIsLoading] = useState(true);
   const [formData, setFormData] = useState({
@@ -51,6 +52,22 @@ export default function EditEmployeePage() {
       setNotification(null);
     }, 5000);
   };
+
+  // Fetch designations
+  useEffect(() => {
+    const fetchDesignations = async () => {
+      try {
+        const { getDesignationProfileItems } = await import("../../designation/actions");
+        const res = await getDesignationProfileItems();
+        if (res.success && res.data) {
+          setDesignations(res.data.filter((d: any) => d.status === "Active"));
+        }
+      } catch (error) {
+        console.error("Failed to load designations", error);
+      }
+    };
+    fetchDesignations();
+  }, []);
 
   // Fetch all employees and find by ID
   useEffect(() => {
@@ -158,7 +175,7 @@ export default function EditEmployeePage() {
       {/* Toast Notification */}
       {notification && (
         <div
-          className={`fixed top-4 right-4 z-50 flex items-center gap-3 px-5 py-4 rounded-xl shadow-2xl border text-sm transition-all duration-300 transform translate-y-0 scale-100 ${
+          className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-4 rounded-xl shadow-2xl border text-sm transition-all duration-300 transform scale-100 ${
             notification.type === "success"
               ? "bg-emerald-50 border-emerald-200 text-emerald-800 "
               : "bg-rose-50 border-rose-200 text-rose-800 "
@@ -279,8 +296,7 @@ export default function EditEmployeePage() {
                 <label className="block text-xs font-bold text-blue-700 uppercase tracking-wide">
                   Designation
                 </label>
-                <input
-                  type="text"
+                <SearchableSelect
                   value={formData.designation}
                   onChange={(e) =>
                     setFormData({
@@ -288,9 +304,15 @@ export default function EditEmployeePage() {
                       designation: e.target.value,
                     })
                   }
-                  placeholder="e.g. Welding Specialist"
                   className="mt-1.5 w-full px-3.5 py-2.5 rounded-xl border border-blue-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all text-blue-900 bg-blue-50/50 "
-                />
+                >
+                  <option value="">-- Select Designation --</option>
+                  {designations.map((d) => (
+                    <option key={d.id} value={d.designation}>
+                      {d.designation}
+                    </option>
+                  ))}
+                </SearchableSelect>
               </div>
 
               {/* Email */}

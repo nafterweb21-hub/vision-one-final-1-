@@ -11,6 +11,7 @@ export interface SearchableSelectProps extends React.SelectHTMLAttributes<HTMLSe
   disabled?: boolean;
   required?: boolean;
   name?: string;
+  dropdownPosition?: "bottom" | "top";
 }
 
 export function SearchableSelect({ 
@@ -22,6 +23,7 @@ export function SearchableSelect({
   disabled = false,
   required = false,
   name,
+  dropdownPosition = "bottom",
   ...rest
 }: SearchableSelectProps) {
   const [open, setOpen] = useState(false);
@@ -117,7 +119,7 @@ export function SearchableSelect({
       </select>
 
       {open && (
-        <div className="absolute z-50 w-full mt-1 bg-white border border-blue-200 rounded-lg shadow-xl overflow-hidden max-h-60 flex flex-col">
+        <div className={`absolute z-50 w-full ${dropdownPosition === "top" ? "bottom-full mb-1" : "mt-1"} bg-white border border-blue-200 rounded-lg shadow-xl overflow-hidden max-h-60 flex flex-col`}>
           <div className="p-2 border-b border-blue-100 bg-slate-50 sticky top-0">
             <div className="relative">
               <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />

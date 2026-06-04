@@ -5,7 +5,7 @@ import { customConfirm } from "@/lib/customConfirm";
 import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Save, Loader2, Plus, Trash2, Send, AlertCircle } from "lucide-react";
+import { ArrowLeft, Save, Loader2, Plus, Trash2, Send, AlertCircle, Printer } from "lucide-react";
 export default function DeliveryOrderFormPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -189,6 +189,15 @@ export default function DeliveryOrderFormPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
+           {isEdit && (
+             <Link
+               href={`/print/delivery-order/${id}`}
+               target="_blank"
+               className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 rounded-lg font-semibold transition-colors"
+             >
+               <Printer size={16} /> Print
+             </Link>
+           )}
            {isEdit && isDraft && (
              <button
                onClick={handleSubmit}

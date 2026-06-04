@@ -62,6 +62,22 @@ export default function TerminalClient({ support, loggedInEmployee, initialSessi
   }, [initialSessions, initialRecentCompletes]);
   const [selectedSessionId, setSelectedSessionId] = useState<string>("");
 
+  function handleIntakeScanOutRequest(routingProcessProfileId: string, employeeId: string, inProcessId: string, mainProcessId: string) {
+    const matchingSession = activeSessions.find((s) =>
+      s.routingProcess?.inProcessId === inProcessId &&
+      s.routingProcess?.mainProcessId === mainProcessId &&
+      s.routingProcess?.routingProcessId === routingProcessProfileId &&
+      s.employeeId === employeeId
+    );
+
+    if (matchingSession) {
+      closeScanInModal();
+      handleSelectSession(matchingSession);
+    } else {
+      hotToast.error("No active session found for this combination.");
+    }
+  }
+
   const [producedCount, setProducedCount] = useState<number | "">(0);
   const [defectCount, setDefectCount] = useState<number | "">(0);
   const [defectReason, setDefectReason] = useState("");
@@ -104,6 +120,8 @@ export default function TerminalClient({ support, loggedInEmployee, initialSessi
     const payload: ScanOutPayload = {
       timesheetId: selectedSession.id,
       completedQty: pCount, // Assuming producedCount is the valid completedQty for now
+      rejectedQty: dCount > 0 ? dCount : undefined,
+      rejectReason: defectReason || undefined,
     };
 
     startTransition(async () => {
@@ -465,12 +483,10 @@ export default function TerminalClient({ support, loggedInEmployee, initialSessi
       <ProductionIntake 
         isOpen={isScanInOpen} 
         onClose={closeScanInModal} 
-        support={support}
-        onSuccess={() => {
-          closeScanInModal();
-          handleScanInSuccess();
-        }}
+        support={support} 
+        onSuccess={handleScanInSuccess}
         loggedInEmployeeId={loggedInEmployee?.id}
+        onScanOutRequest={handleIntakeScanOutRequest}
       />
     </div>
   );

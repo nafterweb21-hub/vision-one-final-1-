@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { checkAndCompleteRoutingProcess } from "@/app/terminal/actions";
 
 export async function getPendingParameters() {
   const commonWhere = {
@@ -139,20 +140,41 @@ export async function confirmParameters(
     console.log(`Confirmed By: ${employeeId}, Confirmed Date: ${data.confirmedDate.toISOString()}`);
 
     if (type === "Welding") {
+      const params = await prisma.processParameterWelding.findMany({
+         where: { id: { in: ids } },
+         include: { timesheet: true }
+      });
       await prisma.processParameterWelding.updateMany({
         where: { id: { in: ids } },
         data,
       });
+      for (const p of params) {
+        await checkAndCompleteRoutingProcess(p.timesheet.routingProcessId);
+      }
     } else if (type === "SprayPainting") {
+      const params = await prisma.processParameterSprayPainting.findMany({
+         where: { id: { in: ids } },
+         include: { timesheet: true }
+      });
       await prisma.processParameterSprayPainting.updateMany({
         where: { id: { in: ids } },
         data,
       });
+      for (const p of params) {
+        await checkAndCompleteRoutingProcess(p.timesheet.routingProcessId);
+      }
     } else if (type === "Machining") {
+      const params = await prisma.processParameterMachining.findMany({
+         where: { id: { in: ids } },
+         include: { timesheet: true }
+      });
       await prisma.processParameterMachining.updateMany({
         where: { id: { in: ids } },
         data,
       });
+      for (const p of params) {
+        await checkAndCompleteRoutingProcess(p.timesheet.routingProcessId);
+      }
     }
 
     revalidatePath("/dashboard/production/process-parameter-confirmation");

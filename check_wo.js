@@ -1,4 +1,5 @@
-import { prisma } from './src/lib/prisma.ts';
+const { PrismaClient } = require('./src/generated/prisma');
+const prisma = new PrismaClient();
 async function run() {
   const wo = await prisma.workOrder.findUnique({
     where: { workOrderNo: 'WO-SO-2026-0015-001' },
@@ -15,6 +16,6 @@ async function run() {
       }
     }
   });
-  console.log(JSON.stringify(wo?.inProcesses, null, 2));
+  console.log(JSON.stringify(wo, null, 2));
 }
 run();

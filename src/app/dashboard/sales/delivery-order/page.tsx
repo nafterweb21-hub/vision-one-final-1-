@@ -2,7 +2,7 @@
 import { SearchableSelect } from "@/components/SearchableSelect";
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { Plus, Search, Loader2, Edit2, AlertCircle, Package } from "lucide-react";
+import { Plus, Search, Loader2, Edit2, AlertCircle, Package, Printer } from "lucide-react";
 export default function DeliveryOrderListPage() {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -157,13 +157,23 @@ export default function DeliveryOrderListPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <Link
-                        href={`/dashboard/sales/delivery-order/form?id=${order.id}`}
-                        className="inline-flex items-center justify-center p-1.5 rounded-lg border border-blue-200 hover:bg-blue-100 text-blue-600 transition-colors active:scale-95"
-                        title="Edit/View"
-                      >
-                        <Edit2 size={14} />
-                      </Link>
+                      <div className="flex justify-end gap-2">
+                        <Link
+                          href={`/print/delivery-order/${order.id}`}
+                          target="_blank"
+                          className="inline-flex items-center justify-center p-1.5 rounded-lg border border-indigo-200 hover:bg-indigo-100 text-indigo-600 transition-colors active:scale-95"
+                          title="Print"
+                        >
+                          <Printer size={14} />
+                        </Link>
+                        <Link
+                          href={`/dashboard/sales/delivery-order/form?id=${order.id}`}
+                          className="inline-flex items-center justify-center p-1.5 rounded-lg border border-blue-200 hover:bg-blue-100 text-blue-600 transition-colors active:scale-95"
+                          title="Edit/View"
+                        >
+                          <Edit2 size={14} />
+                        </Link>
+                      </div>
                     </td>
                   </tr>
                 ))}

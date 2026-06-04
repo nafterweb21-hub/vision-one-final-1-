@@ -287,6 +287,8 @@ export async function getTerminalRecentCompletes(limit = 10, employeeId?: string
 export type ScanOutPayload = {
   timesheetId: string;
   completedQty: number;
+  rejectedQty?: number;
+  rejectReason?: string;
   machineCodes?: string;
   // Parameter forms — exactly one of welding/spray/machining (or none) per ProcessProfile flag
   welding?: {
@@ -369,10 +371,13 @@ export async function scanOut(payload: ScanOutPayload) {
 
     const wo = ts.routingProcess.inProcess.workOrder;
 
-    // Quantity guard — total completed across all timesheets for this WO ≤ WO qty
+    // Quantity guard — total completed for THIS routing process ≤ WO qty.
+    // Scope to the routing process (not the whole WO): each process step
+    // independently produces up to the WO quantity, matching the per-routing
+    // roll-up in checkAndCompleteRoutingProcess.
     if (wo.quantity != null) {
       const allTs = await prisma.productionTimesheet.findMany({
-        where: { routingProcess: { inProcess: { workOrderNo: wo.workOrderNo } } },
+        where: { routingProcessId: ts.routingProcessId },
         select: { id: true, completedQty: true },
       });
       const previouslyCompleted = allTs
@@ -498,43 +503,7 @@ export async function scanOut(payload: ScanOutPayload) {
       });
     }
 
-    // Roll routing → Completed if total completed qty meets WO qty
-    if (wo.quantity != null) {
-      const allTsForRouting = await prisma.productionTimesheet.findMany({
-        where: { routingProcessId: ts.routingProcessId },
-        select: { completedQty: true },
-      });
-      const totalForRouting = allTsForRouting.reduce(
-        (acc: number, t: any) => acc + (t.completedQty ? Number(t.completedQty) : 0),
-        0,
-      );
-      if (totalForRouting >= Number(wo.quantity)) {
-        await prisma.routingProcess.update({
-          where: { id: ts.routingProcessId },
-          data: { status: "Completed" },
-        });
-
-        // If all routing rows for the WO are Completed → WO Pending for QC
-        const inProcessesFull = await prisma.workOrderInProcess.findMany({
-          where: { workOrderNo: wo.workOrderNo },
-          include: { routingProcesses: true },
-        });
-        const allDone = inProcessesFull.every(
-          (ip: any) =>
-            ip.routingProcesses.length > 0 &&
-            ip.routingProcesses.every((r: any) => r.status === "Completed"),
-        );
-        if (allDone) {
-          // You could do other final completion logic here if needed
-        }
-      }
-    }
-
-    // Unconditionally send Work Order to QC on Scan Out as requested
-    await prisma.workOrder.update({
-      where: { workOrderNo: wo.workOrderNo },
-      data: { status: "Pending for QC" },
-    });
+    await checkAndCompleteRoutingProcess(ts.routingProcessId);
 
     revalidatePath("/terminal");
     revalidatePath(`/dashboard/production/work-order/${wo.workOrderNo}`);
@@ -543,6 +512,116 @@ export async function scanOut(payload: ScanOutPayload) {
     return { success: true };
   } catch (err: any) {
     console.error("scanOut:", err);
+    return { success: false, error: err.message || "Scan OUT failed" };
+  }
+}
+
+export async function checkAndCompleteRoutingProcess(routingProcessId: string) {
+  const rp = await prisma.routingProcess.findUnique({
+    where: { id: routingProcessId },
+    include: {
+      inProcess: { include: { workOrder: true } },
+      routingProcess: true,
+      productionTimesheets: {
+        include: {
+          weldingParameter: true,
+          sprayParameter: true,
+          machiningParameter: true,
+        }
+      }
+    }
+  });
+
+  if (!rp) return;
+
+  const wo = rp.inProcess.workOrder;
+  if (wo.quantity == null) return;
+
+  // 1. Check quantity
+  const totalCompleted = rp.productionTimesheets.reduce(
+    (acc: number, ts: any) => acc + (ts.completedQty ? Number(ts.completedQty) : 0),
+    0
+  );
+  if (totalCompleted < Number(wo.quantity)) {
+    return; // Not enough quantity
+  }
+
+  // 2. Check parameters
+  const flags = rp.routingProcess;
+  let allParamsConfirmed = true;
+
+  for (const ts of rp.productionTimesheets) {
+    if (flags?.welding && ts.weldingParameter) {
+       if (ts.weldingParameter.status !== "Confirmed") allParamsConfirmed = false;
+    }
+    if (flags?.sprayPainting && ts.sprayParameter) {
+       if (ts.sprayParameter.status !== "Confirmed") allParamsConfirmed = false;
+    }
+    if (flags?.machining && ts.machiningParameter) {
+       if (ts.machiningParameter.status !== "Confirmed") allParamsConfirmed = false;
+    }
+  }
+
+  if (!allParamsConfirmed) {
+    return; // Still pending parameters
+  }
+
+  // 3. Complete RoutingProcess
+  if (rp.status !== "Completed") {
+    await prisma.routingProcess.update({
+      where: { id: rp.id },
+      data: { status: "Completed" },
+    });
+  }
+
+  // 4. Check if all routing processes for WO are completed
+  const inProcessesFull = await prisma.workOrderInProcess.findMany({
+    where: { workOrderNo: wo.workOrderNo },
+    include: { routingProcesses: true },
+  });
+  const allDone = inProcessesFull.every(
+    (ip: any) =>
+      ip.routingProcesses.length > 0 &&
+      ip.routingProcesses.every((r: any) => r.status === "Completed")
+  );
+  
+  if (allDone && wo.status !== "Pending for QC") {
+    await prisma.workOrder.update({
+      where: { workOrderNo: wo.workOrderNo },
+      data: { status: "Pending for QC" },
+    });
+  }
+}
+
+export async function scanOutQuick(input: {
+  workOrderNo: string;
+  inProcessId: string;
+  mainProcessId: string;
+  routingProcessProfileId: string;
+  employeeId: string;
+}) {
+  try {
+    // Find active timesheet for this combination
+    const activeTimesheets = await prisma.productionTimesheet.findMany({
+      where: {
+        employeeId: input.employeeId,
+        timeOut: null,
+        routingProcess: {
+          inProcessId: input.inProcessId,
+          mainProcessId: input.mainProcessId,
+          routingProcessId: input.routingProcessProfileId,
+        }
+      }
+    });
+
+    if (activeTimesheets.length === 0) {
+      return { success: false, error: "No active session found for this process and employee" };
+    }
+
+    const timesheetId = activeTimesheets[0].id;
+    return scanOut({ timesheetId, completedQty: 0 });
+  } catch (err: any) {
+    console.error("scanOutQuick:", err);
     return { success: false, error: err.message || "Scan OUT failed" };
   }
 }

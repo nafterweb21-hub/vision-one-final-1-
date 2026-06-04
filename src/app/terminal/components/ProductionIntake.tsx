@@ -1,9 +1,9 @@
 import { SearchableSelect } from "@/components/SearchableSelect";
 import { toast as hotToast } from "react-hot-toast";
 import { useState, useMemo, useTransition, useEffect } from "react";
-import { ArrowLeft, Monitor, Camera, QrCode, Search, Calendar, Clock, Send, Package, ChevronDown } from "lucide-react";
+import { ArrowLeft, Monitor, Camera, QrCode, Search, Calendar, Clock, Send, Package, ChevronDown, LogOut } from "lucide-react";
 import CameraScanner from "./CameraScanner";
-import { lookupWorkOrder, scanIn } from "../actions";
+import { lookupWorkOrder, scanIn, scanOutQuick } from "../actions";
 type Support = {
   employees: { id: string; name: string; code: string }[];
   activeWorkOrders?: { workOrderNo: string }[];
@@ -15,9 +15,10 @@ type ProductionIntakeProps = {
   support: Support;
   onSuccess: () => void;
   loggedInEmployeeId?: string | null;
+  onScanOutRequest?: (routingProcessProfileId: string, employeeId: string, inProcessId: string, mainProcessId: string) => void;
 };
 
-export default function ProductionIntake({ isOpen, onClose, support, onSuccess, loggedInEmployeeId }: ProductionIntakeProps) {
+export default function ProductionIntake({ isOpen, onClose, support, onSuccess, loggedInEmployeeId, onScanOutRequest }: ProductionIntakeProps) {
   const [woNo, setWoNo] = useState("");
   const [wo, setWo] = useState<any>(null);
   const [error, setError] = useState("");
@@ -146,6 +147,19 @@ export default function ProductionIntake({ isOpen, onClose, support, onSuccess, 
       setInForm({ inProcessId: "", mainProcessId: "", routingProcessProfileId: "", employeeId: loggedInEmployeeId || (support.employees[0]?.id ?? "") });
       onSuccess();
     });
+  }
+
+  function doScanOut() {
+    setError("");
+    if (!inForm.inProcessId || !inForm.mainProcessId || !inForm.routingProcessProfileId || !inForm.employeeId) {
+      setError("Please complete all production selections.");
+      return;
+    }
+    if (onScanOutRequest) {
+      onScanOutRequest(inForm.routingProcessProfileId, inForm.employeeId, inForm.inProcessId, inForm.mainProcessId);
+    } else {
+      setError("Scan out from intake is not configured.");
+    }
   }
 
   if (!isOpen) return null;
@@ -409,7 +423,7 @@ export default function ProductionIntake({ isOpen, onClose, support, onSuccess, 
           </div>
 
           {wo && (
-            <div className="grid grid-cols-2 gap-4 mb-6 flex-1 overflow-y-auto pr-2 content-start">
+            <div className="grid grid-cols-2 gap-4 mb-6 flex-1 overflow-visible pr-2 content-start">
               <div className="col-span-2 sm:col-span-1">
                 <Select
                   label="In-Process"
@@ -436,6 +450,7 @@ export default function ProductionIntake({ isOpen, onClose, support, onSuccess, 
                   onChange={(v) => setInForm({ ...inForm, routingProcessProfileId: v })}
                   options={routingProcessOptions}
                   disabled={!inForm.mainProcessId}
+                  dropdownPosition="top"
                 />
               </div>
               <div className="col-span-2 sm:col-span-1">
@@ -444,6 +459,7 @@ export default function ProductionIntake({ isOpen, onClose, support, onSuccess, 
                   label="Employee"
                   value={inForm.employeeId}
                   onChange={(v) => setInForm({ ...inForm, employeeId: v })}
+                  dropdownPosition="top"
                   options={support.employees.map((e) => ({
                     id: e.id,
                     label: `${e.name} (${e.code})`,
@@ -453,14 +469,22 @@ export default function ProductionIntake({ isOpen, onClose, support, onSuccess, 
             </div>
           )}
 
-          <div className="mt-auto pt-4 border-t border-slate-100">
+          <div className="mt-auto pt-4 border-t border-slate-100 flex gap-4">
+            <button 
+              onClick={doScanOut}
+              disabled={isPending || !wo || !inForm.employeeId || !inForm.routingProcessProfileId}
+              className="flex-1 py-4 bg-rose-600 hover:bg-rose-500 disabled:opacity-50 disabled:hover:bg-rose-600 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-colors shadow-lg shadow-rose-500/20"
+            >
+              <LogOut size={18} />
+              {isPending ? "Processing..." : "SCAN OUT"}
+            </button>
             <button 
               onClick={doScanIn}
               disabled={isPending || !wo || !inForm.employeeId || !inForm.routingProcessProfileId}
-              className="w-full py-4 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:hover:bg-emerald-600 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-colors shadow-lg shadow-emerald-500/20"
+              className="flex-1 py-4 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:hover:bg-emerald-600 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-colors shadow-lg shadow-emerald-500/20"
             >
               <Send size={18} />
-              {isPending ? "Starting..." : "BEGIN PRODUCTION SESSION"}
+              {isPending ? "Starting..." : "SCAN IN"}
             </button>
           </div>
 
@@ -477,12 +501,14 @@ function Select({
   onChange,
   options,
   disabled,
+  dropdownPosition = "bottom",
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   options: { id: string; label: string }[];
   disabled?: boolean;
+  dropdownPosition?: "bottom" | "top";
 }) {
   return (
     <div>
@@ -491,6 +517,7 @@ function Select({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}
+        dropdownPosition={dropdownPosition}
         className="mt-1.5 w-full px-4 py-3 border border-slate-200 rounded-xl text-sm font-medium bg-slate-50 text-slate-900 focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 outline-none disabled:opacity-50 shadow-sm transition-all"
       >
         <option value="">Select...</option>

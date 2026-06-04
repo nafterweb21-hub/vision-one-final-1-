@@ -8,6 +8,7 @@ interface EmployeeOption {
   id: string;
   code: string;
   name: string;
+  email: string;
 }
 
 type FormState = {
@@ -42,16 +43,34 @@ export default function UserFormClient({
   );
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [employeeScanCode, setEmployeeScanCode] = useState("");
+
+  const handleScanEmployee = (code: string) => {
+    setEmployeeScanCode(code);
+    if (!code) return;
+    
+    // Auto-fetch if exact match is found
+    const match = employees.find((e) => e.code.toLowerCase() === code.toLowerCase());
+    if (match) {
+      setForm((prev) => ({
+        ...prev,
+        name: match.name,
+        email: match.email || prev.email,
+        employeeId: match.id,
+      }));
+    }
+  };
   
   useEffect(() => {
     fetch("/api/employees")
       .then((res) => res.json())
       .then((data) => {
         setEmployees(
-          data.map((e: { id: string; code: string; name: string }) => ({
+          data.map((e: { id: string; code: string; name: string; email: string }) => ({
             id: e.id,
             code: e.code,
             name: e.name,
+            email: e.email,
           }))
         );
       })
@@ -123,6 +142,20 @@ export default function UserFormClient({
         className="rounded-2xl border border-blue-200 bg-white p-6 shadow-sm"
       >
         <div className="space-y-5">
+          {!isEdit && (
+            <div className="p-4 rounded-xl border border-emerald-200 bg-emerald-50 mb-2">
+              <label className="mb-1 block text-sm font-semibold text-emerald-800">
+                Employee ID Scanner
+              </label>
+              <input
+                type="text"
+                value={employeeScanCode}
+                onChange={(e) => handleScanEmployee(e.target.value)}
+                placeholder="Scan or type Employee ID to autofill details..."
+                className="w-full rounded-xl border border-emerald-300 bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+              />
+            </div>
+          )}
           <div>
             <label className="mb-1 block text-sm font-semibold text-blue-700">Name</label>
             <input

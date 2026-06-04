@@ -175,7 +175,7 @@ export default function EmployeeProfilePage() {
       {/* Toast Notification Banner */}
       {notification && (
         <div
-          className={`fixed top-4 right-4 z-50 flex items-center gap-3 px-5 py-4 rounded-xl shadow-2xl border text-sm transition-all duration-300 transform translate-y-0 scale-100 ${
+          className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-4 rounded-xl shadow-2xl border text-sm transition-all duration-300 transform scale-100 ${
             notification.type === "success"
               ? "bg-emerald-50 border-emerald-200 text-emerald-800 "
               : "bg-rose-50 border-rose-200 text-rose-800 "

@@ -334,6 +334,12 @@ export default function Sidebar({ userEmail, userRole, isAdmin }: SidebarProps) 
                 <span>Employee Profile</span>
               </Link>
             )}
+            {allow("/dashboard/master-profile/designation") && (
+              <Link href="/dashboard/master-profile/designation" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/master-profile/designation")}>
+                <Briefcase size={16} className="text-blue-500" />
+                <span>Designation Profile</span>
+              </Link>
+            )}
             {allow("/dashboard/profiles/approval-levels") && (
               <Link href="/dashboard/profiles/approval-levels" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/profiles/approval-levels")}>
                 <Key size={16} className="text-yellow-500" fill="currentColor" />

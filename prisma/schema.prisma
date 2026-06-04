@@ -624,6 +624,8 @@ model ProductionTimesheet {
   totalMinutes       Decimal?
   completed          Boolean                        @default(false)
   completedQty       Decimal?
+  rejectedQty        Decimal?
+  rejectReason       String?
   machineCodes       String?
   createdAt          DateTime                       @default(now())
   updatedAt          DateTime                       @updatedAt
@@ -1372,4 +1374,16 @@ model SubconRejectTracking {
   purchaseOrder       PurchaseOrder     @relation(fields: [purchaseOrderId], references: [id])
   subconRequestForm   SubconRequestForm @relation(fields: [subconRequestFormId], references: [id])
   supplier            SupplierProfile   @relation(fields: [supplierId], references: [id])
+}
+
+model DesignationProfile {
+  id             String     @id @default(cuid())
+  designation    String     @unique
+  remark         String?
+  status         String     @default("Active")
+  createdBy      String?
+  updatedBy      String?
+  isDeleted      Boolean    @default(false)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
 }
