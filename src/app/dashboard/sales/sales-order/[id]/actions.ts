@@ -43,7 +43,7 @@ export async function convertSalesOrder(salesOrderId: string) {
     const batches = await prisma.salesOrderItemBatch.findMany({
       where: {
         salesOrderItem: { salesOrderId: salesOrderId },
-        workOrderNo: { not: null },
+        workOrderNo: null,
         noRoutingProcess: false,
       }
     });
@@ -53,6 +53,7 @@ export async function convertSalesOrder(salesOrderId: string) {
       const res = await createWorkOrderFromBatch(b.id);
       if (res.success) count++;
     }
+
     return { success: true, count };
   } catch (error: any) {
     console.error("Error converting to Work Order:", error);

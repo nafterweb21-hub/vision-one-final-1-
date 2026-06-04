@@ -212,7 +212,7 @@ export default function ProductionIntake({ isOpen, onClose, support, onSuccess, 
         </div>
       </div>
 
-      <div className="flex-1 p-6 md:p-8 max-w-5xl mx-auto w-full grid grid-cols-1 md:grid-cols-2 gap-8 min-h-0">
+      <div className="flex-1 p-6 md:p-8 max-w-5xl mx-auto w-full grid grid-cols-1 md:grid-cols-2 gap-8 min-h-0 overflow-y-auto items-start">
         
         {/* LEFT PANEL: WORK ORDER CAPTURE */}
         <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm flex flex-col min-h-0">

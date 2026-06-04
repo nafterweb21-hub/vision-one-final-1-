@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo, use } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { FileText, Save, CheckCircle2, ChevronDown, ChevronRight, Loader2, Factory, X, Plus, Trash2, ArrowLeft, AlertCircle } from "lucide-react";
-import { getFormData, convertSalesOrder } from "./actions";
+import { getFormData } from "./actions";
 type PageProps = {
   params: Promise<{ id: string }>;
 };
@@ -251,24 +251,6 @@ export default function SalesOrderFormPage({ params }: PageProps) {
     }
   };
 
-  const handleConvertToWorkOrder = async () => {
-    if (!id || id === "new") return;
-    setSaving(true);
-    setErrorMsg("");
-    try {
-      const res = await convertSalesOrder(id);
-      if (!res.success) {
-        throw new Error(res.error || "Failed to convert to Work Order");
-      }
-      alert(`Successfully created ${res.count} Work Order(s)!`);
-      router.push("/dashboard/production/work-order");
-    } catch (err: any) {
-      setErrorMsg(err.message);
-    } finally {
-      setSaving(false);
-    }
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -315,27 +297,30 @@ export default function SalesOrderFormPage({ params }: PageProps) {
                 Draft
               </button>
               {!isNew && (
-                <button
-                  onClick={() => handleSave("Void")}
-                  disabled={saving}
-                  className="px-4 py-2 text-sm font-medium text-rose-700 bg-rose-100 rounded-lg hover:bg-rose-200 disabled:opacity-50 flex items-center gap-2"
-                >
-                  Void
-                </button>
+                <>
+                  <button
+                    onClick={() => handleSave("Confirmed")}
+                    disabled={saving}
+                    className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-500 disabled:opacity-50 flex items-center gap-2"
+                  >
+                    {saving ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle2 size={16} />}
+                    Confirm
+                  </button>
+                  <button
+                    onClick={() => handleSave("Void")}
+                    disabled={saving}
+                    className="px-4 py-2 text-sm font-medium text-rose-700 bg-rose-100 rounded-lg hover:bg-rose-200 disabled:opacity-50 flex items-center gap-2"
+                  >
+                    Void
+                  </button>
+                </>
               )}
             </>
           )}
 
           {order.status === "Confirmed" && (
             <>
-              <button
-                onClick={handleConvertToWorkOrder}
-                disabled={saving}
-                className="px-4 py-2 text-sm font-medium text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-lg hover:bg-indigo-100 disabled:opacity-50 flex items-center gap-2"
-              >
-                {saving ? <Loader2 size={16} className="animate-spin" /> : <Factory size={16} />}
-                Convert to Work Order
-              </button>
+
               <button
                 onClick={() => handleSave("Revised")}
                 disabled={saving}
