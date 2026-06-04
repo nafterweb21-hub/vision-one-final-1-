@@ -58,6 +58,7 @@ import {
   Link2,
   Cpu,
   Gauge,
+
 } from "lucide-react";
 
 interface SidebarProps {
@@ -75,11 +76,10 @@ export default function Sidebar({ userEmail, userRole, isAdmin }: SidebarProps) 
   const linkClass = (path: string) => {
     // Exact match for dashboard or check if it is exactly the path or starts with the path + "/" for nested routes
     const active = path === "/dashboard" ? pathname === "/dashboard" : pathname === path || pathname.startsWith(path + "/");
-    return `flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ${
-      active
+    return `flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ${active
         ? "bg-indigo-600 text-white shadow-md shadow-slate-500/20 translate-x-1"
         : "text-indigo-600 hover:bg-slate-50 :bg-indigo-800 hover:text-indigo-700 :text-white"
-    }`;
+      }`;
   };
 
   return (
@@ -87,11 +87,10 @@ export default function Sidebar({ userEmail, userRole, isAdmin }: SidebarProps) 
       {/* Mobile & Desktop Toggle Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`fixed top-3 z-50 p-2.5 rounded-xl border shadow-sm transition-all duration-300 ${
-          isOpen 
-            ? "left-[19rem] bg-white border-slate-200 text-slate-600 hover:bg-slate-50" 
+        className={`fixed top-3 z-50 p-2.5 rounded-xl border shadow-sm transition-all duration-300 ${isOpen
+            ? "left-[19rem] bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
             : "left-6 bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
-        }`}
+          }`}
         aria-label="Toggle Navigation"
       >
         {isOpen ? <X size={20} /> : <Menu size={20} />}
@@ -107,9 +106,8 @@ export default function Sidebar({ userEmail, userRole, isAdmin }: SidebarProps) 
 
       {/* Sidebar Panel */}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 w-72 bg-white/95 backdrop-blur-xl border-r border-slate-200 flex flex-col transition-transform duration-300 transform shadow-2xl shadow-slate-900/10 ${
-          isOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed inset-y-0 left-0 z-40 w-72 bg-white/95 backdrop-blur-xl border-r border-slate-200 flex flex-col transition-transform duration-300 transform shadow-2xl shadow-slate-900/10 ${isOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         {/* Header Branding */}
         <div className="h-16 px-6 border-b border-slate-200 flex items-center gap-3 bg-gradient-to-r from-indigo-600/5 to-purple-600/5">
