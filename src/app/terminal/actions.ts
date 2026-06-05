@@ -114,13 +114,7 @@ export async function getTerminalSupportData() {
 // ──────────────────────────────────────────────────────────────────────────────
 // SCAN IN
 // ──────────────────────────────────────────────────────────────────────────────
-export async function scanIn(input: {
-  workOrderNo: string;
-  inProcessId: string;
-  mainProcessId: string;
-  routingProcessProfileId: string;
-  employeeId: string;
-}) {
+export async function scanIn(input: { workOrderNo: string; inProcessId: string; mainProcessId: string; routingProcessProfileId: string; employeeId: string; machineCodes?: string }) {
   try {
     const wo = await prisma.workOrder.findUnique({
       where: { workOrderNo: input.workOrderNo },
@@ -171,10 +165,11 @@ export async function scanIn(input: {
 
     const ts = await prisma.productionTimesheet.create({
       data: {
-        routingProcessId: target.id,
         employeeId: input.employeeId,
+        routingProcessId: target.id,
         timeIn: new Date(),
         completed: false,
+        machineCodes: input.machineCodes || undefined,
       },
     });
 
@@ -199,6 +194,44 @@ export async function scanIn(input: {
   } catch (err: any) {
     console.error("scanIn:", err);
     return { success: false, error: err.message || "Scan IN failed" };
+  }
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+export async function togglePauseSession(timesheetId: string) {
+  try {
+    const ts = await prisma.productionTimesheet.findUnique({ where: { id: timesheetId } });
+    if (!ts) return { success: false, error: "Session not found" };
+
+    if (ts.isPaused) {
+      // Resume: calculate idle time
+      const now = new Date();
+      const idleMs = now.getTime() - (ts.lastPauseTime?.getTime() || now.getTime());
+      const idleMinutes = idleMs / 60000;
+      
+      await prisma.productionTimesheet.update({
+        where: { id: timesheetId },
+        data: {
+          isPaused: false,
+          totalIdleMinutes: { increment: idleMinutes },
+          lastPauseTime: null,
+        }
+      });
+    } else {
+      // Pause
+      await prisma.productionTimesheet.update({
+        where: { id: timesheetId },
+        data: {
+          isPaused: true,
+          lastPauseTime: new Date(),
+        }
+      });
+    }
+    
+    revalidatePath("/terminal");
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.message || "Failed to toggle pause" };
   }
 }
 
@@ -371,25 +404,7 @@ export async function scanOut(payload: ScanOutPayload) {
 
     const wo = ts.routingProcess.inProcess.workOrder;
 
-    // Quantity guard — total completed for THIS routing process ≤ WO qty.
-    // Scope to the routing process (not the whole WO): each process step
-    // independently produces up to the WO quantity, matching the per-routing
-    // roll-up in checkAndCompleteRoutingProcess.
-    if (wo.quantity != null) {
-      const allTs = await prisma.productionTimesheet.findMany({
-        where: { routingProcessId: ts.routingProcessId },
-        select: { id: true, completedQty: true },
-      });
-      const previouslyCompleted = allTs
-        .filter((t: any) => t.id !== payload.timesheetId)
-        .reduce((acc: number, t: any) => acc + (t.completedQty ? Number(t.completedQty) : 0), 0);
-      if (previouslyCompleted + payload.completedQty > Number(wo.quantity)) {
-        return {
-          success: false,
-          error: `Completed qty exceeds WO qty (${previouslyCompleted}+${payload.completedQty} > ${wo.quantity})`,
-        };
-      }
-    }
+
 
     const timeOut = new Date();
     const totalMinutes =

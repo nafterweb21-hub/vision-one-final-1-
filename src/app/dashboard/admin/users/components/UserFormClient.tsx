@@ -16,6 +16,7 @@ type FormState = {
   name: string;
   email: string;
   password: string;
+  confirmPassword?: string;
   role: Role;
   isActive: boolean;
   employeeId: string;
@@ -36,6 +37,7 @@ export default function UserFormClient({
       name: "",
       email: "",
       password: "",
+      confirmPassword: "",
       role: "VIEWER",
       isActive: true,
       employeeId: "",
@@ -91,6 +93,12 @@ export default function UserFormClient({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError(null);
+
+    if (form.password && form.password !== form.confirmPassword) {
+      setFormError("Passwords do not match.");
+      return;
+    }
+
     setSubmitting(true);
 
     const url = isEdit ? `/api/admin/users/${form.id}` : "/api/admin/users";
@@ -192,6 +200,24 @@ export default function UserFormClient({
               minLength={!isEdit ? 8 : undefined}
               value={form.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })}
+              className="w-full rounded-xl border border-blue-200 bg-blue-50/50 px-4 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-semibold text-blue-700">
+              Confirm Password{" "}
+              {isEdit ? (
+                <span className="font-normal text-blue-400">(leave blank if not changing)</span>
+              ) : (
+                <span className="text-rose-500">*</span>
+              )}
+            </label>
+            <input
+              type="password"
+              required={!isEdit || !!form.password}
+              minLength={!isEdit || !!form.password ? 8 : undefined}
+              value={form.confirmPassword || ""}
+              onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
               className="w-full rounded-xl border border-blue-200 bg-blue-50/50 px-4 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
             />
           </div>
