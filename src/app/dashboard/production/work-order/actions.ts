@@ -158,7 +158,7 @@ export async function updateWorkOrderEditable(
 const ALLOWED: Record<string, string[]> = {
   Draft: ["Proceed", "Void"],
   Proceed: ["WIP", "Cancelled"],
-  WIP: ["On Hold", "Pending for QC", "Cancelled"],
+  WIP: ["On Hold", "Cancelled"],
   "On Hold": ["WIP", "Cancelled"],
   "Pending for QC": ["Completed", "On Hold"],
   Completed: [],

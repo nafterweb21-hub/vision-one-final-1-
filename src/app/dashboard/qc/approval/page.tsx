@@ -15,9 +15,29 @@ const STATUS_STYLES: Record<string, string> = {
 export default async function QcApprovalPage() {
   const workOrders = await prisma.workOrder.findMany({
     where: {
-      OR: [
-        { status: "Pending for QC" },
-        { qcAcceptance: "Rejected", status: { not: "Completed" } }
+      AND: [
+        {
+          OR: [
+            { status: "Pending for QC" },
+            { qcAcceptance: "Rejected", status: { not: "Completed" } }
+          ]
+        },
+        {
+          inProcesses: {
+            some: {
+              routingProcesses: {
+                some: {
+                  productionTimesheets: {
+                    some: {
+                      completed: true,
+                      completedQty: { gt: 0 }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       ]
     },
     orderBy: { createdAt: "desc" },

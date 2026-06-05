@@ -30,6 +30,19 @@ export default function TerminalClient({ support, loggedInEmployee, initialSessi
   const [activeSessions, setActiveSessions] = useState<any[]>(initialSessions);
   const [recentCompletes, setRecentCompletes] = useState<any[]>(initialRecentCompletes);
   
+  const uniqueRecentCompletes = useMemo(() => {
+    const seen = new Set<string>();
+    const unique = [];
+    for (const rc of recentCompletes) {
+      const woNo = rc.routingProcess?.inProcess?.workOrderNo;
+      if (woNo && !seen.has(woNo)) {
+        seen.add(woNo);
+        unique.push(rc);
+      }
+    }
+    return unique;
+  }, [recentCompletes]);
+
   const displayEmployee = loggedInEmployee && loggedInEmployee.code !== "UNLINKED_USER" ? loggedInEmployee : null;
   const [localEmployee, setLocalEmployee] = useState<any>(null);
   
@@ -97,7 +110,7 @@ export default function TerminalClient({ support, loggedInEmployee, initialSessi
   useEffect(() => {
     if (activeEmployee) {
       setActiveSessions(initialSessions.filter((s: any) => s.employeeId === activeEmployee.id));
-      setRecentCompletes(initialRecentCompletes.filter((s: any) => s.employeeId === activeEmployee.id));
+      setRecentCompletes(initialRecentCompletes);
     }
   }, [initialSessions, initialRecentCompletes, activeEmployee]);
   const [selectedSessionId, setSelectedSessionId] = useState<string>("");
@@ -180,6 +193,12 @@ export default function TerminalClient({ support, loggedInEmployee, initialSessi
     };
 
     const flags = selectedSession.routingProcess?.routingProcess;
+    
+    if (flags?.machining && !machiningForm.machineSerialNoId) {
+      hotToast.error("Please select a Machine in the Machining form.");
+      return;
+    }
+
     if (flags?.welding) payload.welding = weldingForm;
     if (flags?.sprayPainting) payload.spray = sprayForm;
     if (flags?.machining) payload.machining = machiningForm;
@@ -275,7 +294,7 @@ export default function TerminalClient({ support, loggedInEmployee, initialSessi
           <div className="bg-slate-50 border border-slate-200 rounded-2xl px-6 py-3 flex flex-col items-center justify-center">
             <div className="text-[9px] font-bold tracking-widest text-slate-500 uppercase mb-1">Total Produced</div>
             <div className="text-2xl font-bold text-emerald-600 leading-none">
-              {recentCompletes.length}
+              {uniqueRecentCompletes.length}
             </div>
           </div>
           <button 
@@ -351,10 +370,10 @@ export default function TerminalClient({ support, loggedInEmployee, initialSessi
             </div>
             
             <div className="space-y-3">
-              {recentCompletes.length === 0 ? (
+              {uniqueRecentCompletes.length === 0 ? (
                 <div className="text-slate-400 text-xs italic ml-6">None recently</div>
               ) : (
-                recentCompletes.map((rc, idx) => (
+                uniqueRecentCompletes.map((rc, idx) => (
                   <div key={rc.id || idx} className="bg-white border-2 border-slate-100 shadow-sm rounded-2xl p-4 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="bg-emerald-50 p-1.5 rounded-full text-emerald-500 border border-emerald-100">

@@ -495,7 +495,7 @@ export async function scanOut(payload: ScanOutPayload) {
           topcoatDftMeasurement: s.topcoatDftMeasurement || null,
           topcoatAdhesiveTestResult: s.topcoatAdhesiveTestResult || null,
           additionalRemark: s.additionalRemark || null,
-          status: "Pending",
+          status: "Confirmed",
         },
       });
     } else if (payload.machining && flags?.machining) {
@@ -510,7 +510,7 @@ export async function scanOut(payload: ScanOutPayload) {
           partRuntimeHr: m.partRuntimeHr ?? null,
           partRuntimeMins: m.partRuntimeMins ?? null,
           remark: m.remark || null,
-          status: "Pending",
+          status: "Confirmed",
           toolLists: m.toolList?.length
             ? { create: m.toolList.map((v) => ({ toolValue: v })) }
             : undefined,
