@@ -19,6 +19,7 @@ export default async function QcApprovalPage() {
         {
           OR: [
             { status: "Pending for QC" },
+            { status: "WIP" },
             { qcAcceptance: "Rejected", status: { not: "Completed" } }
           ]
         },
@@ -29,8 +30,7 @@ export default async function QcApprovalPage() {
                 some: {
                   productionTimesheets: {
                     some: {
-                      completed: true,
-                      completedQty: { gt: 0 }
+                      completed: true
                     }
                   }
                 }

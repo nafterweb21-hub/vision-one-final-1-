@@ -8,7 +8,6 @@ export async function getAwaitingInspection() {
   const timesheets = await prisma.productionTimesheet.findMany({
     where: { 
       timeOut: { not: null },
-      completedQty: { gt: 0 },
       qcStatus: "Pending"
     },
     include: {
