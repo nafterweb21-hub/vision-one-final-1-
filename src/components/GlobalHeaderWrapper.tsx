@@ -6,8 +6,8 @@ import GlobalHeader from "./GlobalHeader";
 export default function GlobalHeaderWrapper() {
   const pathname = usePathname();
 
-  // Do not show the header on the dashboard or if it is exactly the dashboard route
-  if (pathname?.startsWith("/dashboard")) {
+  // Do not show the header on the dashboard or the login page
+  if (pathname?.startsWith("/dashboard") || pathname === "/" || pathname?.startsWith("/auth")) {
     return null;
   }
 
