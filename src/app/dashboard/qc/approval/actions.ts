@@ -19,6 +19,7 @@ export async function approveQc(workOrderNo: string) {
           qcAcceptance: "Approved",
           qcDate: new Date(),
           qcById: session.user.employeeId,
+          status: "Completed",
         },
       });
 

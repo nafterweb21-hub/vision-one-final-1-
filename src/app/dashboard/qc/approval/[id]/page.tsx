@@ -39,7 +39,7 @@ export default async function QcApprovalDetailPage({
             QC Approval: {workOrder.workOrderNo}
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            Review work order details, routing, and approve/reject QC.
+            Review work order details and routing.
           </p>
         </div>
       </div>
