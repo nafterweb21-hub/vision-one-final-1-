@@ -235,7 +235,7 @@ export default function QcDashboardClient({ initialAwaiting, initialWorkOrders }
                             </div>
                           </div>
                           <div>
-                            {wo.status === 'Completed' ? (
+                            {wo.status === 'Completed' || wo.qcAcceptance === 'Approved' ? (
                               <span className="px-3 py-1 text-[9px] uppercase tracking-widest font-bold rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200 shadow-sm">
                                 APPROVED
                               </span>
@@ -254,7 +254,7 @@ export default function QcDashboardClient({ initialAwaiting, initialWorkOrders }
                       
                       {/* ACTION */}
                       <td className="px-4 py-4 pr-6 text-right whitespace-nowrap">
-                        {wo.status !== 'Completed' && (
+                        {wo.status !== 'Completed' && wo.qcAcceptance !== 'Approved' && (
                           <button 
                             onClick={() => openWorkOrderInspection(wo)}
                             className="px-4 py-2 bg-gradient-to-b from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white border border-emerald-400 text-xs font-bold tracking-wider rounded-xl transition-all shadow-[0_4px_10px_rgba(16,185,129,0.3)] hover:shadow-[0_6px_15px_rgba(16,185,129,0.4)]"

@@ -57,7 +57,7 @@ export default function EditEmployeePage() {
   useEffect(() => {
     const fetchDesignations = async () => {
       try {
-        const { getDesignationProfileItems } = await import("../../designation/actions");
+        const { getDesignationProfileItems } = await import("../../../designation/actions");
         const res = await getDesignationProfileItems();
         if (res.success && res.data) {
           setDesignations(res.data.filter((d: any) => d.status === "Active"));

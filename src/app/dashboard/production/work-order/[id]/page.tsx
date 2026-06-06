@@ -24,6 +24,8 @@ export default async function WorkOrderDetailPage({
 
   if (!workOrder) notFound();
 
+  console.log("Work Order QC Data:", { qcAcceptance: workOrder?.qcAcceptance, qcBy: workOrder?.qcBy?.name, qcDate: workOrder?.qcDate });
+
   const uoms = await getUomList();
 
   // Decimals → strings to keep client serialisable

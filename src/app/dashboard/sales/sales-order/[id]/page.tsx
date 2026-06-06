@@ -217,7 +217,7 @@ export default function SalesOrderFormPage({ params }: PageProps) {
   }, [amountBeforeTax, taxAmount]);
 
   const handleSave = async (status: string) => {
-    if (status === "Confirmed" && items.length === 0) {
+    if (items.length === 0) {
       setShowValidationModal(true);
       return;
     }
@@ -874,7 +874,7 @@ export default function SalesOrderFormPage({ params }: PageProps) {
               </div>
               <h3 className="text-lg font-bold text-slate-900 mb-2">Validation Error</h3>
               <p className="text-sm text-slate-600 mb-6">
-                Please add at least one item before confirming the Sales Order.
+                Please add at least one item before saving the Sales Order.
               </p>
               <button
                 onClick={() => setShowValidationModal(false)}

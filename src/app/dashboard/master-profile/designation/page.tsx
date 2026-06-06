@@ -18,8 +18,8 @@ interface DesignationProfile {
   status: string;
   createdBy: string | null;
   updatedBy: string | null;
-  createdAt: string;
-  updatedAt: string;
+  createdAt: Date | string;
+  updatedAt: Date | string;
 }
 
 export default function DesignationProfilePage() {
