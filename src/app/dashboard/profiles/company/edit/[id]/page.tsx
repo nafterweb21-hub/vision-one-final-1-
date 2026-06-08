@@ -13,6 +13,7 @@ export default function EditCompanyProfilePage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!id) return;
     const fetchData = async () => {
       try {
         const res = await fetch(`/api/profiles/company/${id}`);

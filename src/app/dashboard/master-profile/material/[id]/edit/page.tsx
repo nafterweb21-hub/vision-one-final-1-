@@ -1,7 +1,7 @@
 "use client";
 import { SearchableSelect } from "@/components/SearchableSelect";
 import React, { useState, useEffect, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import {
 getMaterialCategories,
@@ -14,7 +14,10 @@ interface MaterialCategory {
   name: string;
 }
 
-export default function EditMaterialPage({ params }: { params: { id: string } }) {
+export default function EditMaterialPage() {
+  const params = useParams();
+  const id = params?.id as string;
+
   const router = useRouter();
   const [categories, setCategories] = useState<MaterialCategory[]>([]);
   const [isPending, startTransition] = useTransition();
@@ -30,12 +33,13 @@ export default function EditMaterialPage({ params }: { params: { id: string } })
   const [formError, setFormError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!id) return;
     const loadData = async () => {
       setIsLoading(true);
       try {
         const [categoriesRes, materialRes] = await Promise.all([
           getMaterialCategories(),
-          getMaterialDetail(params.id),
+          getMaterialDetail(id),
         ]);
 
         if (categoriesRes.success && categoriesRes.data) {
@@ -61,7 +65,7 @@ export default function EditMaterialPage({ params }: { params: { id: string } })
     };
 
     loadData();
-  }, [params.id]);
+  }, [id]);
 
   const handleUpdateMaterial = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,7 +75,7 @@ export default function EditMaterialPage({ params }: { params: { id: string } })
     if (!editCategoryId) return setFormError("Material Category is required.");
 
     startTransition(async () => {
-      const res = await updateMaterialProfile(params.id, {
+      const res = await updateMaterialProfile(id, {
         shape: editShape.trim(),
         size: editSize.trim() || undefined,
         categoryId: editCategoryId,

@@ -23,6 +23,7 @@ export default function EditDepartmentPage() {
   } | null>(null);
 
   useEffect(() => {
+    if (!id) return;
     const loadData = async () => {
       setIsLoading(true);
       const res = await getDepartmentDetail(id);

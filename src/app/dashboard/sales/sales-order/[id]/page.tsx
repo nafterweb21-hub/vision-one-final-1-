@@ -1,7 +1,7 @@
 "use client";
 import { SearchableSelect } from "@/components/SearchableSelect";
 import React, { useState, useEffect, useMemo, use } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { FileText, Save, CheckCircle2, ChevronDown, ChevronRight, Loader2, Factory, X, Plus, Trash2, ArrowLeft, AlertCircle } from "lucide-react";
 import { getFormData } from "./actions";
@@ -9,8 +9,10 @@ type PageProps = {
   params: Promise<{ id: string }>;
 };
 
-export default function SalesOrderFormPage({ params }: PageProps) {
-  const { id } = use(params);
+export default function SalesOrderFormPage() {
+  const params = useParams();
+  const id = params?.id as string;
+
   const router = useRouter();
   const isNew = id === "new";
 
@@ -48,6 +50,7 @@ export default function SalesOrderFormPage({ params }: PageProps) {
   const [items, setItems] = useState<any[]>([]);
 
   useEffect(() => {
+    if (!id) return;
     async function loadData() {
       try {
         setLoading(true);

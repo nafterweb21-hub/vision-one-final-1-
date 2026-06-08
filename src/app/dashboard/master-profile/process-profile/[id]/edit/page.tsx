@@ -1,11 +1,14 @@
 "use client";
 
 import React, { useState, useEffect, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { updateProcessProfileAction, getProcessProfileByIdAction } from "../../actions";
 
-export default function EditProcessProfilePage({ params }: { params: { id: string } }) {
+export default function EditProcessProfilePage() {
+  const params = useParams();
+  const id = params?.id as string;
+
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -14,9 +17,10 @@ export default function EditProcessProfilePage({ params }: { params: { id: strin
   const [profile, setProfile] = useState<any>(null);
 
   useEffect(() => {
+    if (!id) return;
     async function load() {
       setIsLoading(true);
-      const res = await getProcessProfileByIdAction(params.id);
+      const res = await getProcessProfileByIdAction(id);
       if (res.success && res.data) {
         setProfile(res.data);
       } else {
@@ -25,7 +29,7 @@ export default function EditProcessProfilePage({ params }: { params: { id: strin
       setIsLoading(false);
     }
     load();
-  }, [params.id]);
+  }, [id]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -33,7 +37,7 @@ export default function EditProcessProfilePage({ params }: { params: { id: strin
     const formData = new FormData(e.currentTarget);
 
     startTransition(async () => {
-      const res = await updateProcessProfileAction(params.id, formData);
+      const res = await updateProcessProfileAction(id, formData);
       if (res.success) {
         router.push("/dashboard/master-profile/process-profile");
       } else {

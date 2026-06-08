@@ -479,7 +479,7 @@ export default function Sidebar({ userEmail, userRole, isAdmin }: SidebarProps) 
                 <span>Sales Report</span>
               </Link>
             )}
-            <Link href="#" onClick={() => setIsOpen(false)} className={linkClass("#work-order-costing-report")}>
+            <Link href="/dashboard/production/work-order-costing-report" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/production/work-order-costing-report")}>
               <TrendingUp size={16} className="text-red-500" />
               <span>Work Order Costing Report</span>
             </Link>

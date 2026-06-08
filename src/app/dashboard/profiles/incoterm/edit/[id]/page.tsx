@@ -1,4 +1,5 @@
 "use client";
+import { useParams } from "next/navigation";
 
 import React, { useState, useEffect } from "react";
 import IncotermProfileForm from "../../components/IncotermProfileForm";
@@ -10,14 +11,17 @@ interface IncotermProfile {
   status: string;
 }
 
-export default function EditIncotermProfilePage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = React.use(params);
+export default function EditIncotermProfilePage() {
+  const params = useParams();
+  const id = params?.id as string;
+
 
   const [category, setType] = useState<IncotermProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!id) return;
     const loadData = async () => {
       try {
         const res = await fetch("/api/profiles/incoterm");

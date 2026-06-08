@@ -23,6 +23,7 @@ export default function EditPaintingMethodPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
+    if (!id) return;
     const loadData = async () => {
       setIsLoading(true);
       const res = await getPaintingMethodProfiles();
