@@ -10,20 +10,30 @@ export const authConfig = {
   debug: true,
   callbacks: {
     async jwt({ token, user }) {
-      if (user) {
-        token.id = (user as { id: string }).id;
-        token.role = (user as { role: string }).role;
-        token.employeeId = (user as { employeeId: string | null }).employeeId;
+      try {
+        if (user) {
+          token.id = (user as { id: string }).id;
+          token.role = (user as { role: string }).role;
+          token.employeeId = (user as { employeeId: string | null }).employeeId;
+        }
+        return token;
+      } catch (error) {
+        console.error("AUTH_JWT_ERROR", error);
+        throw error;
       }
-      return token;
     },
     async session({ session, token }) {
-      if (token && session.user) {
-        session.user.id = token.id;
-        session.user.role = token.role;
-        session.user.employeeId = token.employeeId;
+      try {
+        if (token && session.user) {
+          session.user.id = token.id as string;
+          session.user.role = token.role as string;
+          session.user.employeeId = token.employeeId as string | null;
+        }
+        return session;
+      } catch (error) {
+        console.error("AUTH_SESSION_ERROR", error);
+        throw error;
       }
-      return session;
     },
   },
 } satisfies NextAuthConfig;

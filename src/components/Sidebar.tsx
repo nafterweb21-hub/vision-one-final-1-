@@ -410,12 +410,7 @@ export default function Sidebar({ userEmail, userRole, isAdmin }: SidebarProps) 
                 <span>Incoterm Profile</span>
               </Link>
             )}
-            {allow("/dashboard/master-profile/material") && (
-              <Link href="/dashboard/master-profile/material" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/master-profile/material")}>
-                <Box size={16} className="text-blue-500" />
-                <span>Material Profile</span>
-              </Link>
-            )}
+
             {allow("/dashboard/master-profile/material-type") && (
               <Link href="/dashboard/master-profile/material-type" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/master-profile/material-type")}>
                 <Package size={16} className="text-cyan-600" />
