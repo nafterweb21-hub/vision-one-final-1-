@@ -35,6 +35,8 @@ export default async function PrintDeliveryOrderPage(
 
   const customerName = deliveryOrder.customer?.customerName || "";
   const customerAddress = deliveryOrder.customer?.addresses?.[0]?.address || "";
+  const customerGstin = deliveryOrder.customer?.gstin || "";
+  const customerRoNumber = deliveryOrder.customer?.roNumber || "";
 
   return (
     <>
@@ -133,6 +135,14 @@ export default async function PrintDeliveryOrderPage(
                   <tr>
                     <td>Address</td>
                     <td>{customerAddress}</td>
+                  </tr>
+                  <tr>
+                    <td>GSTIN</td>
+                    <td>{customerGstin}</td>
+                  </tr>
+                  <tr>
+                    <td>RO No.</td>
+                    <td>{customerRoNumber}</td>
                   </tr>
                 </tbody>
               </table>

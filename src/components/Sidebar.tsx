@@ -87,7 +87,7 @@ export default function Sidebar({ userEmail, userRole, isAdmin }: SidebarProps) 
       {/* Mobile & Desktop Toggle Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`fixed top-3 z-50 p-2.5 rounded-xl border shadow-sm transition-all duration-300 ${isOpen
+        className={`fixed top-3 z-50 p-2.5 rounded-xl border shadow-sm transition-all duration-300 print:hidden ${isOpen
             ? "left-[19rem] bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
             : "left-6 bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
           }`}
@@ -106,7 +106,7 @@ export default function Sidebar({ userEmail, userRole, isAdmin }: SidebarProps) 
 
       {/* Sidebar Panel */}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 w-72 bg-white/95 backdrop-blur-xl border-r border-slate-200 flex flex-col transition-transform duration-300 transform shadow-2xl shadow-slate-900/10 ${isOpen ? "translate-x-0" : "-translate-x-full"
+        className={`fixed inset-y-0 left-0 z-40 w-72 bg-white/95 backdrop-blur-xl border-r border-slate-200 flex flex-col transition-transform duration-300 transform shadow-2xl shadow-slate-900/10 print:hidden ${isOpen ? "translate-x-0" : "-translate-x-full"
           }`}
       >
         {/* Header Branding */}

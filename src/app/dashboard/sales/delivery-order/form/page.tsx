@@ -174,6 +174,10 @@ export default function DeliveryOrderFormPage() {
     ? metadata.workOrders.filter((wo: any) => wo.customerId === formData.customerId)
     : metadata.workOrders;
 
+  const selectedCustomer = formData.customerId 
+    ? metadata.customers.find((c: any) => c.id === formData.customerId)
+    : null;
+
   return (
     <div className="p-6 lg:p-8 max-w-6xl mx-auto space-y-6 pb-24">
       <div className="flex items-center justify-between pb-6 border-b border-blue-200">
@@ -266,6 +270,28 @@ export default function DeliveryOrderFormPage() {
                 <option key={c.id} value={c.id}>{c.customerName}</option>
               ))}
             </SearchableSelect>
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-sm font-semibold text-blue-900">GST Number</label>
+            <input
+              type="text"
+              readOnly
+              value={selectedCustomer?.gstin || ""}
+              className="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-lg cursor-not-allowed text-slate-500"
+              placeholder="-"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-sm font-semibold text-blue-900">RO Number</label>
+            <input
+              type="text"
+              readOnly
+              value={selectedCustomer?.roNumber || ""}
+              className="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-lg cursor-not-allowed text-slate-500"
+              placeholder="-"
+            />
           </div>
 
           <div className="space-y-1">

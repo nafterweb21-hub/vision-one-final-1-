@@ -65,7 +65,7 @@ echo "==> Running pending migrations..."
 ssh $SSH_OPTS "$VPS_HOST" "$NVM_INIT && cd $DEPLOY_PATH && npx prisma migrate deploy"
 
 echo "==> Restarting app via pm2..."
-ssh $SSH_OPTS "$VPS_HOST" "$NVM_INIT && cd $DEPLOY_PATH && (pm2 restart $PM2_APP_NAME || pm2 start npm --name $PM2_APP_NAME -- start) && pm2 save"
+ssh $SSH_OPTS "$VPS_HOST" "$NVM_INIT && cd $DEPLOY_PATH && (pm2 delete $PM2_APP_NAME 2>/dev/null || true) && pm2 start npm --name $PM2_APP_NAME -- start && pm2 save"
 
 echo ""
 echo "==> Deploy complete!"

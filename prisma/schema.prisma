@@ -187,6 +187,7 @@ model CustomerProfile {
   invoices       Invoice[]
   receipts       Receipt[]
   gstin          String?
+  roNumber       String?
   pan            String?
   placeOfSupply  String?
 }
@@ -214,6 +215,8 @@ model CustomerAddress {
   id              String          @id @default(cuid())
   customerId      String
   address         String
+  state           String?
+  district        String?
   status          String          @default("Active")
   isDefault       Boolean         @default(false)
   createdAt       DateTime        @default(now())

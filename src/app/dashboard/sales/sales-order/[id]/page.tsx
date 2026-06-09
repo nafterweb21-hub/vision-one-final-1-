@@ -802,6 +802,27 @@ export default function SalesOrderFormPage() {
                 ))}
               </SearchableSelect>
             </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-blue-700 mb-1">GST Number</label>
+                <input
+                  type="text"
+                  readOnly
+                  value={selectedCustomer?.gstin || ""}
+                  className="w-full px-3 py-2 text-sm bg-slate-100 border border-slate-200 rounded-lg cursor-not-allowed"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-blue-700 mb-1">RO Number</label>
+                <input
+                  type="text"
+                  readOnly
+                  value={selectedCustomer?.roNumber || ""}
+                  className="w-full px-3 py-2 text-sm bg-slate-100 border border-slate-200 rounded-lg cursor-not-allowed"
+                />
+              </div>
+            </div>
             
             <div className="grid grid-cols-2 gap-4">
               <div>

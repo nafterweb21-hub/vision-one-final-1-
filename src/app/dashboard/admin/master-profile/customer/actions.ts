@@ -7,6 +7,8 @@ export interface CustomerProfileInput {
   customerCode: string;
   customerName: string;
   remarks?: string;
+  gstin?: string;
+  roNumber?: string;
 }
 
 export interface ContactPersonInput {
@@ -21,6 +23,8 @@ export interface ContactPersonInput {
 
 export interface AddressInput {
   address: string;
+  state?: string;
+  district?: string;
   isDefault?: boolean;
 }
 
@@ -89,12 +93,22 @@ export async function createCustomerProfile(data: CustomerProfileInput) {
     const customerCode = data.customerCode.trim();
     const customerName = data.customerName.trim();
     const remarks = data.remarks?.trim() || "";
+    const gstin = data.gstin?.trim().toUpperCase() || null;
+    const roNumber = data.roNumber?.trim() || null;
 
     if (!customerCode) {
       return { success: false, error: "Customer Code is required." };
     }
     if (!customerName) {
       return { success: false, error: "Customer Name is required." };
+    }
+
+    if (!gstin) {
+      return { success: false, error: "GST Number is required." };
+    }
+    const gstRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}[Z]{1}[0-9A-Z]{1}$/;
+    if (!gstRegex.test(gstin)) {
+      return { success: false, error: "Invalid GST Number format. Expected format: 22AAAAA0000A1Z5" };
     }
 
     // Check uniqueness of Customer Code
@@ -118,6 +132,8 @@ export async function createCustomerProfile(data: CustomerProfileInput) {
         customerCode,
         customerName,
         remarks,
+        gstin,
+        roNumber,
         status: "Active",
       },
     });
@@ -130,7 +146,7 @@ export async function createCustomerProfile(data: CustomerProfileInput) {
   }
 }
 
-export async function updateCustomerRemarks(id: string, remarks: string) {
+export async function updateCustomerGeneralInfo(id: string, data: { remarks?: string; gstin?: string; roNumber?: string }) {
   try {
     const existing = await prisma.customerProfile.findUnique({
       where: { id },
@@ -139,18 +155,29 @@ export async function updateCustomerRemarks(id: string, remarks: string) {
       return { success: false, error: "Customer profile not found." };
     }
 
+    const gstin = data.gstin?.trim().toUpperCase() || null;
+    if (!gstin) {
+      return { success: false, error: "GST Number is required." };
+    }
+    const gstRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}[Z]{1}[0-9A-Z]{1}$/;
+    if (!gstRegex.test(gstin)) {
+      return { success: false, error: "Invalid GST Number format. Expected format: 22AAAAA0000A1Z5" };
+    }
+
     const updated = await prisma.customerProfile.update({
       where: { id },
       data: {
-        remarks: remarks.trim(),
+        remarks: data.remarks?.trim() || "",
+        gstin,
+        roNumber: data.roNumber?.trim() || null,
       },
     });
 
     revalidatePath(CUSTOMER_PATH);
     return { success: true, data: updated };
   } catch (error) {
-    console.error("Failed to update customer remarks:", error);
-    return { success: false, error: (error as Error).message || "Failed to update customer remarks." };
+    console.error("Failed to update customer general info:", error);
+    return { success: false, error: (error as Error).message || "Failed to update customer general info." };
   }
 }
 
@@ -408,6 +435,8 @@ export async function addAddress(customerId: string, data: AddressInput) {
       data: {
         customerId,
         address: addressText,
+        state: data.state?.trim() || null,
+        district: data.district?.trim() || null,
         status: "Active",
         isDefault: finalIsDefault,
       },
@@ -421,9 +450,9 @@ export async function addAddress(customerId: string, data: AddressInput) {
   }
 }
 
-export async function updateAddress(id: string, addressText: string) {
+export async function updateAddress(id: string, data: AddressInput) {
   try {
-    const address = addressText.trim();
+    const address = data.address.trim();
     if (!address) {
       return { success: false, error: "Address is required." };
     }
@@ -452,6 +481,8 @@ export async function updateAddress(id: string, addressText: string) {
       where: { id },
       data: {
         address,
+        state: data.state?.trim() || null,
+        district: data.district?.trim() || null,
       },
     });
 

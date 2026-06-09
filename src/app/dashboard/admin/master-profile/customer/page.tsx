@@ -7,7 +7,7 @@ import {
   getCustomerProfiles,
   getCustomerDetail,
   createCustomerProfile,
-  updateCustomerRemarks,
+  updateCustomerGeneralInfo,
   toggleCustomerStatus,
   deleteCustomerProfile,
   addContactPerson,
@@ -26,6 +26,8 @@ interface CustomerSummary {
   id: string;
   customerCode: string;
   customerName: string;
+  gstin: string | null;
+  roNumber: string | null;
   remarks: string | null;
   status: string;
   createdAt: Date;
@@ -53,6 +55,8 @@ interface CustomerAddress {
   id: string;
   customerId: string;
   address: string;
+  state: string | null;
+  district: string | null;
   status: string;
   isDefault: boolean;
 }
@@ -61,6 +65,8 @@ interface CustomerFullDetail {
   id: string;
   customerCode: string;
   customerName: string;
+  gstin: string | null;
+  roNumber: string | null;
   remarks: string | null;
   status: string;
   contactPersons: ContactPerson[];
@@ -84,10 +90,14 @@ export default function CustomerProfilePage() {
   const [newCode, setNewCode] = useState("");
   const [newName, setNewName] = useState("");
   const [newRemarks, setNewRemarks] = useState("");
+  const [newGstin, setNewGstin] = useState("");
+  const [newRoNumber, setNewRoNumber] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
 
   // Manage Customer General Info Form States
   const [remarksEdit, setRemarksEdit] = useState("");
+  const [gstinEdit, setGstinEdit] = useState("");
+  const [roNumberEdit, setRoNumberEdit] = useState("");
   const [remarksSuccess, setRemarksSuccess] = useState(false);
 
   // Manage Contacts Sub-states
@@ -106,6 +116,8 @@ export default function CustomerProfilePage() {
   const [isAddressFormOpen, setIsAddressFormOpen] = useState(false);
   const [addressEditId, setAddressEditId] = useState<string | null>(null);
   const [addressText, setAddressText] = useState("");
+  const [addressState, setAddressState] = useState("");
+  const [addressDistrict, setAddressDistrict] = useState("");
   const [addressIsDefault, setAddressIsDefault] = useState(false);
   const [addressFormError, setAddressFormError] = useState<string | null>(null);
 
@@ -134,6 +146,8 @@ export default function CustomerProfilePage() {
     if (res.success && res.data) {
       setCustomerDetail(res.data as CustomerFullDetail);
       setRemarksEdit(res.data.remarks || "");
+      setGstinEdit(res.data.gstin || "");
+      setRoNumberEdit(res.data.roNumber || "");
     } else {
       hotToast.error(res.error || "Failed to load customer details.");
     }
@@ -143,6 +157,8 @@ export default function CustomerProfilePage() {
     setNewCode("");
     setNewName("");
     setNewRemarks("");
+    setNewGstin("");
+    setNewRoNumber("");
     setFormError(null);
     setIsCreateModalOpen(true);
   };
@@ -168,6 +184,8 @@ export default function CustomerProfilePage() {
         customerCode: code,
         customerName: name,
         remarks: newRemarks,
+        gstin: newGstin,
+        roNumber: newRoNumber,
       });
 
       if (res.success) {
@@ -193,7 +211,11 @@ export default function CustomerProfilePage() {
     if (!selectedCustomerId) return;
     setRemarksSuccess(false);
     startTransition(async () => {
-      const res = await updateCustomerRemarks(selectedCustomerId, remarksEdit);
+      const res = await updateCustomerGeneralInfo(selectedCustomerId, {
+        remarks: remarksEdit,
+        gstin: gstinEdit,
+        roNumber: roNumberEdit,
+      });
       if (res.success) {
         setRemarksSuccess(true);
         loadCustomers();
@@ -345,6 +367,8 @@ export default function CustomerProfilePage() {
   const handleOpenAddAddress = () => {
     setAddressEditId(null);
     setAddressText("");
+    setAddressState("");
+    setAddressDistrict("");
     setAddressIsDefault(false);
     setAddressFormError(null);
     setIsAddressFormOpen(true);
@@ -353,6 +377,8 @@ export default function CustomerProfilePage() {
   const handleOpenEditAddress = (a: CustomerAddress) => {
     setAddressEditId(a.id);
     setAddressText(a.address);
+    setAddressState(a.state || "");
+    setAddressDistrict(a.district || "");
     setAddressIsDefault(a.isDefault);
     setAddressFormError(null);
     setIsAddressFormOpen(true);
@@ -372,10 +398,16 @@ export default function CustomerProfilePage() {
     startTransition(async () => {
       let res;
       if (addressEditId) {
-        res = await updateAddress(addressEditId, txt);
+        res = await updateAddress(addressEditId, {
+          address: txt,
+          state: addressState,
+          district: addressDistrict,
+        });
       } else {
         res = await addAddress(selectedCustomerId, {
           address: txt,
+          state: addressState,
+          district: addressDistrict,
           isDefault: addressIsDefault,
         });
       }
@@ -513,6 +545,8 @@ export default function CustomerProfilePage() {
                   <th className="px-6 py-4.5 w-16">SN</th>
                   <th className="px-6 py-4.5">Customer Code</th>
                   <th className="px-6 py-4.5">Customer Name</th>
+                  <th className="px-6 py-4.5">GST Number</th>
+                  <th className="px-6 py-4.5">RO Number</th>
                   <th className="px-6 py-4.5 text-center">Contacts</th>
                   <th className="px-6 py-4.5 text-center">Addresses</th>
                   <th className="px-6 py-4.5">Status</th>
@@ -533,6 +567,12 @@ export default function CustomerProfilePage() {
                     </td>
                     <td className="px-6 py-4 text-sm text-blue-800 font-medium">
                       {customer.customerName}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-blue-800 font-medium">
+                      {customer.gstin || "-"}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-blue-800 font-medium">
+                      {customer.roNumber || "-"}
                     </td>
                     <td className="px-6 py-4 text-sm text-center text-blue-800">
                       {customer._count.contactPersons}
@@ -593,8 +633,8 @@ export default function CustomerProfilePage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-6">
           <div className="fixed inset-0 bg-blue-950/30 backdrop-blur-xs" onClick={() => setIsCreateModalOpen(false)} />
 
-          <div className="relative w-full max-w-lg transform overflow-hidden rounded-xl bg-white p-6 shadow-xl border border-blue-200 transition-all">
-            <div className="flex items-center justify-between border-b border-blue-200 pb-4">
+          <div className="relative w-full max-w-lg max-h-[95vh] overflow-y-auto transform rounded-xl bg-white p-6 shadow-xl border border-blue-200 transition-all scrollbar-thin">
+            <div className="flex items-center justify-between border-b border-blue-200 pb-4 sticky top-0 bg-white z-10">
               <h2 className="text-xl font-bold text-black">
                 Create Customer Profile
               </h2>
@@ -654,6 +694,35 @@ export default function CustomerProfilePage() {
                 <p className="text-xs text-blue-500">
                   Once saved, Customer Name cannot be changed. Must be unique.
                 </p>
+              </div>
+
+              {/* GST Number */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-bold text-blue-800">
+                  GST Number <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. 22AAAAA0000A1Z5"
+                  value={newGstin}
+                  onChange={(e) => setNewGstin(e.target.value.toUpperCase())}
+                  className="rounded-lg glossy-input px-3 py-2 text-base outline-hidden uppercase"
+                />
+              </div>
+
+              {/* RO Number */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-bold text-blue-800">
+                  RO Number
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. RO-12345"
+                  value={newRoNumber}
+                  onChange={(e) => setNewRoNumber(e.target.value)}
+                  className="rounded-lg glossy-input px-3 py-2 text-base outline-hidden"
+                />
               </div>
 
               {/* Remarks */}
@@ -775,6 +844,30 @@ export default function CustomerProfilePage() {
                           <span className="text-base font-bold text-black bg-blue-50 border border-blue-200 px-3 py-2 rounded-lg">
                             {customerDetail.customerName}
                           </span>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="flex flex-col gap-1.5">
+                          <label className="text-base font-bold text-blue-800">GST Number <span className="text-red-500">*</span></label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="Enter GST..."
+                            value={gstinEdit}
+                            onChange={(e) => setGstinEdit(e.target.value.toUpperCase())}
+                            className="rounded-lg glossy-input px-3 py-2 text-base outline-hidden uppercase"
+                          />
+                        </div>
+                        <div className="flex flex-col gap-1.5">
+                          <label className="text-base font-bold text-blue-800">RO Number</label>
+                          <input
+                            type="text"
+                            placeholder="Enter RO Number..."
+                            value={roNumberEdit}
+                            onChange={(e) => setRoNumberEdit(e.target.value)}
+                            className="rounded-lg glossy-input px-3 py-2 text-base outline-hidden"
+                          />
                         </div>
                       </div>
 
@@ -1067,6 +1160,29 @@ export default function CustomerProfilePage() {
                             />
                           </div>
 
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="flex flex-col gap-1">
+                              <label className="text-xs font-bold text-blue-700">State</label>
+                              <input
+                                type="text"
+                                value={addressState}
+                                onChange={(e) => setAddressState(e.target.value)}
+                                placeholder="e.g. Maharashtra"
+                                className="rounded-lg glossy-input px-3 py-2 text-sm"
+                              />
+                            </div>
+                            <div className="flex flex-col gap-1">
+                              <label className="text-xs font-bold text-blue-700">District</label>
+                              <input
+                                type="text"
+                                value={addressDistrict}
+                                onChange={(e) => setAddressDistrict(e.target.value)}
+                                placeholder="e.g. Mumbai"
+                                className="rounded-lg glossy-input px-3 py-2 text-sm"
+                              />
+                            </div>
+                          </div>
+
                           {!addressEditId && (
                             <div className="flex items-center gap-2">
                               <input
@@ -1112,6 +1228,7 @@ export default function CustomerProfilePage() {
                             <thead>
                               <tr className="border-b border-blue-200 bg-blue-50 font-bold text-blue-700">
                                 <th className="px-4 py-3">Address</th>
+                                <th className="px-4 py-3">State/District</th>
                                 <th className="px-4 py-3 text-center">Default</th>
                                 <th className="px-4 py-3 text-center">Status</th>
                                 <th className="px-4 py-3 text-right">Actions</th>
@@ -1122,6 +1239,14 @@ export default function CustomerProfilePage() {
                                 <tr key={addr.id} className="hover:bg-blue-50">
                                   <td className="px-4 py-3 text-blue-800 whitespace-pre-line font-medium leading-relaxed">
                                     {addr.address}
+                                  </td>
+                                  <td className="px-4 py-3 text-blue-800 font-medium leading-relaxed">
+                                    <div className="flex flex-col gap-1">
+                                      <span className="text-[11px] font-bold text-blue-500 uppercase">State</span>
+                                      <span>{addr.state || "-"}</span>
+                                      <span className="text-[11px] font-bold text-blue-500 uppercase mt-1">District</span>
+                                      <span>{addr.district || "-"}</span>
+                                    </div>
                                   </td>
                                   <td className="px-4 py-3 text-center">
                                     {addr.isDefault ? (
