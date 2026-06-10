@@ -137,12 +137,7 @@ export default function ReceiptViewPage() {
               <Ban size={14} /> Void
             </button>
           )}
-          <button
-            onClick={() => window.print()}
-            className="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-blue-200 bg-white px-3 text-xs font-semibold text-blue-700 shadow-sm transition-all hover:bg-blue-50 hover:text-blue-800"
-          >
-            <Printer size={14} /> Print
-          </button>
+
         </div>
       </div>
 
