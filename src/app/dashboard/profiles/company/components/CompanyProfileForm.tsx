@@ -215,29 +215,16 @@ export default function CompanyProfileForm({ initialData }: CompanyProfileFormPr
             </div>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-blue-700">Email</label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email || ""}
-                onChange={handleChange}
-                className="w-full rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm text-blue-900 placeholder:text-blue-300 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                placeholder="info@company.com"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-blue-700">Website</label>
-              <input
-                type="text"
-                name="website"
-                value={formData.website || ""}
-                onChange={handleChange}
-                className="w-full rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm text-blue-900 placeholder:text-blue-300 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                placeholder="www.company.com"
-              />
-            </div>
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-blue-700">Email</label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email || ""}
+              onChange={handleChange}
+              className="w-full rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm text-blue-900 placeholder:text-blue-300 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              placeholder="info@company.com"
+            />
           </div>
         </div>
 
@@ -283,7 +270,7 @@ export default function CompanyProfileForm({ initialData }: CompanyProfileFormPr
             {formData.uploadUrl && (
               <div className="flex items-center justify-center rounded-lg border border-blue-200 bg-blue-50 p-3 h-24">
                 <img
-                  src={`${formData.uploadUrl}?t=${Date.now()}`}
+                  src={formData.uploadUrl.startsWith("/uploads") ? `/api${formData.uploadUrl}?t=${Date.now()}` : `${formData.uploadUrl}?t=${Date.now()}`}
                   alt="Company Logo Preview"
                   className="max-h-20 max-w-full object-contain"
                   onError={(e) => {

@@ -17,7 +17,28 @@ export default async function QcApprovalPage() {
     where: {
       OR: [
         { status: "Pending for QC" },
-        { qcAcceptance: "Rejected", status: { not: "Completed" } }
+        { qcAcceptance: "Rejected", status: { not: "Completed" } },
+        { qcAcceptance: "Approved", status: { not: "Completed" } },
+        {
+          AND: [
+            { status: "WIP" },
+            {
+              inProcesses: {
+                some: {
+                  routingProcesses: {
+                    some: {
+                      productionTimesheets: {
+                        some: {
+                          completed: true
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
       ]
     },
     orderBy: { createdAt: "desc" },

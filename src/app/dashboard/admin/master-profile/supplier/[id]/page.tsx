@@ -1,4 +1,5 @@
 "use client";
+import { useParams } from "next/navigation";
 import { customConfirm } from "@/lib/customConfirm";
 import { toast as hotToast } from "react-hot-toast";
 
@@ -54,9 +55,10 @@ interface PageProps {
   params: Promise<{ id: string }>;
 }
 
-export default function ManageSupplierPage({ params }: PageProps) {
-  const resolvedParams = use(params);
-  const supplierId = resolvedParams.id;
+export default function ManageSupplierPage() {
+  const params = useParams();
+  const id = params?.id as string;
+  const supplierId = id;
 
   const [supplierDetail, setSupplierDetail] = useState<SupplierFullDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -89,6 +91,7 @@ export default function ManageSupplierPage({ params }: PageProps) {
   const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
+    if (!id) return;
     const loadSupplierData = async () => {
       setIsLoading(true);
       setErrorMsg(null);

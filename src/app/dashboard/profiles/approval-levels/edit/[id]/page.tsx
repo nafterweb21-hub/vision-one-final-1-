@@ -1,4 +1,5 @@
 "use client";
+import { useParams } from "next/navigation";
 
 import React, { useState, useEffect } from "react";
 import ApprovalLevelForm from "../../components/ApprovalLevelForm";
@@ -27,8 +28,10 @@ interface ApprovalProfile {
   approvers: ApproverPerson[];
 }
 
-export default function EditApprovalLevelPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = React.use(params);
+export default function EditApprovalLevelPage() {
+  const params = useParams();
+  const id = params?.id as string;
+
 
   const [users, setUsers] = useState<User[]>([]);
   const [profile, setProfile] = useState<ApprovalProfile | null>(null);
@@ -36,6 +39,7 @@ export default function EditApprovalLevelPage({ params }: { params: Promise<{ id
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!id) return;
     const loadData = async () => {
       try {
         const [profilesRes, usersRes] = await Promise.all([

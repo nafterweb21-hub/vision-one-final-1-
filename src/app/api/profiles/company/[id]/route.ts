@@ -37,7 +37,7 @@ export async function PATCH(
     const updateData: any = {};
     const fields = [
       "companyName", "address", "phoneNo", "faxNo", "email", 
-      "website", "rocNo", "gstRegistrationNo", "uploadUrl", 
+      "rocNo", "gstRegistrationNo", "uploadUrl", 
       "logoName", "footerName", "allowPoForWo", "as9100RequirementNote", "status"
     ];
 

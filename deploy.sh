@@ -37,8 +37,11 @@ rsync -avz --delete -e "ssh $SSH_OPTS" \
   .next/ \
   "$VPS_HOST:$DEPLOY_PATH/.next/"
 
-echo "==> Syncing public/ assets..."
-rsync -avz --delete -e "ssh $SSH_OPTS" \
+echo "==> Ensuring uploads directory exists on VPS..."
+ssh $SSH_OPTS "$VPS_HOST" "mkdir -p $DEPLOY_PATH/public/uploads"
+
+echo "==> Syncing public/ assets (preserving uploaded files)..."
+rsync -avz --delete --exclude='uploads/' -e "ssh $SSH_OPTS" \
   public/ \
   "$VPS_HOST:$DEPLOY_PATH/public/"
 
@@ -56,7 +59,7 @@ rsync -avz -e "ssh $SSH_OPTS" \
   "$VPS_HOST:$DEPLOY_PATH/"
 
 echo "==> Installing production dependencies on VPS..."
-ssh $SSH_OPTS "$VPS_HOST" "$NVM_INIT && cd $DEPLOY_PATH && npm ci --omit=dev"
+ssh $SSH_OPTS "$VPS_HOST" "$NVM_INIT && cd $DEPLOY_PATH && npm install --omit=dev --no-fund --no-audit"
 
 echo "==> Generating Prisma client..."
 ssh $SSH_OPTS "$VPS_HOST" "$NVM_INIT && cd $DEPLOY_PATH && npx prisma generate"
@@ -65,7 +68,7 @@ echo "==> Running pending migrations..."
 ssh $SSH_OPTS "$VPS_HOST" "$NVM_INIT && cd $DEPLOY_PATH && npx prisma migrate deploy"
 
 echo "==> Restarting app via pm2..."
-ssh $SSH_OPTS "$VPS_HOST" "$NVM_INIT && cd $DEPLOY_PATH && (pm2 restart $PM2_APP_NAME || pm2 start npm --name $PM2_APP_NAME -- start) && pm2 save"
+ssh $SSH_OPTS "$VPS_HOST" "$NVM_INIT && cd $DEPLOY_PATH && (pm2 delete $PM2_APP_NAME 2>/dev/null || true) && pm2 start npm --name $PM2_APP_NAME -- start && pm2 save"
 
 echo ""
 echo "==> Deploy complete!"

@@ -60,7 +60,7 @@ export default async function PrintSubconRequestFormPage(
         .header-top { display: flex; justify-content: flex-end; margin-bottom: 10px; font-weight: bold; font-size: 12px; }
         
         .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
-        .logo-box { width: 55%; background-color: #e0f2fe; display: flex; align-items: center; justify-content: center; min-height: 90px; padding: 10px; }
+        .logo-box { width: 55%; display: flex; align-items: center; justify-content: center; min-height: 90px; padding: 10px; }
         .company-info { width: 40%; font-size: 12px; line-height: 1.4; color: #3b82f6; }
         
         h1.title { text-align: center; font-size: 18px; margin: 30px 0 25px; font-weight: bold; text-decoration: underline; }

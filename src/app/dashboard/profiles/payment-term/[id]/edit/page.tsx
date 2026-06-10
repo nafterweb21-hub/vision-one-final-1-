@@ -1,12 +1,13 @@
 "use client";
 
 import React, { useState, useEffect, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { getPaymentTermItems, updatePaymentTermItem } from "../../actions";
 
-export default function EditPaymentTermPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = React.use(params);
+export default function EditPaymentTermPage() {
+  const params = useParams();
+  const id = params?.id as string;
 
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -15,6 +16,7 @@ export default function EditPaymentTermPage({ params }: { params: Promise<{ id: 
   const [initialData, setInitialData] = useState<any>(null);
 
   useEffect(() => {
+    if (!id) return;
     const fetchItem = async () => {
       setIsLoading(true);
       const res = await getPaymentTermItems();

@@ -48,7 +48,6 @@ export async function POST(req: NextRequest) {
         phoneNo: body.phoneNo,
         faxNo: body.faxNo,
         email: body.email || null,
-        website: body.website || null,
         rocNo: body.rocNo || null,
         gstRegistrationNo: body.gstRegistrationNo,
         uploadUrl: body.uploadUrl,

@@ -8,7 +8,6 @@ export async function getAwaitingInspection() {
   const timesheets = await prisma.productionTimesheet.findMany({
     where: { 
       timeOut: { not: null },
-      completedQty: { gt: 0 },
       qcStatus: "Pending"
     },
     include: {
@@ -49,7 +48,7 @@ export async function getActiveWorkOrders() {
 }
 
 export async function submitWorkOrderQc(workOrderNo: string, qcAcceptance: string, remark?: string, employeeId?: string) {
-  const status = qcAcceptance === "Approved" ? "Completed" : "WIP";
+  const status = qcAcceptance === "Approved" ? "Pending for QC" : "WIP";
   
   await prisma.workOrder.update({
     where: { workOrderNo },

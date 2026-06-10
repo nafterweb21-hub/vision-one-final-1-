@@ -23,6 +23,7 @@ export default function EditMaterialTypePage() {
   } | null>(null);
 
   useEffect(() => {
+    if (!id) return;
     const loadData = async () => {
       setIsLoading(true);
       const res = await getMaterialTypeDetail(id);

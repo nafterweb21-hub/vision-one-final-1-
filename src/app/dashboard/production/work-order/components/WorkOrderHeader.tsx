@@ -32,7 +32,6 @@ const NEXT: Record<string, { label: string; to: string; tone: string }[]> = {
   ],
   WIP: [
     { label: "Hold", to: "On Hold", tone: "bg-orange-100 text-orange-700 hover:bg-orange-200" },
-    { label: "Pending for QC", to: "Pending for QC", tone: "bg-purple-600 hover:bg-purple-700 text-white" },
     { label: "Cancel", to: "Cancelled", tone: "bg-rose-100 text-rose-700 hover:bg-rose-200" },
   ],
   "On Hold": [

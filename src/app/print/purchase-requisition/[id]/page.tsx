@@ -45,7 +45,7 @@ export default async function PrintPurchaseRequisitionPage(
         .dyn { color: #3b82f6; }
         
         .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
-        .logo-box { width: 55%; background-color: #e0f2fe; display: flex; align-items: center; justify-content: center; min-height: 80px; padding: 10px; font-weight: bold; color: #0284c7; font-size: 16px; }
+        .logo-box { width: 55%; display: flex; align-items: center; justify-content: center; min-height: 80px; padding: 10px; font-weight: bold; color: #0284c7; font-size: 16px; }
         .company-info { width: 40%; font-size: 13px; line-height: 1.4; }
         
         h1.title { text-align: center; font-size: 18px; margin: 25px 0 35px 0; font-weight: bold; text-decoration: underline; color: #000; }

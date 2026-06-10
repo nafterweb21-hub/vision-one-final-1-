@@ -4,7 +4,7 @@ import { customConfirm } from "@/lib/customConfirm";
 import { toast as hotToast } from "react-hot-toast";
 
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { PackageCheck, Save, ArrowLeft, Loader2, Send, Ban, AlertCircle } from "lucide-react";
 import {
@@ -15,9 +15,11 @@ getGoodsReceiveFormData,
   voidGoodsReceive,
 } from "../actions";
 
-export default function GoodsReceiveFormPage({ params }: { params: Promise<{ id: string }> }) {
+export default function GoodsReceiveFormPage() {
+  const params = useParams();
+  const id = params?.id as string;
+
   const router = useRouter();
-  const { id } = React.use(params);
   const isNew = id === "new";
 
   const [loading, setLoading] = useState(true);
@@ -48,6 +50,7 @@ export default function GoodsReceiveFormPage({ params }: { params: Promise<{ id:
   const [items, setItems] = useState<any[]>([]);
 
   useEffect(() => {
+    if (!id) return;
     async function load() {
       try {
         const data = await getGoodsReceiveFormData();
@@ -104,6 +107,7 @@ export default function GoodsReceiveFormPage({ params }: { params: Promise<{ id:
 
   // Auto-populate when PO changes (only for New GR)
   useEffect(() => {
+    if (!id) return;
     if (isNew && selectedPO) {
       // Find latest currency exchange rate
       const cur = prereq?.currencies?.find((c: any) => c.id === selectedPO.currencyId);

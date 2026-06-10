@@ -1,7 +1,7 @@
 "use client";
 import { SearchableSelect } from "@/components/SearchableSelect";
 import React, { useState, useEffect, useMemo, use } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { FileText, Save, CheckCircle2, ChevronDown, ChevronRight, Loader2, Factory, X, Plus, Trash2, ArrowLeft, AlertCircle } from "lucide-react";
 import { getFormData } from "./actions";
@@ -9,8 +9,10 @@ type PageProps = {
   params: Promise<{ id: string }>;
 };
 
-export default function SalesOrderFormPage({ params }: PageProps) {
-  const { id } = use(params);
+export default function SalesOrderFormPage() {
+  const params = useParams();
+  const id = params?.id as string;
+
   const router = useRouter();
   const isNew = id === "new";
 
@@ -48,6 +50,7 @@ export default function SalesOrderFormPage({ params }: PageProps) {
   const [items, setItems] = useState<any[]>([]);
 
   useEffect(() => {
+    if (!id) return;
     async function loadData() {
       try {
         setLoading(true);
@@ -798,6 +801,27 @@ export default function SalesOrderFormPage({ params }: PageProps) {
                   <option key={cp.id} value={cp.id}>{cp.contactPersonName}</option>
                 ))}
               </SearchableSelect>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-blue-700 mb-1">GST Number</label>
+                <input
+                  type="text"
+                  readOnly
+                  value={selectedCustomer?.gstin || ""}
+                  className="w-full px-3 py-2 text-sm bg-slate-100 border border-slate-200 rounded-lg cursor-not-allowed"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-blue-700 mb-1">RO Number</label>
+                <input
+                  type="text"
+                  readOnly
+                  value={selectedCustomer?.roNumber || ""}
+                  className="w-full px-3 py-2 text-sm bg-slate-100 border border-slate-200 rounded-lg cursor-not-allowed"
+                />
+              </div>
             </div>
             
             <div className="grid grid-cols-2 gap-4">

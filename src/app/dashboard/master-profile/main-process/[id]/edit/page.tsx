@@ -20,6 +20,7 @@ export default function EditMainProcessPage() {
   });
 
   useEffect(() => {
+    if (!id) return;
     const fetchRecord = async () => {
       setIsLoading(true);
       const res = await getMainProcessesAction();

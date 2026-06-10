@@ -93,29 +93,31 @@ export default async function WorkOrderTimesheetsPage({
     }),
   ]);
 
-  const rows = workOrder.inProcesses.flatMap((ip: any) =>
-    ip.routingProcesses.flatMap((rp: any) => {
+  console.log("Rendering timesheets. Employee count:", employees?.length);
+
+  const rows = (workOrder?.inProcesses || []).flatMap((ip: any) =>
+    (ip?.routingProcesses || []).flatMap((rp: any) => {
       let runningSum = 0;
-      return rp.productionTimesheets.map((ts: any) => {
-        const qty = Number(ts.completedQty) || 0;
+      return (rp?.productionTimesheets || []).map((ts: any) => {
+        const qty = Number(ts?.completedQty) || 0;
         runningSum += qty;
         return {
           ...ts,
-          inProcessDescription: `${ip.sn}. ${ip.description}`,
-          processName: rp.routingProcess?.routingProcess || rp.mainProcess?.process || "Unknown",
+          inProcessDescription: `${ip?.sn}. ${ip?.description}`,
+          processName: rp?.routingProcess?.routingProcess || rp?.mainProcess?.process || "Unknown",
           runningSum,
         };
       });
     }),
   );
 
-  const totalOrderQty = Number(workOrder.quantity) || 0;
+  const totalOrderQty = Number(workOrder?.quantity) || 0;
 
-  const routingProcesses = workOrder.inProcesses.flatMap((ip: any) =>
-    ip.routingProcesses.map((rp: any) => ({
-      id: rp.id,
-      name: rp.routingProcess?.routingProcess || rp.mainProcess?.process || "Unknown",
-      description: ip.description,
+  const routingProcesses = (workOrder?.inProcesses || []).flatMap((ip: any) =>
+    (ip?.routingProcesses || []).map((rp: any) => ({
+      id: rp?.id,
+      name: rp?.routingProcess?.routingProcess || rp?.mainProcess?.process || "Unknown",
+      description: ip?.description,
     })),
   );
 

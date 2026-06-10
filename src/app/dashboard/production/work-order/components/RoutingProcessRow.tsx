@@ -48,30 +48,30 @@ export default function RoutingProcessRow({
     });
   }
 
-  const allTimesheets = rp.productionTimesheets || [];
+  const allTimesheets = rp?.productionTimesheets || [];
   // Find all timesheets that have process parameters
   const paramsTimesheets = allTimesheets.filter(
-    (ts: any) => ts.weldingParameter || ts.sprayParameter || ts.machiningParameter
+    (ts: any) => ts?.weldingParameter || ts?.sprayParameter || ts?.machiningParameter
   );
 
-  const targetTimesheetId = paramsTimesheets.length > 0 ? paramsTimesheets[0].id : (allTimesheets.length > 0 ? allTimesheets[0].id : null);
+  const targetTimesheetId = paramsTimesheets.length > 0 ? paramsTimesheets[0]?.id : (allTimesheets.length > 0 ? allTimesheets[0]?.id : null);
 
-  const expectsWelding = rp.routingProcess?.welding;
-  const expectsSpray = rp.routingProcess?.sprayPainting;
-  const expectsMachining = rp.routingProcess?.machining;
+  const expectsWelding = rp?.routingProcess?.welding;
+  const expectsSpray = rp?.routingProcess?.sprayPainting;
+  const expectsMachining = rp?.routingProcess?.machining;
   const expectsParams = expectsWelding || expectsSpray || expectsMachining;
   const expectedType = expectsWelding ? "Welding" : expectsSpray ? "Spray Painting" : expectsMachining ? "Machining" : null;
 
   return (
     <tr className="hover:bg-slate-50/60">
-      <td className="px-3 py-2 text-slate-600">{rp.sn}</td>
-      <td className="px-3 py-2">{rp.mainProcess?.process ?? "-"}</td>
+      <td className="px-3 py-2 text-slate-600">{rp?.sn}</td>
+      <td className="px-3 py-2">{rp?.mainProcess?.process ?? "-"}</td>
       <td className="px-3 py-2 font-medium text-slate-800">
-        {rp.routingProcess?.routingProcess ?? "-"}
+        {rp?.routingProcess?.routingProcess ?? "-"}
       </td>
-      <td className="px-3 py-2 text-slate-600">{fmtDate(rp.targetCompletionDate)}</td>
+      <td className="px-3 py-2 text-slate-600">{fmtDate(rp?.targetCompletionDate)}</td>
       <td className="px-3 py-2 text-center">
-        {rp.fullyReceived ? (
+        {rp?.fullyReceived ? (
           <span className="text-xs text-emerald-700">Yes</span>
         ) : (
           <span className="text-xs text-slate-400">-</span>
@@ -81,9 +81,9 @@ export default function RoutingProcessRow({
         {expectsParams ? (
           <div className="inline-block m-0.5">
             <ParameterDetailDrawer
-              welding={paramsTimesheets.length > 0 && paramsTimesheets[0].weldingParameter ? JSON.parse(JSON.stringify(paramsTimesheets[0].weldingParameter)) : null}
-              spray={paramsTimesheets.length > 0 && paramsTimesheets[0].sprayParameter ? JSON.parse(JSON.stringify(paramsTimesheets[0].sprayParameter)) : null}
-              machining={paramsTimesheets.length > 0 && paramsTimesheets[0].machiningParameter ? JSON.parse(JSON.stringify(paramsTimesheets[0].machiningParameter)) : null}
+              welding={paramsTimesheets.length > 0 && paramsTimesheets[0]?.weldingParameter ? JSON.parse(JSON.stringify(paramsTimesheets[0]?.weldingParameter)) : null}
+              spray={paramsTimesheets.length > 0 && paramsTimesheets[0]?.sprayParameter ? JSON.parse(JSON.stringify(paramsTimesheets[0]?.sprayParameter)) : null}
+              machining={paramsTimesheets.length > 0 && paramsTimesheets[0]?.machiningParameter ? JSON.parse(JSON.stringify(paramsTimesheets[0]?.machiningParameter)) : null}
               expectedType={expectedType}
               employees={employees}
               workOrderNo={workOrderNo}
@@ -97,12 +97,12 @@ export default function RoutingProcessRow({
         )}
       </td>
       <td className="px-3 py-2">
-        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_BADGE[rp.status] ?? "bg-slate-100 text-slate-700"}`}>
-          {rp.status}
+        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_BADGE[rp?.status] ?? "bg-slate-100 text-slate-700"}`}>
+          {rp?.status}
         </span>
       </td>
       <td className="px-3 py-2 text-right space-x-1.5">
-        {editable && rp.status === "New" && (
+        {editable && rp?.status === "New" && (
           <button
             onClick={() => setStatus("WIP")}
             disabled={isPending}
@@ -111,7 +111,7 @@ export default function RoutingProcessRow({
             Start
           </button>
         )}
-        {editable && rp.status === "WIP" && (
+        {editable && rp?.status === "WIP" && (
           <button
             onClick={() => setStatus("Completed")}
             disabled={isPending}

@@ -15,8 +15,7 @@ function fmtDate(d: Date | string) {
   return `${dd}-${m[dt.getMonth()]}-${dt.getFullYear()}`;
 }
 
-function numberToWords(num: any): string {
-  let n = parseInt(num, 10);
+function numberToWords(n: number): string {
   if (isNaN(n) || n === 0) return '';
   const a = ['', 'ONE ', 'TWO ', 'THREE ', 'FOUR ', 'FIVE ', 'SIX ', 'SEVEN ', 'EIGHT ', 'NINE ', 'TEN ', 'ELEVEN ', 'TWELVE ', 'THIRTEEN ', 'FOURTEEN ', 'FIFTEEN ', 'SIXTEEN ', 'SEVENTEEN ', 'EIGHTEEN ', 'NINETEEN '];
   const b = ['', '', 'TWENTY ', 'THIRTY ', 'FORTY ', 'FIFTY ', 'SIXTY ', 'SEVENTY ', 'EIGHTY ', 'NINETY '];
@@ -81,6 +80,7 @@ export default async function PrintInvoicePage(
   const customerName = inv.customer.customerName;
   const customerAddress = inv.billTo?.address || inv.customer.addresses?.[0]?.address || "";
   const customerGstin = inv.customer.gstin || "";
+  const customerRoNumber = inv.customer.roNumber || "";
   const customerPan = inv.customer.pan || "";
   const customerPlace = inv.customer.placeOfSupply || "";
 
@@ -141,34 +141,6 @@ export default async function PrintInvoicePage(
         .items-table tbody tr.tax-row td { padding-top: 4px; padding-bottom: 2px; }
         
         .totals-row td { border-top: 1.5px solid #63a0d4; padding: 4px; font-weight: bold; background: #e6f2ff; }
-
-        .footer-section { font-size: 10px; }
-        .total-words { padding: 4px; display: flex; justify-content: space-between; }
-        .total-words .font-bold { font-size: 11px; margin-top: 2px; }
-        
-        .tax-summary-table { width: 100%; border-collapse: collapse; text-align: center; font-size: 10px; border-top: 1.5px solid #63a0d4; border-bottom: 1.5px solid #63a0d4; }
-        .tax-summary-table th { border: 1px solid #63a0d4; padding: 4px; font-weight: bold; background: #fff; border-top: none; }
-        .tax-summary-table th:first-child { border-left: none; }
-        .tax-summary-table th:last-child { border-right: none; }
-        .tax-summary-table td { border: 1px solid #63a0d4; padding: 4px; vertical-align: top; }
-        .tax-summary-table td:first-child { border-left: none; }
-        .tax-summary-table td:last-child { border-right: none; }
-        .tax-summary-table .text-right { text-align: right; }
-        
-        .tax-words { padding: 4px; border-bottom: 1.5px solid #63a0d4; }
-        
-        .bank-and-sign { display: flex; }
-        .bank-details { width: 65%; border-right: 1.5px solid #63a0d4; display: flex; flex-direction: column; }
-        .bank-header { text-align: center; font-weight: bold; padding: 2px; border-bottom: 1px solid #63a0d4; }
-        .bank-table { width: 100%; border-collapse: collapse; flex-grow: 1; }
-        .bank-table td { padding: 3px 6px; font-weight: 500; }
-        
-        .terms { padding: 4px 6px; font-size: 9px; line-height: 1.2; border-top: 1px solid #63a0d4; }
-        
-        .sign-box { width: 35%; display: flex; flex-direction: column; justify-content: space-between; text-align: center; }
-        .certify { font-size: 8px; font-weight: bold; padding: 4px; }
-        .company-sign-name { font-weight: bold; font-size: 11px; margin-top: 4px; }
-        .auth-sign { font-size: 8px; font-weight: bold; padding-bottom: 4px; border-top: 1px solid #63a0d4; margin-top: 40px; }
       `}</style>
 
       <PrintButton />
@@ -216,6 +188,10 @@ export default async function PrintInvoicePage(
                   <tr>
                     <td>GSTIN</td>
                     <td>{customerGstin}</td>
+                  </tr>
+                  <tr>
+                    <td>RO No.</td>
+                    <td>{customerRoNumber}</td>
                   </tr>
                   <tr>
                     <td>PAN</td>

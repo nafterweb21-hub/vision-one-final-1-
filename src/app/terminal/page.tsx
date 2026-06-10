@@ -7,7 +7,12 @@ export const dynamic = "force-dynamic";
 
 export default async function TerminalPage() {
   const support = await getTerminalSupportData();
-  const session = await auth();
+  let session = null;
+  try {
+    session = await auth();
+  } catch (error) {
+    console.error("Auth error in TerminalPage:", error);
+  }
   
   let loggedInEmployee = null;
   let initialSessions: any[] = [];

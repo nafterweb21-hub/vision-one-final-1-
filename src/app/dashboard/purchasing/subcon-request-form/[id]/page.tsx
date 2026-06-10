@@ -5,7 +5,7 @@ import { toast as hotToast } from "react-hot-toast";
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import {
 ArrowLeft,
   Loader2,
@@ -17,8 +17,9 @@ ArrowLeft,
   Trash2,
 } from "lucide-react";
 
-export default function SubconRequestFormDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = React.use(params);
+export default function SubconRequestFormDetailPage() {
+  const params = useParams();
+  const id = params?.id as string;
 
   const router = useRouter();
   
@@ -37,6 +38,7 @@ export default function SubconRequestFormDetailPage({ params }: { params: Promis
   const [remark, setRemark] = useState("");
 
   useEffect(() => {
+    if (!id) return;
     fetchSrf();
     fetchEmployees();
   }, [id]);

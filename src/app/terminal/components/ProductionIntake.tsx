@@ -24,7 +24,6 @@ export default function ProductionIntake({ isOpen, onClose, support, onSuccess, 
   const [error, setError] = useState("");
   const [isPending, startTransition] = useTransition();
   const [time, setTime] = useState(new Date());
-  const [showDropdown, setShowDropdown] = useState(false);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
 
   useEffect(() => {
@@ -348,7 +347,7 @@ export default function ProductionIntake({ isOpen, onClose, support, onSuccess, 
             </div>
           </div>
 
-          <div className="text-[10px] font-bold tracking-widest uppercase text-slate-500 mb-3">Available Work Orders</div>
+          <div className="text-[10px] font-bold tracking-widest uppercase text-slate-500 mb-3">Work Order Selection</div>
           
           <div className="mb-6">
             {wo ? (
@@ -370,55 +369,16 @@ export default function ProductionIntake({ isOpen, onClose, support, onSuccess, 
                 <div className="relative">
                   <input 
                     value={woNo}
-                    onChange={(e) => {
-                      setWoNo(e.target.value);
-                      setShowDropdown(true);
-                    }}
-                    onFocus={() => setShowDropdown(true)}
-                    onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
+                    onChange={(e) => setWoNo(e.target.value)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
-                        setShowDropdown(false);
                         lookup();
                       }
                     }}
                     type="text" 
-                    placeholder="Search or select a Work Order to begin..." 
-                    className="w-full px-4 pr-12 py-4 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all shadow-sm"
+                    placeholder="Enter or scan a Work Order to begin..." 
+                    className="w-full px-4 py-4 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all shadow-sm"
                   />
-                  <button 
-                    type="button"
-                    onClick={() => setShowDropdown(!showDropdown)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-cyan-600 hover:bg-cyan-50 rounded-md transition-colors"
-                  >
-                    <ChevronDown size={20} />
-                  </button>
-                  
-                  {showDropdown && support.activeWorkOrders && (
-                    <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl z-50 max-h-60 overflow-y-auto">
-                      {support.activeWorkOrders.filter(w => w.workOrderNo.toLowerCase().includes(woNo.toLowerCase())).length === 0 ? (
-                        <div className="p-4 text-sm text-slate-500 text-center">No available work orders found</div>
-                      ) : (
-                        support.activeWorkOrders
-                          .filter(w => w.workOrderNo.toLowerCase().includes(woNo.toLowerCase()))
-                          .map(w => (
-                            <div 
-                              key={w.workOrderNo}
-                              className="px-4 py-3 hover:bg-cyan-50 cursor-pointer text-sm font-medium text-slate-700 transition-colors border-b border-slate-50 last:border-0"
-                              onClick={() => {
-                                setWoNo(w.workOrderNo);
-                                setShowDropdown(false);
-                                setTimeout(() => {
-                                  lookup(w.workOrderNo);
-                                }, 0);
-                              }}
-                            >
-                              {w.workOrderNo}
-                            </div>
-                          ))
-                      )}
-                    </div>
-                  )}
                 </div>
             )}
           </div>

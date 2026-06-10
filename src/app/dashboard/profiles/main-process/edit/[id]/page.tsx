@@ -20,6 +20,7 @@ export default function EditMainProcessPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!id) return;
     async function loadProfile() {
       try {
         const res = await fetch("/api/profiles/main-process");

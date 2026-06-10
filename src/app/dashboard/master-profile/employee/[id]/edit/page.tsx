@@ -55,6 +55,7 @@ export default function EditEmployeePage() {
 
   // Fetch designations
   useEffect(() => {
+    if (!id) return;
     const fetchDesignations = async () => {
       try {
         const { getDesignationProfileItems } = await import("../../../designation/actions");
@@ -71,6 +72,7 @@ export default function EditEmployeePage() {
 
   // Fetch all employees and find by ID
   useEffect(() => {
+    if (!id) return;
     const fetchEmployee = async () => {
       setIsLoading(true);
       try {

@@ -1,13 +1,15 @@
 "use client";
 
-import React, { useState, useEffect, useTransition, use } from "react";
-import { useRouter } from "next/navigation";
+import React, { useState, useEffect, useTransition } from "react";
+import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { updateProcessProfileAction, getProcessProfileByIdAction } from "../../actions";
 
-export default function EditProcessProfilePage({ params }: { params: Promise<{ id: string }> }) {
+export default function EditProcessProfilePage() {
+  const params = useParams();
+  const id = params?.id as string;
+
   const router = useRouter();
-  const { id } = use(params);
   const [isPending, startTransition] = useTransition();
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   
@@ -15,6 +17,7 @@ export default function EditProcessProfilePage({ params }: { params: Promise<{ i
   const [profile, setProfile] = useState<any>(null);
 
   useEffect(() => {
+    if (!id) return;
     async function load() {
       setIsLoading(true);
       const res = await getProcessProfileByIdAction(id);

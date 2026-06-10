@@ -1,12 +1,20 @@
 "use client";
+import { useParams } from "next/navigation";
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { FileText, Download, Loader2, AlertCircle } from "lucide-react";
+import { FileText, Download, Loader2, AlertCircle, TrendingUp } from "lucide-react";
 import * as XLSX from "xlsx";
 
 export default function WorkOrderCostingReportPage() {
-  const [search, setSearch] = useState("");
+  const params = useParams();
+  const id = params?.id as string;
+
+  const [workOrderNo, setWorkOrderNo] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [customer, setCustomer] = useState("");
+  const [status, setStatus] = useState("");
 
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -16,9 +24,13 @@ export default function WorkOrderCostingReportPage() {
     setErrorMsg("");
     try {
       const params = new URLSearchParams();
-      if (search) params.append("search", search);
+      if (workOrderNo) params.append("workOrderNo", workOrderNo);
+      if (dateFrom) params.append("dateFrom", dateFrom);
+      if (dateTo) params.append("dateTo", dateTo);
+      if (customer) params.append("customer", customer);
+      if (status) params.append("status", status);
 
-      const res = await fetch(`/api/cost-monitoring?${params.toString()}`);
+      const res = await fetch(`/api/reports/work-order-costing-report?${params.toString()}`);
       if (!res.ok) throw new Error("Failed to fetch report data");
       
       const data = await res.json();
@@ -37,43 +49,59 @@ export default function WorkOrderCostingReportPage() {
 
   const generateExcel = (data: any[]) => {
     const ws = XLSX.utils.aoa_to_sheet([]);
+    
+    // Build rows
     const rows = [];
     
+    // Row 1: Title
     rows.push(["Work Order Costing Report"]);
-    rows.push(["Vision One Pte Ltd"]); 
     
+    // Row 2: Company
+    rows.push(["Vision One Pte Ltd"]);
+    
+    // Row 3: Generated Date
     const now = new Date();
-    rows.push([`Generated on ${now.toLocaleDateString("en-GB").replace(/\//g, '-')} ${now.toLocaleTimeString("en-US")}`]);
+    rows.push([`Generated on ${now.toLocaleDateString("en-GB", { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '-')} ${now.toLocaleTimeString("en-US", { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`]);
+    
+    // Row 4: Empty space
     rows.push([]);
 
+    // Row 5: Column Headers
     rows.push([
-      "Work Order No", "Customer Name", "Date", "Status", 
-      "Revenue", "Labor Cost", "Material Cost", "Subcon Cost", 
-      "Total Cost", "Profit", "Margin (%)"
+      "Work Order No", 
+      "WO Date", 
+      "Customer", 
+      "Project Code", 
+      "Job Description", 
+      "Delivery Date", 
+      "Status",
+      "Total Labor Cost",
+      "Total PO Material Cost",
+      "Total Cost"
     ]);
 
+    // Data Rows
     data.forEach(item => {
       rows.push([
         item.workOrderNo,
+        item.date ? new Date(item.date).toLocaleDateString("en-GB", { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '-') : "",
         item.customerName,
-        item.date ? new Date(item.date).toLocaleDateString("en-GB").replace(/\//g, '-') : "",
+        item.projectCode,
+        item.jobDescription,
+        item.deliveryDate ? new Date(item.deliveryDate).toLocaleDateString("en-GB", { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '-') : "",
         item.status,
-        Number(item.revenue),
-        Number(item.laborCost),
-        Number(item.materialCost),
-        Number(item.subconCost),
-        Number(item.totalCost),
-        Number(item.profit),
-        Number(item.margin)
+        item.totalLaborCost,
+        item.totalMaterialCost,
+        item.totalCost
       ]);
     });
 
     XLSX.utils.sheet_add_aoa(ws, rows, { origin: "A1" });
 
+    // Some basic col widths
     ws['!cols'] = [
-      { wch: 20 }, { wch: 30 }, { wch: 15 }, { wch: 15 }, 
-      { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, 
-      { wch: 15 }, { wch: 15 }, { wch: 15 }
+      { wch: 20 }, { wch: 15 }, { wch: 30 }, { wch: 15 }, { wch: 30 }, { wch: 15 }, { wch: 15 },
+      { wch: 20 }, { wch: 25 }, { wch: 20 }
     ];
 
     const wb = XLSX.utils.book_new();
@@ -90,15 +118,15 @@ export default function WorkOrderCostingReportPage() {
             <span>/</span>
             <span className="text-blue-500">Production</span>
             <span>/</span>
-            <span className="text-blue-500">WO Costing Report</span>
+            <span className="text-blue-500">Work Order Costing Report</span>
           </div>
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-600">
-              <FileText size={20} />
+              <TrendingUp size={20} />
             </div>
             <div>
               <h2 className="text-2xl font-bold tracking-tight text-blue-900">Work Order Costing Report</h2>
-              <p className="text-sm text-blue-500 mt-0.5">Filter and export work order cost tracking data to Excel.</p>
+              <p className="text-sm text-blue-500 mt-0.5">Filter and export work order costing data to Excel.</p>
             </div>
           </div>
         </div>
@@ -111,14 +139,56 @@ export default function WorkOrderCostingReportPage() {
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-blue-700">Search</label>
+            <label className="text-xs font-semibold text-blue-700">Work Order No</label>
             <input
               type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="WO No or Customer Name"
+              value={workOrderNo}
+              onChange={(e) => setWorkOrderNo(e.target.value)}
+              placeholder="e.g. WO-2023-001"
               className="w-full px-3 py-2 text-sm bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
             />
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs font-semibold text-blue-700">WO Date (From)</label>
+            <input
+              type="date"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+              className="w-full px-3 py-2 text-sm bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs font-semibold text-blue-700">WO Date (To)</label>
+            <input
+              type="date"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+              className="w-full px-3 py-2 text-sm bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs font-semibold text-blue-700">Customer</label>
+            <input
+              type="text"
+              value={customer}
+              onChange={(e) => setCustomer(e.target.value)}
+              placeholder="Customer Name"
+              className="w-full px-3 py-2 text-sm bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs font-semibold text-blue-700">Status</label>
+            <select
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+              className="w-full px-3 py-2 text-sm bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+            >
+              <option value="">All</option>
+              <option value="Draft">Draft</option>
+              <option value="Confirmed">Confirmed</option>
+              <option value="Completed">Completed</option>
+              <option value="Cancelled">Cancelled</option>
+            </select>
           </div>
         </div>
 

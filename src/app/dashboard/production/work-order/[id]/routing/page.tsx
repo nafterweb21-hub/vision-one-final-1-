@@ -112,16 +112,18 @@ export default async function WorkOrderRoutingPage({
   const { mainProcesses, processProfiles } = await getRoutingDropdownData();
 
   const editable = !["Void", "Cancelled", "Completed"].includes(workOrder.status);
-  const existingSteps = workOrder.inProcesses.map((p: any) => ({
-    id: p.id,
-    sn: p.sn,
-    description: p.description,
+  const existingSteps = (workOrder?.inProcesses || []).map((p: any) => ({
+    id: p?.id,
+    sn: p?.sn,
+    description: p?.description,
   }));
 
+  console.log("Rendering routing processes. In-processes count:", workOrder?.inProcesses?.length);
+
   // Roll the in-process status from its routing rows
-  const inProcessRows = workOrder.inProcesses.map((ip: any) => {
-    const statuses = ip.routingProcesses.map((r: any) => r.status);
-    let derived = ip.status;
+  const inProcessRows = (workOrder?.inProcesses || []).map((ip: any) => {
+    const statuses = (ip?.routingProcesses || []).map((r: any) => r?.status);
+    let derived = ip?.status;
     if (statuses.length > 0) {
       if (statuses.every((s: string) => s === "Completed")) derived = "Completed";
       else if (statuses.some((s: string) => s === "WIP" || s === "Completed")) derived = "WIP";

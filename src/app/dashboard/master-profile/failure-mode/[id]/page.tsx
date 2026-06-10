@@ -23,6 +23,7 @@ export default function EditFailureModeProfilePage() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!id) return;
     const fetchProfile = async () => {
       const res = await getFailureModeProfileItems();
       if (res.success && res.data) {

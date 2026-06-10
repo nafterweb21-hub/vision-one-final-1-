@@ -4,7 +4,7 @@ import { customConfirm } from "@/lib/customConfirm";
 import { toast as hotToast } from "react-hot-toast";
 
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import {
   PackageX,
@@ -16,9 +16,11 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { getGoodsReturnFormData, submitGoodsReturn, voidGoodsReturn } from "../actions";
-export default function GoodsReturnFormPage({ params }: { params: Promise<{ id: string }> }) {
+export default function GoodsReturnFormPage() {
+  const params = useParams();
+  const id = params?.id as string;
+
   const router = useRouter();
-  const { id } = React.use(params);
   const isNew = id === "new";
 
   const [loading, setLoading] = useState(true);
@@ -45,6 +47,7 @@ export default function GoodsReturnFormPage({ params }: { params: Promise<{ id: 
   const [items, setItems] = useState<any[]>([]);
 
   useEffect(() => {
+    if (!id) return;
     async function load() {
       try {
         const data = await getGoodsReturnFormData();
@@ -120,6 +123,7 @@ export default function GoodsReturnFormPage({ params }: { params: Promise<{ id: 
 
   // Auto-populate currency/tax from GR when GR is selected (new only)
   useEffect(() => {
+    if (!id) return;
     if (isNew && selectedGR) {
       const cur = prereq?.currencies?.find((c: any) => c.id === selectedGR.currencyId);
       if (cur) {
