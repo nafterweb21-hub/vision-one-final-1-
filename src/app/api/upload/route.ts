@@ -31,13 +31,21 @@ export async function POST(request: NextRequest) {
 
     // Target directory
     const uploadDir = path.join(process.cwd(), "public", "uploads");
-    await mkdir(uploadDir, { recursive: true });
+    
+    try {
+      await mkdir(uploadDir, { recursive: true });
+      const filePath = path.join(uploadDir, filename);
+      await writeFile(filePath, buffer);
 
-    const filePath = path.join(uploadDir, filename);
-    await writeFile(filePath, buffer);
-
-    const fileUrl = `/api/uploads/${filename}`;
-    return NextResponse.json({ url: fileUrl });
+      const fileUrl = `/api/uploads/${filename}`;
+      return NextResponse.json({ url: fileUrl });
+    } catch (fsError) {
+      console.warn("Could not write to public/uploads (likely a read-only serverless environment), falling back to base64 data URI.", fsError);
+      
+      const base64 = buffer.toString("base64");
+      const dataUri = `data:${file.type};base64,${base64}`;
+      return NextResponse.json({ url: dataUri });
+    }
   } catch (error: unknown) {
     console.error("File upload error:", error);
     const message = error instanceof Error ? error.message : "Failed to upload file.";
