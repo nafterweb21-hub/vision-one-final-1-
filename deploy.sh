@@ -48,6 +48,9 @@ rsync -avz --delete --exclude='uploads/' -e "ssh $SSH_OPTS" \
   public/ \
   "$VPS_HOST:$DEPLOY_PATH/public/"
 
+echo "==> Fixing permissions for uploads directory..."
+ssh $SSH_OPTS "$VPS_HOST" "sudo chmod -R 777 $DEPLOY_PATH/public/uploads"
+
 echo "==> Syncing Prisma schema & migrations..."
 rsync -avz --delete -e "ssh $SSH_OPTS" \
   prisma/ \
