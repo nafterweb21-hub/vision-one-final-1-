@@ -14,6 +14,7 @@ import {
   AlertCircle,
   Clock
 } from "lucide-react";
+import Link from "next/link";
 import { getDashboardMetrics } from "./dashboard.actions";
 
 const formatCurrency = (value: number) => {
@@ -187,9 +188,9 @@ export default function DashboardPage() {
         <div className="rounded-3xl border border-slate-200 bg-white shadow-sm flex flex-col">
           <div className="flex items-center justify-between p-6 border-b border-slate-100">
             <h4 className="text-lg font-bold text-slate-900">Recent Work Orders</h4>
-            <button className="flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-100">
+            <Link href="/dashboard/production/work-order" className="flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-100">
               View All <ArrowRight className="h-3 w-3" />
-            </button>
+            </Link>
           </div>
           
           <div className="overflow-x-auto">
@@ -365,9 +366,9 @@ export default function DashboardPage() {
         <div className="rounded-3xl border border-slate-200 bg-white shadow-sm flex flex-col p-6">
           <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
             <h4 className="text-lg font-bold text-slate-900">Open NCRs</h4>
-            <a href="/dashboard/qc/ncr" className="flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-100">
+            <Link href="/dashboard/qc/ncr" className="flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-100">
               View All <ArrowRight className="h-3 w-3" />
-            </a>
+            </Link>
           </div>
           
           <div className="flex-grow flex flex-col justify-center space-y-4">
@@ -509,13 +510,13 @@ export default function DashboardPage() {
               </h4>
               <p className="mt-1 text-sm text-slate-500">Manage Master data profiles that govern the ERP rules</p>
             </div>
-            <a
+            <Link
               href="/dashboard/profiles"
               className="group flex items-center gap-1 text-sm font-semibold text-indigo-600 hover:text-indigo-700 transition-colors"
             >
               View All 
               <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-            </a>
+            </Link>
           </div>
           
           <div className="mt-8 grid gap-4 sm:grid-cols-2">
