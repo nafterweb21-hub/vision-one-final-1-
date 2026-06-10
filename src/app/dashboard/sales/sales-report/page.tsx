@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { FileText, Download, Loader2, AlertCircle } from "lucide-react";
 import * as XLSX from "xlsx";
@@ -17,6 +17,21 @@ export default function SalesReportPage() {
 
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+
+  const [customers, setCustomers] = useState<{ id: string; customerName: string }[]>([]);
+  const [employees, setEmployees] = useState<{ id: string; name: string }[]>([]);
+  const [finishedGoods, setFinishedGoods] = useState<{ id: string; partNo: string; description: string }[]>([]);
+
+  useEffect(() => {
+    fetch("/api/sales/quotation/form-data")
+      .then((res) => res.json())
+      .then((data) => {
+        setCustomers(data.customers || []);
+        setEmployees(data.employees || []);
+        setFinishedGoods(data.finishedGoods || []);
+      })
+      .catch((err) => console.error("Failed to load dropdown data:", err));
+  }, []);
 
   const handleExport = async () => {
     setLoading(true);
@@ -211,33 +226,42 @@ export default function SalesReportPage() {
           </div>
           <div className="space-y-1">
             <label className="text-xs font-semibold text-blue-700">Customer</label>
-            <input
-              type="text"
+            <select
               value={customer}
               onChange={(e) => setCustomer(e.target.value)}
-              placeholder="Customer Name"
               className="w-full px-3 py-2 text-sm bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-            />
+            >
+              <option value="">All Customers</option>
+              {customers.map((c) => (
+                <option key={c.id} value={c.customerName}>{c.customerName}</option>
+              ))}
+            </select>
           </div>
           <div className="space-y-1">
             <label className="text-xs font-semibold text-blue-700">Salesperson</label>
-            <input
-              type="text"
+            <select
               value={salesperson}
               onChange={(e) => setSalesperson(e.target.value)}
-              placeholder="Salesperson Name"
               className="w-full px-3 py-2 text-sm bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-            />
+            >
+              <option value="">All Salespersons</option>
+              {employees.map((e) => (
+                <option key={e.id} value={e.name}>{e.name}</option>
+              ))}
+            </select>
           </div>
           <div className="space-y-1">
             <label className="text-xs font-semibold text-blue-700">Part No</label>
-            <input
-              type="text"
+            <select
               value={partNo}
               onChange={(e) => setPartNo(e.target.value)}
-              placeholder="Part Number"
               className="w-full px-3 py-2 text-sm bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-            />
+            >
+              <option value="">All Parts</option>
+              {finishedGoods.map((fg) => (
+                <option key={fg.id} value={fg.partNo || ""}>{fg.partNo ? `${fg.partNo} - ${fg.description}` : fg.description}</option>
+              ))}
+            </select>
           </div>
           <div className="space-y-1">
             <label className="text-xs font-semibold text-blue-700">Part Description</label>

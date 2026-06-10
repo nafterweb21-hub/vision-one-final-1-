@@ -14,7 +14,9 @@ interface MaterialCategory {
   name: string;
 }
 
-export default function EditMaterialPage({ params }: { params: { id: string } }) {
+export default function EditMaterialPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = React.use(params);
+
   const router = useRouter();
   const [categories, setCategories] = useState<MaterialCategory[]>([]);
   const [isPending, startTransition] = useTransition();
@@ -35,7 +37,7 @@ export default function EditMaterialPage({ params }: { params: { id: string } })
       try {
         const [categoriesRes, materialRes] = await Promise.all([
           getMaterialCategories(),
-          getMaterialDetail(params.id),
+          getMaterialDetail(id),
         ]);
 
         if (categoriesRes.success && categoriesRes.data) {
@@ -61,7 +63,7 @@ export default function EditMaterialPage({ params }: { params: { id: string } })
     };
 
     loadData();
-  }, [params.id]);
+  }, [id]);
 
   const handleUpdateMaterial = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,7 +73,7 @@ export default function EditMaterialPage({ params }: { params: { id: string } })
     if (!editCategoryId) return setFormError("Material Category is required.");
 
     startTransition(async () => {
-      const res = await updateMaterialProfile(params.id, {
+      const res = await updateMaterialProfile(id, {
         shape: editShape.trim(),
         size: editSize.trim() || undefined,
         categoryId: editCategoryId,

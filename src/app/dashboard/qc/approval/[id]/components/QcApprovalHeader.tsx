@@ -1,48 +1,12 @@
 "use client";
 
-import { useTransition, useState } from "react";
-import { useRouter } from "next/navigation";
-import { approveQc, rejectQc } from "../../actions";
-
 type Props = {
   wo: any;
 };
 
 export default function QcApprovalHeader({ wo }: Props) {
-  const router = useRouter();
-  const [isPending, startTransition] = useTransition();
-  const [error, setError] = useState("");
-  const [rejectRemark, setRejectRemark] = useState("");
-  const [showRejectInput, setShowRejectInput] = useState(false);
-
-  function handleApprove() {
-    setError("");
-    startTransition(async () => {
-      const res = await approveQc(wo.workOrderNo);
-      if (!res.success) setError(res.error || "Failed to approve");
-      else router.push("/dashboard/qc/approval");
-    });
-  }
-
-  function handleReject() {
-    if (!showRejectInput) {
-      setShowRejectInput(true);
-      return;
-    }
-    setError("");
-    startTransition(async () => {
-      const res = await rejectQc(wo.workOrderNo, rejectRemark);
-      if (!res.success) setError(res.error || "Failed to reject");
-      else router.push("/dashboard/qc/approval");
-    });
-  }
-
   return (
     <div className="space-y-6">
-      {error && (
-        <div className="bg-red-50 text-red-600 p-4 rounded-lg text-sm border border-red-200">{error}</div>
-      )}
-
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span className="px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">
@@ -55,48 +19,6 @@ export default function QcApprovalHeader({ wo }: Props) {
           }`}>
             QC: {wo.qcAcceptance || "Pending"}
           </span>
-        </div>
-        <div className="flex gap-2 items-center flex-wrap justify-end">
-          {showRejectInput && (
-            <input
-              type="text"
-              placeholder="Rejection remark..."
-              value={rejectRemark}
-              onChange={(e) => setRejectRemark(e.target.value)}
-              disabled={isPending}
-              className="px-3 py-1.5 text-sm border border-slate-300 rounded-lg w-64 focus:outline-none focus:border-rose-500"
-            />
-          )}
-          <button
-            onClick={handleReject}
-            disabled={isPending}
-            className="px-4 py-1.5 rounded-lg text-sm font-medium disabled:opacity-50 bg-rose-100 text-rose-700 hover:bg-rose-200"
-          >
-            {showRejectInput ? "Confirm Reject" : "Reject"}
-          </button>
-          
-          {!showRejectInput && (
-            <button
-              onClick={handleApprove}
-              disabled={isPending}
-              className="px-4 py-1.5 rounded-lg text-sm font-medium disabled:opacity-50 bg-emerald-600 hover:bg-emerald-700 text-white"
-            >
-              Approve
-            </button>
-          )}
-
-          {showRejectInput && (
-            <button
-              onClick={() => {
-                setShowRejectInput(false);
-                setRejectRemark("");
-              }}
-              disabled={isPending}
-              className="px-4 py-1.5 rounded-lg text-sm font-medium disabled:opacity-50 bg-slate-100 text-slate-700 hover:bg-slate-200"
-            >
-              Cancel
-            </button>
-          )}
         </div>
       </div>
 

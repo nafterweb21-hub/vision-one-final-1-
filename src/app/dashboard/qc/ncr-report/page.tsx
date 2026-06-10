@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { FileText, Download, Loader2, AlertCircle } from "lucide-react";
 import * as XLSX from "xlsx";
@@ -16,6 +16,24 @@ export default function NcrReportPage() {
 
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+
+  const [customers, setCustomers] = useState<{ id: string; customerName: string }[]>([]);
+  const [mainProcessesList, setMainProcessesList] = useState<{ id: string; process: string }[]>([]);
+  const [routingProcessesList, setRoutingProcessesList] = useState<{ id: string; routingProcess: string }[]>([]);
+
+  useEffect(() => {
+    Promise.all([
+      fetch("/api/sales/quotation/form-data").then(res => res.json()),
+      fetch("/api/profiles/main-processes").then(res => res.json()),
+      fetch("/api/profiles/process-profiles").then(res => res.json()),
+    ])
+      .then(([formData, mpData, rpData]) => {
+        setCustomers(Array.isArray(formData?.customers) ? formData.customers : []);
+        setMainProcessesList(Array.isArray(mpData) ? mpData : []);
+        setRoutingProcessesList(Array.isArray(rpData) ? rpData : []);
+      })
+      .catch(err => console.error("Failed to load dropdown data:", err));
+  }, []);
 
   const handleExport = async () => {
     setLoading(true);
@@ -155,13 +173,16 @@ export default function NcrReportPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
           <div className="space-y-1">
             <label className="text-xs font-semibold text-blue-700">Customer</label>
-            <input
-              type="text"
+            <select
               value={customer}
               onChange={(e) => setCustomer(e.target.value)}
-              placeholder="Customer Name"
               className="w-full px-3 py-2 text-sm bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
-            />
+            >
+              <option value="">All Customers</option>
+              {customers.map((c) => (
+                <option key={c.id} value={c.customerName}>{c.customerName}</option>
+              ))}
+            </select>
           </div>
           <div className="space-y-1">
             <label className="text-xs font-semibold text-blue-700">Work Order</label>
@@ -195,23 +216,29 @@ export default function NcrReportPage() {
           </div>
           <div className="space-y-1">
             <label className="text-xs font-semibold text-blue-700">Main Process</label>
-            <input
-              type="text"
+            <select
               value={mainProcess}
               onChange={(e) => setMainProcess(e.target.value)}
-              placeholder="e.g. Fabricate of Parts"
               className="w-full px-3 py-2 text-sm bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
-            />
+            >
+              <option value="">All Main Processes</option>
+              {mainProcessesList.map((mp) => (
+                <option key={mp.id} value={mp.process}>{mp.process}</option>
+              ))}
+            </select>
           </div>
           <div className="space-y-1">
             <label className="text-xs font-semibold text-blue-700">Routing Process</label>
-            <input
-              type="text"
+            <select
               value={routingProcess}
               onChange={(e) => setRoutingProcess(e.target.value)}
-              placeholder="e.g. Shearing"
               className="w-full px-3 py-2 text-sm bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
-            />
+            >
+              <option value="">All Routing Processes</option>
+              {routingProcessesList.map((rp) => (
+                <option key={rp.id} value={rp.routingProcess}>{rp.routingProcess}</option>
+              ))}
+            </select>
           </div>
           <div className="space-y-1">
             <label className="text-xs font-semibold text-blue-700">Department</label>

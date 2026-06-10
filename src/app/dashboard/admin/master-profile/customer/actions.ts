@@ -7,6 +7,7 @@ export interface CustomerProfileInput {
   customerCode: string;
   customerName: string;
   remarks?: string;
+  gstin?: string;
 }
 
 export interface ContactPersonInput {
@@ -118,6 +119,7 @@ export async function createCustomerProfile(data: CustomerProfileInput) {
         customerCode,
         customerName,
         remarks,
+        gstin: data.gstin?.trim() || null,
         status: "Active",
       },
     });
@@ -130,7 +132,7 @@ export async function createCustomerProfile(data: CustomerProfileInput) {
   }
 }
 
-export async function updateCustomerRemarks(id: string, remarks: string) {
+export async function updateCustomerInfo(id: string, data: { remarks?: string; gstin?: string }) {
   try {
     const existing = await prisma.customerProfile.findUnique({
       where: { id },
@@ -142,15 +144,16 @@ export async function updateCustomerRemarks(id: string, remarks: string) {
     const updated = await prisma.customerProfile.update({
       where: { id },
       data: {
-        remarks: remarks.trim(),
+        remarks: data.remarks?.trim() || null,
+        gstin: data.gstin?.trim() || null,
       },
     });
 
     revalidatePath(CUSTOMER_PATH);
     return { success: true, data: updated };
   } catch (error) {
-    console.error("Failed to update customer remarks:", error);
-    return { success: false, error: (error as Error).message || "Failed to update customer remarks." };
+    console.error("Failed to update customer info:", error);
+    return { success: false, error: (error as Error).message || "Failed to update customer info." };
   }
 }
 

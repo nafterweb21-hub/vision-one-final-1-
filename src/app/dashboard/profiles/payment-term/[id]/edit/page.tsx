@@ -5,7 +5,9 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getPaymentTermItems, updatePaymentTermItem } from "../../actions";
 
-export default function EditPaymentTermPage({ params }: { params: { id: string } }) {
+export default function EditPaymentTermPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = React.use(params);
+
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [isLoading, setIsLoading] = useState(true);
@@ -17,7 +19,7 @@ export default function EditPaymentTermPage({ params }: { params: { id: string }
       setIsLoading(true);
       const res = await getPaymentTermItems();
       if (res.success && res.data) {
-        const item = (res.data as any[]).find((i) => i.id === params.id);
+        const item = (res.data as any[]).find((i) => i.id === id);
         if (item) {
           setInitialData(item);
         } else {
@@ -30,7 +32,7 @@ export default function EditPaymentTermPage({ params }: { params: { id: string }
     };
 
     fetchItem();
-  }, [params.id]);
+  }, [id]);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -51,7 +53,7 @@ export default function EditPaymentTermPage({ params }: { params: { id: string }
     }
 
     startTransition(async () => {
-      const res = await updatePaymentTermItem(params.id, formData);
+      const res = await updatePaymentTermItem(id, formData);
       if (res.success) {
         router.push("/dashboard/profiles/payment-term");
       } else {

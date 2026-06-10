@@ -17,6 +17,7 @@ export default function SalesOrderFormPage({ params }: PageProps) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [showValidationModal, setShowValidationModal] = useState(false);
   const [formDataCache, setFormDataCache] = useState<any>(null);
 
   // Form State
@@ -216,6 +217,11 @@ export default function SalesOrderFormPage({ params }: PageProps) {
   }, [amountBeforeTax, taxAmount]);
 
   const handleSave = async (status: string) => {
+    if (items.length === 0) {
+      setShowValidationModal(true);
+      return;
+    }
+
     setSaving(true);
     setErrorMsg("");
     try {
@@ -858,6 +864,28 @@ export default function SalesOrderFormPage({ params }: PageProps) {
           </div>
         </div>
       </div>
+
+      {showValidationModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-2xl p-6 max-w-sm w-full mx-4 border border-blue-100">
+            <div className="flex flex-col items-center text-center">
+              <div className="w-12 h-12 bg-rose-100 rounded-full flex items-center justify-center mb-4">
+                <AlertCircle className="text-rose-600" size={24} />
+              </div>
+              <h3 className="text-lg font-bold text-slate-900 mb-2">Validation Error</h3>
+              <p className="text-sm text-slate-600 mb-6">
+                Please add at least one item before saving the Sales Order.
+              </p>
+              <button
+                onClick={() => setShowValidationModal(false)}
+                className="w-full py-2.5 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors"
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

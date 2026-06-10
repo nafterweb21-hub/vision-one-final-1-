@@ -17,6 +17,21 @@ export default function PurchasingReportPage() {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
+  const [companies, setCompanies] = useState<any[]>([]);
+  const [suppliers, setSuppliers] = useState<any[]>([]);
+  const [materials, setMaterials] = useState<any[]>([]);
+
+  React.useEffect(() => {
+    fetch("/api/purchasing/purchase-order/form-data")
+      .then((res) => res.json())
+      .then((data) => {
+        setCompanies(Array.isArray(data?.companies) ? data.companies : []);
+        setSuppliers(Array.isArray(data?.suppliers) ? data.suppliers : []);
+        setMaterials(Array.isArray(data?.materials) ? data.materials : []);
+      })
+      .catch((err) => console.error("Failed to load dropdown data:", err));
+  }, []);
+
   const handleExport = async () => {
     setLoading(true);
     setErrorMsg("");
@@ -203,13 +218,18 @@ export default function PurchasingReportPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
           <div className="space-y-1">
             <label className="text-xs font-semibold text-blue-700">Company</label>
-            <input
-              type="text"
+            <SearchableSelect
               value={company}
               onChange={(e) => setCompany(e.target.value)}
-              placeholder="Company Name"
               className="w-full px-3 py-2 text-sm bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-            />
+            >
+              <option value="">All Companies</option>
+              {companies.map((c) => (
+                <option key={c.id} value={c.companyName}>
+                  {c.companyName}
+                </option>
+              ))}
+            </SearchableSelect>
           </div>
           <div className="space-y-1">
             <label className="text-xs font-semibold text-blue-700">PO No</label>
@@ -254,23 +274,33 @@ export default function PurchasingReportPage() {
           </div>
           <div className="space-y-1">
             <label className="text-xs font-semibold text-blue-700">Supplier</label>
-            <input
-              type="text"
+            <SearchableSelect
               value={supplier}
               onChange={(e) => setSupplier(e.target.value)}
-              placeholder="Supplier Name"
               className="w-full px-3 py-2 text-sm bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-            />
+            >
+              <option value="">All Suppliers</option>
+              {suppliers.map((s) => (
+                <option key={s.id} value={s.supplierName}>
+                  {s.supplierName}
+                </option>
+              ))}
+            </SearchableSelect>
           </div>
           <div className="space-y-1">
             <label className="text-xs font-semibold text-blue-700">Part No</label>
-            <input
-              type="text"
+            <SearchableSelect
               value={partNo}
               onChange={(e) => setPartNo(e.target.value)}
-              placeholder="Part Number"
               className="w-full px-3 py-2 text-sm bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-            />
+            >
+              <option value="">All Parts</option>
+              {materials.map((m) => (
+                <option key={m.id} value={m.partNo}>
+                  {m.partNo} {m.description ? `- ${m.description}` : ""}
+                </option>
+              ))}
+            </SearchableSelect>
           </div>
           <div className="space-y-1">
             <label className="text-xs font-semibold text-blue-700">Part Description</label>

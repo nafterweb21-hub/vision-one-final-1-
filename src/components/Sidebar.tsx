@@ -58,7 +58,7 @@ import {
   Link2,
   Cpu,
   Gauge,
-
+  ChevronDown,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -70,6 +70,7 @@ interface SidebarProps {
 export default function Sidebar({ userEmail, userRole, isAdmin }: SidebarProps) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  const [isReportsOpen, setIsReportsOpen] = useState(false);
   const role = (userRole ?? null) as Role | null;
   const allow = (path: string) => canAccess(path, role);
 
@@ -410,12 +411,7 @@ export default function Sidebar({ userEmail, userRole, isAdmin }: SidebarProps) 
                 <span>Incoterm Profile</span>
               </Link>
             )}
-            {allow("/dashboard/master-profile/material") && (
-              <Link href="/dashboard/master-profile/material" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/master-profile/material")}>
-                <Box size={16} className="text-blue-500" />
-                <span>Material Profile</span>
-              </Link>
-            )}
+
             {allow("/dashboard/master-profile/material-type") && (
               <Link href="/dashboard/master-profile/material-type" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/master-profile/material-type")}>
                 <Package size={16} className="text-cyan-600" />
@@ -475,43 +471,49 @@ export default function Sidebar({ userEmail, userRole, isAdmin }: SidebarProps) 
 
           {/* REPORT */}
           <div className="pt-4">
-            <p className="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-              REPORT
-            </p>
-            {allow("/dashboard/sales/sales-report") && (
-              <Link href="/dashboard/sales/sales-report" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/sales/sales-report")}>
-                <BarChart size={16} className="text-blue-500" fill="currentColor" />
-                <span>Sales Report</span>
+            <button 
+              onClick={() => setIsReportsOpen(!isReportsOpen)}
+              className="w-full flex items-center justify-between px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase tracking-wider hover:bg-slate-50 rounded-lg transition-colors cursor-pointer"
+            >
+              <span>REPORT</span>
+              <ChevronDown size={14} className={`transform transition-transform ${isReportsOpen ? "rotate-180" : ""}`} />
+            </button>
+            <div className={`mt-1 space-y-2 overflow-hidden transition-all duration-300 ${isReportsOpen ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"}`}>
+              {allow("/dashboard/sales/sales-report") && (
+                <Link href="/dashboard/sales/sales-report" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/sales/sales-report")}>
+                  <BarChart size={16} className="text-blue-500" fill="currentColor" />
+                  <span>Sales Report</span>
+                </Link>
+              )}
+              <Link href="/dashboard/production/work-order-costing-report" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/production/work-order-costing-report")}>
+                <TrendingUp size={16} className="text-red-500" />
+                <span>Work Order Costing Report</span>
               </Link>
-            )}
-            <Link href="#" onClick={() => setIsOpen(false)} className={linkClass("#work-order-costing-report")}>
-              <TrendingUp size={16} className="text-red-500" />
-              <span>Work Order Costing Report</span>
-            </Link>
-            {allow("/dashboard/qc/ncr-report") && (
-              <Link href="/dashboard/qc/ncr-report" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/qc/ncr-report")}>
-                <AlertTriangle size={16} className="text-slate-500" />
-                <span>Non Conformance Report</span>
-              </Link>
-            )}
-            {allow("/dashboard/purchasing/purchasing-report") && (
-              <Link href="/dashboard/purchasing/purchasing-report" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/purchasing/purchasing-report")}>
-                <ShoppingCart size={16} className="text-slate-500" />
-                <span>Purchasing Report</span>
-              </Link>
-            )}
-            {allow("/dashboard/purchasing/subcon-purchasing-report") && (
-              <Link href="/dashboard/purchasing/subcon-purchasing-report" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/purchasing/subcon-purchasing-report")}>
-                <Factory size={16} className="text-red-800" fill="currentColor" />
-                <span>Subcon Purchasing Report</span>
-              </Link>
-            )}
-            {allow("/dashboard/inventory/report") && (
-              <Link href="/dashboard/inventory/report" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/inventory/report")}>
-                <Box size={16} className="text-blue-600" />
-                <span>Inventory Report</span>
-              </Link>
-            )}
+              {allow("/dashboard/qc/ncr-report") && (
+                <Link href="/dashboard/qc/ncr-report" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/qc/ncr-report")}>
+                  <AlertTriangle size={16} className="text-slate-500" />
+                  <span>Non Conformance Report</span>
+                </Link>
+              )}
+              {allow("/dashboard/purchasing/purchasing-report") && (
+                <Link href="/dashboard/purchasing/purchasing-report" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/purchasing/purchasing-report")}>
+                  <ShoppingCart size={16} className="text-slate-500" />
+                  <span>Purchasing Report</span>
+                </Link>
+              )}
+              {allow("/dashboard/purchasing/subcon-purchasing-report") && (
+                <Link href="/dashboard/purchasing/subcon-purchasing-report" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/purchasing/subcon-purchasing-report")}>
+                  <Factory size={16} className="text-red-800" fill="currentColor" />
+                  <span>Subcon Purchasing Report</span>
+                </Link>
+              )}
+              {allow("/dashboard/inventory/report") && (
+                <Link href="/dashboard/inventory/report" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/inventory/report")}>
+                  <Box size={16} className="text-blue-600" />
+                  <span>Inventory Report</span>
+                </Link>
+              )}
+            </div>
           </div>
         </div>
 

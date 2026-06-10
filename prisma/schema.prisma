@@ -631,6 +631,9 @@ model ProductionTimesheet {
   updatedAt          DateTime                       @updatedAt
   qcRemark           String?
   qcStatus           String                         @default("Pending")
+  isPaused           Boolean                        @default(false)
+  lastPauseTime      DateTime?
+  totalIdleMinutes   Decimal?                       @default(0)
   machiningParameter ProcessParameterMachining?
   sprayParameter     ProcessParameterSprayPainting?
   weldingParameter   ProcessParameterWelding?

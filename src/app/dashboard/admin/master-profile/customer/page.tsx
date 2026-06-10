@@ -7,7 +7,7 @@ import {
   getCustomerProfiles,
   getCustomerDetail,
   createCustomerProfile,
-  updateCustomerRemarks,
+  updateCustomerInfo,
   toggleCustomerStatus,
   deleteCustomerProfile,
   addContactPerson,
@@ -27,6 +27,7 @@ interface CustomerSummary {
   customerCode: string;
   customerName: string;
   remarks: string | null;
+  gstin?: string | null;
   status: string;
   createdAt: Date;
   updatedAt: Date;
@@ -62,6 +63,7 @@ interface CustomerFullDetail {
   customerCode: string;
   customerName: string;
   remarks: string | null;
+  gstin?: string | null;
   status: string;
   contactPersons: ContactPerson[];
   addresses: CustomerAddress[];
@@ -83,11 +85,13 @@ export default function CustomerProfilePage() {
   // Create Customer Form States
   const [newCode, setNewCode] = useState("");
   const [newName, setNewName] = useState("");
+  const [newGstin, setNewGstin] = useState("");
   const [newRemarks, setNewRemarks] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
 
   // Manage Customer General Info Form States
   const [remarksEdit, setRemarksEdit] = useState("");
+  const [gstinEdit, setGstinEdit] = useState("");
   const [remarksSuccess, setRemarksSuccess] = useState(false);
 
   // Manage Contacts Sub-states
@@ -134,6 +138,7 @@ export default function CustomerProfilePage() {
     if (res.success && res.data) {
       setCustomerDetail(res.data as CustomerFullDetail);
       setRemarksEdit(res.data.remarks || "");
+      setGstinEdit((res.data as any).gstin || "");
     } else {
       hotToast.error(res.error || "Failed to load customer details.");
     }
@@ -142,6 +147,7 @@ export default function CustomerProfilePage() {
   const handleOpenCreateModal = () => {
     setNewCode("");
     setNewName("");
+    setNewGstin("");
     setNewRemarks("");
     setFormError(null);
     setIsCreateModalOpen(true);
@@ -168,6 +174,7 @@ export default function CustomerProfilePage() {
         customerCode: code,
         customerName: name,
         remarks: newRemarks,
+        gstin: newGstin,
       });
 
       if (res.success) {
@@ -189,16 +196,16 @@ export default function CustomerProfilePage() {
     await loadCustomerDetailData(id);
   };
 
-  const handleSaveRemarks = async () => {
+  const handleSaveInfo = async () => {
     if (!selectedCustomerId) return;
     setRemarksSuccess(false);
     startTransition(async () => {
-      const res = await updateCustomerRemarks(selectedCustomerId, remarksEdit);
+      const res = await updateCustomerInfo(selectedCustomerId, { remarks: remarksEdit, gstin: gstinEdit });
       if (res.success) {
         setRemarksSuccess(true);
         loadCustomers();
       } else {
-        hotToast.error(res.error || "Failed to update remarks.");
+        hotToast.error(res.error || "Failed to update info.");
       }
     });
   };
@@ -656,6 +663,20 @@ export default function CustomerProfilePage() {
                 </p>
               </div>
 
+              {/* GSTIN */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-bold text-blue-800">
+                  GSTIN
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. 22AAAAA0000A1Z5"
+                  value={newGstin}
+                  onChange={(e) => setNewGstin(e.target.value)}
+                  className="rounded-lg glossy-input px-3 py-2 text-base outline-hidden"
+                />
+              </div>
+
               {/* Remarks */}
               <div className="flex flex-col gap-1.5">
                 <label className="text-sm font-bold text-blue-800">
@@ -780,6 +801,19 @@ export default function CustomerProfilePage() {
 
                       <div className="flex flex-col gap-1.5">
                         <label className="text-base font-bold text-blue-800">
+                          GSTIN
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Enter GSTIN..."
+                          value={gstinEdit}
+                          onChange={(e) => setGstinEdit(e.target.value)}
+                          className="rounded-lg glossy-input px-3 py-2 text-base outline-hidden"
+                        />
+                      </div>
+
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-base font-bold text-blue-800">
                           Remarks
                         </label>
                         <textarea
@@ -794,7 +828,7 @@ export default function CustomerProfilePage() {
                       <div className="flex items-center gap-4">
                         <button
                           type="button"
-                          onClick={handleSaveRemarks}
+                          onClick={handleSaveInfo}
                           disabled={isPending}
                           className="rounded-lg glossy-button-blue px-5 py-2.5 text-base font-bold text-white shadow-md cursor-pointer"
                         >

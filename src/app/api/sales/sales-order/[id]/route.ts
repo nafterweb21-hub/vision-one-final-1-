@@ -34,11 +34,13 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     if (!orderData.paymentTermId) return NextResponse.json({ error: "Payment Term is required" }, { status: 400 });
     if (!orderData.currencyId) return NextResponse.json({ error: "Currency is required" }, { status: 400 });
 
-    if (items && items.length > 0) {
-      for (let i = 0; i < items.length; i++) {
-        if (!items[i].partId) return NextResponse.json({ error: `Item ${i + 1}: Part No / Description is required` }, { status: 400 });
-        if (!items[i].uomId) return NextResponse.json({ error: `Item ${i + 1}: UOM is required` }, { status: 400 });
-      }
+    if (!items || items.length === 0) {
+      return NextResponse.json({ error: "At least one order item is required" }, { status: 400 });
+    }
+
+    for (let i = 0; i < items.length; i++) {
+      if (!items[i].partId) return NextResponse.json({ error: `Item ${i + 1}: Part No / Description is required` }, { status: 400 });
+      if (!items[i].uomId) return NextResponse.json({ error: `Item ${i + 1}: UOM is required` }, { status: 400 });
     }
 
     // Get current order to check status change

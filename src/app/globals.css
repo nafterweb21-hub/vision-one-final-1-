@@ -136,3 +136,10 @@ input[type="number"] {
   -moz-appearance: textfield !important;
   appearance: textfield !important;
 }
+
+/* Print utility classes */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}

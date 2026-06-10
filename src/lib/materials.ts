@@ -26,6 +26,13 @@ export async function getMaterials() {
   });
 }
 
+export async function getMaterialById(id: string) {
+  return prisma.materialProfile.findUnique({
+    where: { id },
+    include: { category: true },
+  });
+}
+
 export async function createMaterial(data: {
   partNo?: string;
   description: string;

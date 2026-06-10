@@ -7,7 +7,7 @@ export default function GlobalHeader() {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <header className="fixed top-0 left-0 right-0 h-16 z-30 flex items-center justify-between px-4 sm:px-6 bg-[#0B0F19] shadow-md border-b border-[#1A2235]">
+    <header className="fixed top-0 left-0 right-0 h-16 z-30 flex items-center justify-between px-4 sm:px-6 bg-[#0B0F19] shadow-md border-b border-[#1A2235] no-print">
       <div className="flex items-center gap-4">
         {/* Toggle Button */}
         <button

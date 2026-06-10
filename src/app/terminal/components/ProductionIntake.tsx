@@ -38,6 +38,7 @@ export default function ProductionIntake({ isOpen, onClose, support, onSuccess, 
     mainProcessId: "",
     routingProcessProfileId: "",
     employeeId: loggedInEmployeeId || (support.employees[0]?.id ?? ""),
+    machineCodes: "",
   });
 
   const inProcessOptions = wo?.inProcesses ?? [];
@@ -144,7 +145,7 @@ export default function ProductionIntake({ isOpen, onClose, support, onSuccess, 
       // Reset form
       setWo(null);
       setWoNo("");
-      setInForm({ inProcessId: "", mainProcessId: "", routingProcessProfileId: "", employeeId: loggedInEmployeeId || (support.employees[0]?.id ?? "") });
+      setInForm({ inProcessId: "", mainProcessId: "", routingProcessProfileId: "", employeeId: loggedInEmployeeId || (support.employees[0]?.id ?? ""), machineCodes: "" });
       onSuccess();
     });
   }
@@ -429,7 +430,7 @@ export default function ProductionIntake({ isOpen, onClose, support, onSuccess, 
                   label="In-Process"
                   value={inForm.inProcessId}
                   onChange={(v) =>
-                    setInForm({ inProcessId: v, mainProcessId: "", routingProcessProfileId: "", employeeId: inForm.employeeId })
+                    setInForm({ inProcessId: v, mainProcessId: "", routingProcessProfileId: "", employeeId: inForm.employeeId, machineCodes: inForm.machineCodes })
                   }
                   options={inProcessOptions.map((ip: any) => ({ id: ip.id, label: `${ip.sn}. ${ip.description}` }))}
                 />
@@ -466,18 +467,21 @@ export default function ProductionIntake({ isOpen, onClose, support, onSuccess, 
                   }))}
                 />
               </div>
+              <div className="col-span-2">
+                <label className="text-xs font-bold text-slate-500 tracking-wider uppercase mb-1.5 block">Machine No.</label>
+                <input
+                  type="text"
+                  value={inForm.machineCodes}
+                  onChange={(e) => setInForm({ ...inForm, machineCodes: e.target.value })}
+                  placeholder="Enter Machine Number (Optional)"
+                  className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm font-medium bg-slate-50 text-slate-900 focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 outline-none transition-all shadow-sm"
+                />
+              </div>
             </div>
           )}
 
           <div className="mt-auto pt-4 border-t border-slate-100 flex gap-4">
-            <button 
-              onClick={doScanOut}
-              disabled={isPending || !wo || !inForm.employeeId || !inForm.routingProcessProfileId}
-              className="flex-1 py-4 bg-rose-600 hover:bg-rose-500 disabled:opacity-50 disabled:hover:bg-rose-600 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-colors shadow-lg shadow-rose-500/20"
-            >
-              <LogOut size={18} />
-              {isPending ? "Processing..." : "SCAN OUT"}
-            </button>
+
             <button 
               onClick={doScanIn}
               disabled={isPending || !wo || !inForm.employeeId || !inForm.routingProcessProfileId}

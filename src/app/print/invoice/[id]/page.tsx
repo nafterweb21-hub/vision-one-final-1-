@@ -15,6 +15,36 @@ function fmtDate(d: Date | string) {
   return `${dd}-${m[dt.getMonth()]}-${dt.getFullYear()}`;
 }
 
+function numberToWords(num: any): string {
+  let n = parseInt(num, 10);
+  if (isNaN(n) || n === 0) return '';
+  const a = ['', 'ONE ', 'TWO ', 'THREE ', 'FOUR ', 'FIVE ', 'SIX ', 'SEVEN ', 'EIGHT ', 'NINE ', 'TEN ', 'ELEVEN ', 'TWELVE ', 'THIRTEEN ', 'FOURTEEN ', 'FIFTEEN ', 'SIXTEEN ', 'SEVENTEEN ', 'EIGHTEEN ', 'NINETEEN '];
+  const b = ['', '', 'TWENTY ', 'THIRTY ', 'FORTY ', 'FIFTY ', 'SIXTY ', 'SEVENTY ', 'EIGHTY ', 'NINETY '];
+  
+  if (n.toString().length > 9) return 'OVERFLOW';
+  let str = ('000000000' + n).slice(-9).match(/^(\d{2})(\d{2})(\d{2})(\d{1})(\d{2})$/);
+  if (!str) return '';
+  let words = '';
+  words += (Number(str[1]) != 0) ? (a[Number(str[1])] || b[Number(str[1][0])] + a[Number(str[1][1])]) + 'CRORE ' : '';
+  words += (Number(str[2]) != 0) ? (a[Number(str[2])] || b[Number(str[2][0])] + a[Number(str[2][1])]) + 'LAKH ' : '';
+  words += (Number(str[3]) != 0) ? (a[Number(str[3])] || b[Number(str[3][0])] + a[Number(str[3][1])]) + 'THOUSAND ' : '';
+  words += (Number(str[4]) != 0) ? (a[Number(str[4])] || b[Number(str[4][0])] + a[Number(str[4][1])]) + 'HUNDRED ' : '';
+  words += (Number(str[5]) != 0) ? ((words != '') ? 'AND ' : '') + (a[Number(str[5])] || b[Number(str[5][0])] + a[Number(str[5][1])]) : '';
+  return words.trim();
+}
+
+function currencyToWords(amount: number): string {
+  if (!amount || isNaN(amount) || amount === 0) return 'ZERO RUPEES ONLY';
+  const rupees = Math.floor(amount);
+  const paise = Math.round((amount - rupees) * 100);
+  
+  let words = numberToWords(rupees) + ' RUPEES';
+  if (paise > 0) {
+    words += ' AND ' + numberToWords(paise) + ' PAISA';
+  }
+  return words + ' ONLY';
+}
+
 export default async function PrintInvoicePage(
   { params }: { params: Promise<{ id: string }> },
 ) {
@@ -111,6 +141,34 @@ export default async function PrintInvoicePage(
         .items-table tbody tr.tax-row td { padding-top: 4px; padding-bottom: 2px; }
         
         .totals-row td { border-top: 1.5px solid #63a0d4; padding: 4px; font-weight: bold; background: #e6f2ff; }
+
+        .footer-section { font-size: 10px; }
+        .total-words { padding: 4px; display: flex; justify-content: space-between; }
+        .total-words .font-bold { font-size: 11px; margin-top: 2px; }
+        
+        .tax-summary-table { width: 100%; border-collapse: collapse; text-align: center; font-size: 10px; border-top: 1.5px solid #63a0d4; border-bottom: 1.5px solid #63a0d4; }
+        .tax-summary-table th { border: 1px solid #63a0d4; padding: 4px; font-weight: bold; background: #fff; border-top: none; }
+        .tax-summary-table th:first-child { border-left: none; }
+        .tax-summary-table th:last-child { border-right: none; }
+        .tax-summary-table td { border: 1px solid #63a0d4; padding: 4px; vertical-align: top; }
+        .tax-summary-table td:first-child { border-left: none; }
+        .tax-summary-table td:last-child { border-right: none; }
+        .tax-summary-table .text-right { text-align: right; }
+        
+        .tax-words { padding: 4px; border-bottom: 1.5px solid #63a0d4; }
+        
+        .bank-and-sign { display: flex; }
+        .bank-details { width: 65%; border-right: 1.5px solid #63a0d4; display: flex; flex-direction: column; }
+        .bank-header { text-align: center; font-weight: bold; padding: 2px; border-bottom: 1px solid #63a0d4; }
+        .bank-table { width: 100%; border-collapse: collapse; flex-grow: 1; }
+        .bank-table td { padding: 3px 6px; font-weight: 500; }
+        
+        .terms { padding: 4px 6px; font-size: 9px; line-height: 1.2; border-top: 1px solid #63a0d4; }
+        
+        .sign-box { width: 35%; display: flex; flex-direction: column; justify-content: space-between; text-align: center; }
+        .certify { font-size: 8px; font-weight: bold; padding: 4px; }
+        .company-sign-name { font-weight: bold; font-size: 11px; margin-top: 4px; }
+        .auth-sign { font-size: 8px; font-weight: bold; padding-bottom: 4px; border-top: 1px solid #63a0d4; margin-top: 40px; }
       `}</style>
 
       <PrintButton />
@@ -261,6 +319,131 @@ export default async function PrintInvoicePage(
               </tr>
             </tbody>
           </table>
+
+          <div className="footer-section">
+            <div style={{ borderTop: "1.5px solid #63a0d4", borderBottom: "1.5px solid #63a0d4", padding: "4px", display: "flex", justifyContent: "space-between" }}>
+              <div>
+                <div>Total in words</div>
+                <div className="font-bold uppercase">{currencyToWords(Number(inv.amountAfterTax || 0))}</div>
+              </div>
+              <div className="font-bold text-[9px] pr-2 mt-2">(E &amp; O.E.)</div>
+            </div>
+
+            <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "center", fontSize: "10px", borderBottom: "1.5px solid #63a0d4" }}>
+              <thead>
+                <tr>
+                  <th rowSpan={2} style={{width: '25%', borderRight: '1.5px solid #63a0d4', borderBottom: '1.5px solid #63a0d4', padding: '4px'}}>HSN / SAC</th>
+                  <th rowSpan={2} style={{width: '15%', borderRight: '1.5px solid #63a0d4', borderBottom: '1.5px solid #63a0d4', padding: '4px'}}>Taxable Value</th>
+                  <th colSpan={2} style={{width: '24%', borderRight: '1.5px solid #63a0d4', borderBottom: '1.5px solid #63a0d4', padding: '4px'}}>CGST</th>
+                  <th colSpan={2} style={{width: '24%', borderRight: '1.5px solid #63a0d4', borderBottom: '1.5px solid #63a0d4', padding: '4px'}}>SGST</th>
+                  <th rowSpan={2} style={{width: '12%', borderBottom: '1.5px solid #63a0d4', padding: '4px'}}>Total</th>
+                </tr>
+                <tr>
+                  <th style={{borderRight: '1.5px solid #63a0d4', borderBottom: '1.5px solid #63a0d4', padding: '4px'}}>%</th>
+                  <th style={{borderRight: '1.5px solid #63a0d4', borderBottom: '1.5px solid #63a0d4', padding: '4px'}}>Amount</th>
+                  <th style={{borderRight: '1.5px solid #63a0d4', borderBottom: '1.5px solid #63a0d4', padding: '4px'}}>%</th>
+                  <th style={{borderRight: '1.5px solid #63a0d4', borderBottom: '1.5px solid #63a0d4', padding: '4px'}}>Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style={{borderRight: '1.5px solid #63a0d4', borderBottom: '1.5px solid #63a0d4', padding: '4px'}}>
+                    {Array.from(new Set(inv.items.map(i => i.hsnCode).filter(Boolean))).join(", ")}
+                  </td>
+                  <td style={{borderRight: '1.5px solid #63a0d4', borderBottom: '1.5px solid #63a0d4', padding: '4px'}} className="text-right">
+                    {fmt(inv.amountBeforeTax)}
+                  </td>
+                  <td style={{borderRight: '1.5px solid #63a0d4', borderBottom: '1.5px solid #63a0d4', padding: '4px'}} className="text-right">
+                    {fmt(inv.taxType ? Number(inv.taxType.taxRate)/2 : 0)}
+                  </td>
+                  <td style={{borderRight: '1.5px solid #63a0d4', borderBottom: '1.5px solid #63a0d4', padding: '4px'}} className="text-right">
+                    {fmt(inv.taxAmount ? Number(inv.taxAmount)/2 : 0)}
+                  </td>
+                  <td style={{borderRight: '1.5px solid #63a0d4', borderBottom: '1.5px solid #63a0d4', padding: '4px'}} className="text-right">
+                    {fmt(inv.taxType ? Number(inv.taxType.taxRate)/2 : 0)}
+                  </td>
+                  <td style={{borderRight: '1.5px solid #63a0d4', borderBottom: '1.5px solid #63a0d4', padding: '4px'}} className="text-right">
+                    {fmt(inv.taxAmount ? Number(inv.taxAmount)/2 : 0)}
+                  </td>
+                  <td style={{borderBottom: '1.5px solid #63a0d4', padding: '4px'}} className="text-right">
+                    {fmt(inv.taxAmount)}
+                  </td>
+                </tr>
+                <tr>
+                  <td style={{borderRight: '1.5px solid #63a0d4', padding: '4px'}} className="text-right font-bold pr-4">Total</td>
+                  <td style={{borderRight: '1.5px solid #63a0d4', padding: '4px'}} className="text-right font-bold">
+                    {fmt(inv.amountBeforeTax)}
+                  </td>
+                  <td style={{borderRight: '1.5px solid #63a0d4', padding: '4px'}}></td>
+                  <td style={{borderRight: '1.5px solid #63a0d4', padding: '4px'}} className="text-right font-bold">
+                    {fmt(inv.taxAmount ? Number(inv.taxAmount)/2 : 0)}
+                  </td>
+                  <td style={{borderRight: '1.5px solid #63a0d4', padding: '4px'}}></td>
+                  <td style={{borderRight: '1.5px solid #63a0d4', padding: '4px'}} className="text-right font-bold">
+                    {fmt(inv.taxAmount ? Number(inv.taxAmount)/2 : 0)}
+                  </td>
+                  <td style={{padding: '4px'}} className="text-right font-bold">
+                    {fmt(inv.taxAmount)}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div style={{ borderBottom: "1.5px solid #63a0d4", padding: "4px", fontSize: "10px", display: "flex" }}>
+              <span style={{ marginRight: "4px" }}>Total Tax in words:</span>
+              <span className="font-bold uppercase">{currencyToWords(Number(inv.taxAmount || 0))}</span>
+            </div>
+
+            <div style={{ display: "flex", fontSize: "10px" }}>
+              <div style={{ width: "65%", borderRight: "1.5px solid #63a0d4", display: "flex", flexDirection: "column" }}>
+                <div style={{ textAlign: "center", fontWeight: "bold", padding: "2px", borderBottom: "1.5px solid #63a0d4" }}>Bank Details</div>
+                
+                <table style={{ width: "100%", borderCollapse: "collapse", padding: "4px" }}>
+                  <tbody>
+                    <tr>
+                      <td style={{ padding: "4px", width: "20%" }}>Name</td>
+                      <td style={{ padding: "4px", width: "30%", fontWeight: "bold" }}>ICICI BANK</td>
+                      <td style={{ padding: "4px", width: "20%" }}>Branch</td>
+                      <td style={{ padding: "4px", width: "30%", fontWeight: "bold" }}>Ranipet Branch</td>
+                    </tr>
+                    <tr>
+                      <td style={{ padding: "4px" }}>Acc. Name</td>
+                      <td style={{ padding: "4px", fontWeight: "bold" }}>Vision Fab Private Limited</td>
+                      <td style={{ padding: "4px" }}>Acc. Number</td>
+                      <td style={{ padding: "4px", fontWeight: "bold" }}>793405000558</td>
+                    </tr>
+                    <tr>
+                      <td style={{ padding: "4px" }}>IFSC</td>
+                      <td style={{ padding: "4px", fontWeight: "bold" }}>ICIC0007934</td>
+                      <td style={{ padding: "4px" }}></td>
+                      <td style={{ padding: "4px" }}></td>
+                    </tr>
+                  </tbody>
+                </table>
+                
+                <div style={{ padding: "4px", borderTop: "1.5px solid #63a0d4", fontSize: "9px", lineHeight: "1.2", marginTop: "auto" }}>
+                  Subject to our home Jurisdiction.<br/>
+                  Our Responsibility Ceases as soon as goods leaves our Premises.<br/>
+                  Goods once sold will not taken back.<br/>
+                  Delivery Ex-Premises.
+                </div>
+              </div>
+              
+              <div style={{ width: "35%", display: "flex", flexDirection: "column", justifyContent: "space-between", textAlign: "center", padding: "4px" }}>
+                <div>
+                  <div style={{ fontSize: "8px", fontWeight: "bold", paddingBottom: "2px" }}>
+                    Certified that the particulars given above are true and<br/>correct.
+                  </div>
+                  <div style={{ fontWeight: "bold", fontSize: "12px", marginTop: "4px" }}>
+                    For Vision Fab Private Limited
+                  </div>
+                </div>
+                <div style={{ fontSize: "8px", fontWeight: "bold", marginTop: "40px", paddingBottom: "4px" }}>
+                  Authorised Signatory
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </>

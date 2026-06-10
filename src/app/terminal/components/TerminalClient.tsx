@@ -10,6 +10,7 @@ import {
   lookupWorkOrder,
   getOpenScans,
   scanOut,
+  togglePauseSession,
   type ScanOutPayload,
 } from "../actions";
 
@@ -29,8 +30,45 @@ export default function TerminalClient({ support, loggedInEmployee, initialSessi
   const [activeSessions, setActiveSessions] = useState<any[]>(initialSessions);
   const [recentCompletes, setRecentCompletes] = useState<any[]>(initialRecentCompletes);
   
-  const displayEmployee = loggedInEmployee || null;
+  const displayEmployee = loggedInEmployee && loggedInEmployee.code !== "UNLINKED_USER" ? loggedInEmployee : null;
+  const [localEmployee, setLocalEmployee] = useState<any>(null);
   
+  const [now, setNow] = useState(new Date());
+  useEffect(() => {
+    const t = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(t);
+  }, []);
+
+  const handleTogglePause = async () => {
+    if (!selectedSession) return;
+    startTransition(async () => {
+      const res = await togglePauseSession(selectedSession.id);
+      if (res.success) {
+        hotToast.success(selectedSession.isPaused ? "Session Resumed" : "Session Paused");
+        router.refresh();
+      } else {
+        hotToast.error("Failed to pause/resume: " + res.error);
+      }
+    });
+  };
+
+  const activeEmployee = localEmployee || displayEmployee;
+  
+  const [loginCode, setLoginCode] = useState("");
+  const [loginError, setLoginError] = useState("");
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    const match = support.employees.find((emp) => emp.code.toLowerCase() === loginCode.toLowerCase());
+    if (match) {
+      setLocalEmployee(match);
+      setLoginError("");
+      setLoginCode("");
+    } else {
+      setLoginError("Invalid Employee ID.");
+    }
+  };
+
   useEffect(() => {
     const handlePopState = (e: PopStateEvent) => {
       // If the back button is pressed and the modal is open, close it
@@ -57,9 +95,11 @@ export default function TerminalClient({ support, loggedInEmployee, initialSessi
   };
 
   useEffect(() => {
-    setActiveSessions(initialSessions);
-    setRecentCompletes(initialRecentCompletes);
-  }, [initialSessions, initialRecentCompletes]);
+    if (activeEmployee) {
+      setActiveSessions(initialSessions.filter((s: any) => s.employeeId === activeEmployee.id));
+      setRecentCompletes(initialRecentCompletes);
+    }
+  }, [initialSessions, initialRecentCompletes, activeEmployee]);
   const [selectedSessionId, setSelectedSessionId] = useState<string>("");
 
   function handleIntakeScanOutRequest(routingProcessProfileId: string, employeeId: string, inProcessId: string, mainProcessId: string) {
@@ -82,6 +122,10 @@ export default function TerminalClient({ support, loggedInEmployee, initialSessi
   const [defectCount, setDefectCount] = useState<number | "">(0);
   const [defectReason, setDefectReason] = useState("");
   const [sessionNote, setSessionNote] = useState("");
+  const [weldingForm, setWeldingForm] = useState<any>({});
+  const [sprayForm, setSprayForm] = useState<any>({});
+  const [machiningForm, setMachiningForm] = useState<any>({});
+  const [machineCodes, setMachineCodes] = useState<string>("");
   const [isPending, startTransition] = useTransition();
 
   const [isManualProduced, setIsManualProduced] = useState(false);
@@ -103,6 +147,7 @@ export default function TerminalClient({ support, loggedInEmployee, initialSessi
   const remainingQty = Math.max(0, targetQty - previouslyCompleted - (Number(producedCount) || 0));
 
   function handleScanInSuccess() {
+    closeScanInModal();
     router.refresh();
   }
 
@@ -112,6 +157,10 @@ export default function TerminalClient({ support, loggedInEmployee, initialSessi
     setDefectCount(0);
     setDefectReason("");
     setSessionNote("");
+    setWeldingForm({});
+    setSprayForm({});
+    setMachiningForm({});
+    setMachineCodes("");
   }
 
   function handleCompleteSession() {
@@ -127,7 +176,19 @@ export default function TerminalClient({ support, loggedInEmployee, initialSessi
       completedQty: pCount, // Assuming producedCount is the valid completedQty for now
       rejectedQty: dCount > 0 ? dCount : undefined,
       rejectReason: defectReason || undefined,
+      machineCodes: machineCodes || undefined,
     };
+
+    const flags = selectedSession.routingProcess?.routingProcess;
+    
+    if (flags?.machining && !machiningForm.machineSerialNoId) {
+      hotToast.error("Please select a Machine in the Machining form.");
+      return;
+    }
+
+    if (flags?.welding) payload.welding = weldingForm;
+    if (flags?.sprayPainting) payload.spray = sprayForm;
+    if (flags?.machining) payload.machining = machiningForm;
 
     startTransition(async () => {
       const res = await scanOut(payload);
@@ -143,6 +204,43 @@ export default function TerminalClient({ support, loggedInEmployee, initialSessi
     });
   }
 
+  // If no active employee, show Login Screen
+  if (!activeEmployee) {
+    return (
+      <div className="bg-white min-h-[calc(100vh-80px)] rounded-3xl p-10 font-sans flex flex-col items-center justify-center text-slate-900 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-200">
+        <div className="w-[400px] border border-slate-200 rounded-2xl p-8 bg-slate-50 shadow-sm">
+          <div className="flex flex-col items-center justify-center mb-8">
+            <div className="bg-slate-900 rounded-xl p-4 mb-4 shadow-md">
+              <Monitor className="h-8 w-8 text-white" />
+            </div>
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Operator Login</h1>
+            <p className="text-sm text-slate-500 mt-2 font-medium">Scan or enter your Employee ID</p>
+          </div>
+          
+          <form onSubmit={handleLogin} className="space-y-5">
+            <div>
+              <input
+                type="text"
+                autoFocus
+                value={loginCode}
+                onChange={(e) => setLoginCode(e.target.value)}
+                className="w-full border-2 border-slate-200 px-4 py-3.5 rounded-xl focus:outline-none focus:ring-4 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all text-center text-lg font-mono font-medium tracking-wider"
+                placeholder="EMP-XXXX"
+              />
+            </div>
+            {loginError && <p className="text-red-500 text-sm text-center font-medium">{loginError}</p>}
+            <button
+              type="submit"
+              className="w-full bg-slate-900 hover:bg-slate-800 text-white py-3.5 rounded-xl font-semibold transition-colors shadow-md"
+            >
+              Sign In
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white min-h-[calc(100vh-80px)] rounded-3xl p-6 font-sans text-slate-900 relative overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-200">
       
@@ -152,14 +250,22 @@ export default function TerminalClient({ support, loggedInEmployee, initialSessi
           <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200">
             <Monitor className="text-cyan-600" size={28} />
           </div>
-          <div>
-            <div className="text-[10px] font-bold tracking-widest text-slate-500 uppercase mb-0.5">Operator Node</div>
-            <div className="text-2xl font-bold text-slate-900 tracking-tight leading-none mb-1">
-              {displayEmployee ? displayEmployee.name : "Unassigned"}
+          <div className="flex items-center gap-4">
+            <div>
+              <div className="text-[10px] font-bold tracking-widest text-slate-500 uppercase mb-0.5">Operator</div>
+              <div className="text-2xl font-bold text-slate-900 tracking-tight leading-none mb-1">
+                {activeEmployee.name}
+              </div>
             </div>
-            <div className="text-xs text-cyan-600 font-mono tracking-wider">
-              {displayEmployee ? displayEmployee.code : "N/A"}
-            </div>
+            {!displayEmployee && (
+              <button 
+                onClick={() => setLocalEmployee(null)}
+                className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-400 hover:text-slate-900"
+                title="Logout"
+              >
+                <LogOut className="h-5 w-5" />
+              </button>
+            )}
           </div>
         </div>
 
@@ -321,6 +427,73 @@ export default function TerminalClient({ support, loggedInEmployee, initialSessi
                         {selectedSession.timeIn ? new Date(selectedSession.timeIn).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: false}) : "--:--"}
                       </div>
                     </div>
+                    <div className="bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 flex flex-col items-center justify-center min-w-[100px]">
+                      <div className="text-[9px] font-bold text-slate-400 tracking-widest uppercase mb-1">Duration</div>
+                      <div className={`text-sm font-bold tracking-wider ${selectedSession.isPaused ? 'text-amber-500' : 'text-emerald-500'}`}>
+                        {(() => {
+                          if (!selectedSession.timeIn) return "--:--";
+                          let elapsedMs = now.getTime() - new Date(selectedSession.timeIn).getTime();
+                          const idleMs = (Number(selectedSession.totalIdleMinutes) || 0) * 60000;
+                          elapsedMs -= idleMs;
+                          if (selectedSession.isPaused && selectedSession.lastPauseTime) {
+                            elapsedMs -= (now.getTime() - new Date(selectedSession.lastPauseTime).getTime());
+                          }
+                          const totalMins = Math.max(0, Math.floor(elapsedMs / 60000));
+                          const hrs = Math.floor(totalMins / 60);
+                          const mins = totalMins % 60;
+                          return `${hrs}h ${mins}m`;
+                        })()}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action Bar */}
+                <div className="flex gap-4 mb-8 relative z-10">
+                  <button
+                    onClick={handleTogglePause}
+                    disabled={isPending}
+                    className={`px-6 py-3 rounded-xl font-bold transition-colors shadow-sm text-sm border flex items-center gap-2 ${selectedSession.isPaused ? 'bg-amber-100 text-amber-700 border-amber-200 hover:bg-amber-200' : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200'}`}
+                  >
+                    {selectedSession.isPaused ? "▶ Resume Job" : "⏸ Pause Job"}
+                  </button>
+                  {selectedSession.isPaused && (
+                    <div className="flex items-center text-amber-600 text-sm font-medium">
+                      Job is currently paused. Resume to track time.
+                    </div>
+                  )}
+                </div>
+
+                {/* Process Information Display */}
+                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 mb-8 relative z-10">
+                  <h3 className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mb-4 flex items-center gap-2">
+                    <Info size={14} className="text-cyan-600" /> Process Information
+                  </h3>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    <div>
+                      <div className="text-xs text-slate-500 font-medium mb-1">Drawing Number</div>
+                      <div className="font-semibold text-slate-900">DWG-{selectedSession.routingProcess?.inProcess?.workOrderNo?.split('-').pop() || '0000'}</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-slate-500 font-medium mb-1">Machine No.</div>
+                      <div className="font-semibold text-slate-900">{selectedSession.machineCodes || 'N/A'}</div>
+                    </div>
+                    <div className="col-span-2">
+                      <div className="text-xs text-slate-500 font-medium mb-1">Work Instructions</div>
+                      <div className="font-medium text-slate-700 text-xs leading-relaxed">Follow standard operating procedure. Ensure calibration before start.</div>
+                    </div>
+                    <div className="col-span-2">
+                      <div className="text-xs text-slate-500 font-medium mb-1">Safety Instructions</div>
+                      <div className="font-medium text-amber-700 bg-amber-50 rounded text-xs leading-relaxed p-2 border border-amber-100 mt-1">
+                        Wear PPE (Safety Glasses, Gloves). Beware of pinch points.
+                      </div>
+                    </div>
+                    <div className="col-span-2">
+                      <div className="text-xs text-slate-500 font-medium mb-1">Quality Requirements</div>
+                      <div className="font-medium text-slate-700 text-xs leading-relaxed mt-1">
+                        Tolerance ±0.05mm. Verify first piece with QA.
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -441,6 +614,70 @@ export default function TerminalClient({ support, loggedInEmployee, initialSessi
                     </div>
                   </div>
                 </div>
+
+                {/* Process Parameters Area */}
+                {selectedSession.routingProcess?.routingProcess?.welding && (
+                  <div className="bg-slate-50 border border-slate-200 rounded-3xl p-6 mb-8 relative z-10 shadow-inner">
+                    <h3 className="text-sm font-bold text-slate-900 mb-4 uppercase tracking-widest flex items-center gap-2">
+                      <Zap size={16} className="text-cyan-500" />
+                      Welding Parameters
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      <SearchableSelect 
+                        value={weldingForm.weldingMachineId || ""} 
+                        onChange={(e) => setWeldingForm({...weldingForm, weldingMachineId: e.target.value})} 
+                        className="w-full appearance-none bg-white border border-slate-200 text-slate-700 text-sm font-medium rounded-xl px-4 py-3 outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/20"
+                      >
+                        <option value="">Select Machine...</option>
+                        {support.weldingMachines.map((m) => <option key={m.id} value={m.id}>{m.machineCode} - {m.model}</option>)}
+                      </SearchableSelect>
+                      <input type="number" placeholder="Voltage (V)" value={weldingForm.voltageVolts || ""} onChange={(e) => setWeldingForm({...weldingForm, voltageVolts: e.target.value ? Number(e.target.value) : undefined})} className="w-full appearance-none bg-white border border-slate-200 text-slate-700 text-sm font-medium rounded-xl px-4 py-3 outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/20" />
+                      <input type="number" placeholder="Current (A)" value={weldingForm.currentAmp || ""} onChange={(e) => setWeldingForm({...weldingForm, currentAmp: e.target.value ? Number(e.target.value) : undefined})} className="w-full appearance-none bg-white border border-slate-200 text-slate-700 text-sm font-medium rounded-xl px-4 py-3 outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/20" />
+                      <input type="text" placeholder="Electrode Type" value={weldingForm.electrodeType || ""} onChange={(e) => setWeldingForm({...weldingForm, electrodeType: e.target.value})} className="w-full appearance-none bg-white border border-slate-200 text-slate-700 text-sm font-medium rounded-xl px-4 py-3 outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/20" />
+                      <input type="text" placeholder="Welding Position" value={weldingForm.weldingPosition || ""} onChange={(e) => setWeldingForm({...weldingForm, weldingPosition: e.target.value})} className="w-full appearance-none bg-white border border-slate-200 text-slate-700 text-sm font-medium rounded-xl px-4 py-3 outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/20" />
+                      <input type="text" placeholder="Remarks" value={weldingForm.remark || ""} onChange={(e) => setWeldingForm({...weldingForm, remark: e.target.value})} className="w-full appearance-none bg-white border border-slate-200 text-slate-700 text-sm font-medium rounded-xl px-4 py-3 outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/20" />
+                    </div>
+                  </div>
+                )}
+
+                {selectedSession.routingProcess?.routingProcess?.sprayPainting && (
+                  <div className="bg-slate-50 border border-slate-200 rounded-3xl p-6 mb-8 relative z-10 shadow-inner">
+                    <h3 className="text-sm font-bold text-slate-900 mb-4 uppercase tracking-widest flex items-center gap-2">
+                      <AlertCircle size={16} className="text-emerald-500" />
+                      Spray Painting Parameters
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      <input type="text" placeholder="Type of Paint" value={sprayForm.typeOfPaint || ""} onChange={(e) => setSprayForm({...sprayForm, typeOfPaint: e.target.value})} className="w-full appearance-none bg-white border border-slate-200 text-slate-700 text-sm font-medium rounded-xl px-4 py-3 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20" />
+                      <input type="number" placeholder="Paint Tank Pressure (Psi)" value={sprayForm.paintTankPressurePsi || ""} onChange={(e) => setSprayForm({...sprayForm, paintTankPressurePsi: e.target.value ? Number(e.target.value) : undefined})} className="w-full appearance-none bg-white border border-slate-200 text-slate-700 text-sm font-medium rounded-xl px-4 py-3 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20" />
+                      <input type="number" placeholder="Spray Nozzle Size" value={sprayForm.sprayNozzleSize || ""} onChange={(e) => setSprayForm({...sprayForm, sprayNozzleSize: e.target.value ? Number(e.target.value) : undefined})} className="w-full appearance-none bg-white border border-slate-200 text-slate-700 text-sm font-medium rounded-xl px-4 py-3 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20" />
+                      <input type="text" placeholder="Remarks" value={sprayForm.remark || ""} onChange={(e) => setSprayForm({...sprayForm, remark: e.target.value})} className="w-full appearance-none bg-white border border-slate-200 text-slate-700 text-sm font-medium rounded-xl px-4 py-3 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20" />
+                    </div>
+                  </div>
+                )}
+
+                {selectedSession.routingProcess?.routingProcess?.machining && (
+                  <div className="bg-slate-50 border border-slate-200 rounded-3xl p-6 mb-8 relative z-10 shadow-inner">
+                    <h3 className="text-sm font-bold text-slate-900 mb-4 uppercase tracking-widest flex items-center gap-2">
+                      <Monitor size={16} className="text-indigo-500" />
+                      Machining Parameters
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      <SearchableSelect 
+                        value={machiningForm.machineSerialNoId || ""} 
+                        onChange={(e) => setMachiningForm({...machiningForm, machineSerialNoId: e.target.value})} 
+                        className="w-full appearance-none bg-white border border-slate-200 text-slate-700 text-sm font-medium rounded-xl px-4 py-3 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20"
+                      >
+                        <option value="">Select Machine...</option>
+                        {support.machiningMachines.map((m) => <option key={m.id} value={m.id}>{m.machineCode} - {m.model}</option>)}
+                      </SearchableSelect>
+                      <input type="text" placeholder="CNC Program No" value={machiningForm.cncProgramNo || ""} onChange={(e) => setMachiningForm({...machiningForm, cncProgramNo: e.target.value})} className="w-full appearance-none bg-white border border-slate-200 text-slate-700 text-sm font-medium rounded-xl px-4 py-3 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20" />
+                      <input type="text" placeholder="Special Tooling" value={machiningForm.specialTooling || ""} onChange={(e) => setMachiningForm({...machiningForm, specialTooling: e.target.value})} className="w-full appearance-none bg-white border border-slate-200 text-slate-700 text-sm font-medium rounded-xl px-4 py-3 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20" />
+                      <input type="number" placeholder="Part Runtime (Hrs)" value={machiningForm.partRuntimeHr || ""} onChange={(e) => setMachiningForm({...machiningForm, partRuntimeHr: e.target.value ? Number(e.target.value) : undefined})} className="w-full appearance-none bg-white border border-slate-200 text-slate-700 text-sm font-medium rounded-xl px-4 py-3 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20" />
+                      <input type="number" placeholder="Part Runtime (Mins)" value={machiningForm.partRuntimeMins || ""} onChange={(e) => setMachiningForm({...machiningForm, partRuntimeMins: e.target.value ? Number(e.target.value) : undefined})} className="w-full appearance-none bg-white border border-slate-200 text-slate-700 text-sm font-medium rounded-xl px-4 py-3 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20" />
+                      <input type="text" placeholder="Remarks" value={machiningForm.remark || ""} onChange={(e) => setMachiningForm({...machiningForm, remark: e.target.value})} className="w-full appearance-none bg-white border border-slate-200 text-slate-700 text-sm font-medium rounded-xl px-4 py-3 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20" />
+                    </div>
+                  </div>
+                )}
 
                 {/* Bottom Stats & Action */}
                 <div className="grid grid-cols-1 md:grid-cols-[auto_auto_1fr] gap-6 mt-auto relative z-10">

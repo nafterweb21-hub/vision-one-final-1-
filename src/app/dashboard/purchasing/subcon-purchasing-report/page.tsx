@@ -18,6 +18,23 @@ export default function SubconPurchasingReportPage() {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
+  const [companies, setCompanies] = useState<any[]>([]);
+  const [suppliers, setSuppliers] = useState<any[]>([]);
+  const [mainProcessesList, setMainProcessesList] = useState<any[]>([]);
+  const [routingProcessesList, setRoutingProcessesList] = useState<any[]>([]);
+
+  React.useEffect(() => {
+    fetch("/api/purchasing/purchase-order/form-data")
+      .then((res) => res.json())
+      .then((data) => {
+        setCompanies(Array.isArray(data?.companies) ? data.companies : []);
+        setSuppliers(Array.isArray(data?.suppliers) ? data.suppliers : []);
+        setMainProcessesList(Array.isArray(data?.mainProcesses) ? data.mainProcesses : []);
+        setRoutingProcessesList(Array.isArray(data?.processProfiles) ? data.processProfiles : []);
+      })
+      .catch((err) => console.error("Failed to load dropdown data:", err));
+  }, []);
+
   const handleExport = async () => {
     setLoading(true);
     setErrorMsg("");
@@ -202,13 +219,18 @@ export default function SubconPurchasingReportPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
           <div className="space-y-1">
             <label className="text-xs font-semibold text-blue-700">Company</label>
-            <input
-              type="text"
+            <SearchableSelect
               value={company}
               onChange={(e) => setCompany(e.target.value)}
-              placeholder="Company Name"
               className="w-full px-3 py-2 text-sm bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-            />
+            >
+              <option value="">All Companies</option>
+              {companies.map((c) => (
+                <option key={c.id} value={c.companyName}>
+                  {c.companyName}
+                </option>
+              ))}
+            </SearchableSelect>
           </div>
           <div className="space-y-1">
             <label className="text-xs font-semibold text-blue-700">PO No</label>
@@ -253,13 +275,18 @@ export default function SubconPurchasingReportPage() {
           </div>
           <div className="space-y-1">
             <label className="text-xs font-semibold text-blue-700">Supplier</label>
-            <input
-              type="text"
+            <SearchableSelect
               value={supplier}
               onChange={(e) => setSupplier(e.target.value)}
-              placeholder="Supplier Name"
               className="w-full px-3 py-2 text-sm bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-            />
+            >
+              <option value="">All Suppliers</option>
+              {suppliers.map((s) => (
+                <option key={s.id} value={s.supplierName}>
+                  {s.supplierName}
+                </option>
+              ))}
+            </SearchableSelect>
           </div>
           <div className="space-y-1">
             <label className="text-xs font-semibold text-blue-700">Item Description</label>
@@ -273,23 +300,33 @@ export default function SubconPurchasingReportPage() {
           </div>
           <div className="space-y-1">
             <label className="text-xs font-semibold text-blue-700">Main Process</label>
-            <input
-              type="text"
+            <SearchableSelect
               value={mainProcess}
               onChange={(e) => setMainProcess(e.target.value)}
-              placeholder="Main Process"
               className="w-full px-3 py-2 text-sm bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-            />
+            >
+              <option value="">All Main Processes</option>
+              {mainProcessesList.map((mp) => (
+                <option key={mp.id} value={mp.process}>
+                  {mp.process}
+                </option>
+              ))}
+            </SearchableSelect>
           </div>
           <div className="space-y-1">
             <label className="text-xs font-semibold text-blue-700">Routing Process</label>
-            <input
-              type="text"
+            <SearchableSelect
               value={routingProcess}
               onChange={(e) => setRoutingProcess(e.target.value)}
-              placeholder="Routing Process"
               className="w-full px-3 py-2 text-sm bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-            />
+            >
+              <option value="">All Routing Processes</option>
+              {routingProcessesList.map((rp) => (
+                <option key={rp.id} value={rp.routingProcess}>
+                  {rp.routingProcess}
+                </option>
+              ))}
+            </SearchableSelect>
           </div>
         </div>
 

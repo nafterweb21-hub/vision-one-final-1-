@@ -17,7 +17,9 @@ ArrowLeft,
   Trash2,
 } from "lucide-react";
 
-export default function SubconRequestFormDetailPage({ params }: { params: { id: string } }) {
+export default function SubconRequestFormDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = React.use(params);
+
   const router = useRouter();
   
   const [srf, setSrf] = useState<any>(null);
@@ -37,12 +39,12 @@ export default function SubconRequestFormDetailPage({ params }: { params: { id: 
   useEffect(() => {
     fetchSrf();
     fetchEmployees();
-  }, [params.id]);
+  }, [id]);
 
   const fetchSrf = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/purchasing/subcon-request-form/${params.id}`);
+      const res = await fetch(`/api/purchasing/subcon-request-form/${id}`);
       if (!res.ok) {
         if (res.status === 404) throw new Error("Subcon Request Form not found.");
         throw new Error("Failed to fetch data.");
@@ -85,7 +87,7 @@ export default function SubconRequestFormDetailPage({ params }: { params: { id: 
         remark,
       };
 
-      const res = await fetch(`/api/purchasing/subcon-request-form/${params.id}`, {
+      const res = await fetch(`/api/purchasing/subcon-request-form/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -96,7 +98,7 @@ export default function SubconRequestFormDetailPage({ params }: { params: { id: 
         throw new Error(data.error || "Failed to update Subcon Request Form");
       }
 
-      router.push(`/dashboard/saved?module=Subcon Request&id=${srf.srfNo || params.id}&viewUrl=/dashboard/purchasing/subcon-request-form/${params.id}&backUrl=/dashboard/purchasing/subcon-request-form`);
+      router.push(`/dashboard/saved?module=Subcon Request&id=${srf.srfNo || id}&viewUrl=/dashboard/purchasing/subcon-request-form/${id}&backUrl=/dashboard/purchasing/subcon-request-form`);
     } catch (err: any) {
       hotToast.error(err.message);
       setSaving(false);
@@ -107,7 +109,7 @@ export default function SubconRequestFormDetailPage({ params }: { params: { id: 
     if (!await customConfirm("Are you sure you want to delete this Subcon Request Form?")) return;
     
     try {
-      const res = await fetch(`/api/purchasing/subcon-request-form/${params.id}`, {
+      const res = await fetch(`/api/purchasing/subcon-request-form/${id}`, {
         method: "DELETE",
       });
       if (!res.ok) {
@@ -122,7 +124,7 @@ export default function SubconRequestFormDetailPage({ params }: { params: { id: 
 
   const callAction = async (action: "submit" | "void") => {
     try {
-      const res = await fetch(`/api/purchasing/subcon-request-form/${params.id}/transition`, {
+      const res = await fetch(`/api/purchasing/subcon-request-form/${id}/transition`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action }),
@@ -138,7 +140,7 @@ export default function SubconRequestFormDetailPage({ params }: { params: { id: 
   };
 
   const handlePrint = () => {
-    window.open(`/print/subcon-request-form/${params.id}`, "_blank");
+    window.open(`/print/subcon-request-form/${id}`, "_blank");
   };
 
   if (loading) {
