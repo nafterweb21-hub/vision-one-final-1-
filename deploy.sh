@@ -59,7 +59,7 @@ rsync -avz -e "ssh $SSH_OPTS" \
   "$VPS_HOST:$DEPLOY_PATH/"
 
 echo "==> Installing production dependencies on VPS..."
-ssh $SSH_OPTS "$VPS_HOST" "$NVM_INIT && cd $DEPLOY_PATH && npm ci --omit=dev"
+ssh $SSH_OPTS "$VPS_HOST" "$NVM_INIT && cd $DEPLOY_PATH && npm install --omit=dev --no-fund --no-audit"
 
 echo "==> Generating Prisma client..."
 ssh $SSH_OPTS "$VPS_HOST" "$NVM_INIT && cd $DEPLOY_PATH && npx prisma generate"
