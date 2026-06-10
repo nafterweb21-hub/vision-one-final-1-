@@ -59,6 +59,7 @@ import {
   Cpu,
   Gauge,
   ChevronDown,
+  Landmark,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -325,6 +326,12 @@ export default function Sidebar({ userEmail, userRole, isAdmin }: SidebarProps) 
               <Link href="/dashboard/profiles/company" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/profiles/company")}>
                 <Building2 size={16} className="text-slate-500" fill="currentColor" />
                 <span>Company Profile</span>
+              </Link>
+            )}
+            {allow("/dashboard/profiles/bank") && (
+              <Link href="/dashboard/profiles/bank" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/profiles/bank")}>
+                <Landmark size={16} className="text-slate-500" />
+                <span>Bank Profile</span>
               </Link>
             )}
             {allow("/dashboard/master-profile/employee") && (

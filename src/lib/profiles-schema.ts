@@ -58,5 +58,13 @@ export const PROFILE_REGISTRY: Record<
     uniqueFields: ["partNo", "description"],
     searchFields: ["partNo", "description", "remark"],
   },
+  bank: {
+    modelName: "bankProfile",
+    displayName: "Bank Profile",
+    immutableFields: [],
+    mandatoryFields: ["bankName", "accountName", "accountNo"],
+    uniqueFields: ["accountNo"],
+    searchFields: ["bankName", "accountName", "accountNo"],
+  },
 };
 

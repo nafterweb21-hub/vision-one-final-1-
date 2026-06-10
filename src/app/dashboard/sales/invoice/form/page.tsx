@@ -191,6 +191,20 @@ export default function InvoiceFormPage() {
     });
   };
 
+  const handleBankChange = (bankId: string) => {
+    const bank = metadata.banks?.find((b: any) => b.id === bankId);
+    if (bank) {
+      const details = [
+        `Bank Name: ${bank.bankName}`,
+        `Account Name: ${bank.accountName}`,
+        `Account No: ${bank.accountNo}`,
+        bank.swiftCode ? `SWIFT Code: ${bank.swiftCode}` : null,
+        bank.branchCode ? `Branch Code: ${bank.branchCode}` : null,
+      ].filter(Boolean).join("\n");
+      setFormData((prev: any) => ({ ...prev, bankDetails: details }));
+    }
+  };
+
   const calculateTotals = (items: any[], taxRate: number) => {
     const amtBefore = items.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
     const taxAmt = amtBefore * (taxRate / 100);
@@ -826,16 +840,32 @@ export default function InvoiceFormPage() {
 
       <div className="bg-white rounded-xl shadow-sm border border-blue-200 p-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-           <div className="space-y-1">
-             <label className="text-sm font-semibold text-blue-900">Bank Details</label>
-             <textarea
-               value={formData.bankDetails || ""}
-               onChange={(e) => setFormData({ ...formData, bankDetails: e.target.value })}
-               disabled={!isDraft}
-               rows={3}
-               className="w-full px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-60"
-               placeholder="Enter bank account information..."
-             />
+           <div className="space-y-3">
+             <div className="space-y-1">
+               <label className="text-sm font-semibold text-blue-900">Select Bank Template</label>
+               <SearchableSelect
+                 value=""
+                 onChange={(e) => handleBankChange(e.target.value)}
+                 disabled={!isDraft}
+                 className="w-full px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-60"
+               >
+                 <option value="">Select a Bank Profile to auto-fill...</option>
+                 {metadata.banks?.map((b: any) => (
+                   <option key={b.id} value={b.id}>{b.bankName} - {b.accountNo}</option>
+                 ))}
+               </SearchableSelect>
+             </div>
+             <div className="space-y-1">
+               <label className="text-sm font-semibold text-blue-900">Bank Details</label>
+               <textarea
+                 value={formData.bankDetails || ""}
+                 onChange={(e) => setFormData({ ...formData, bankDetails: e.target.value })}
+                 disabled={!isDraft}
+                 rows={3}
+                 className="w-full px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-60"
+                 placeholder="Enter bank account information..."
+               />
+             </div>
            </div>
            <div className="space-y-1">
              <label className="text-sm font-semibold text-blue-900">Remarks</label>

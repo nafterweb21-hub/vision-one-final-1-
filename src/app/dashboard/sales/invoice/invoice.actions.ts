@@ -78,7 +78,7 @@ export async function getInvoice(id: string) {
 
 export async function getInvoiceFormData() {
   try {
-    const [companies, customers, paymentTerms, currencies, taxes, employees, uoms, parts] = await Promise.all([
+    const [companies, customers, paymentTerms, currencies, taxes, employees, uoms, parts, banks] = await Promise.all([
       prisma.companyProfile.findMany({ where: { status: "Active" } }),
       prisma.customerProfile.findMany({ where: { status: "Active" }, include: { addresses: true, contactPersons: true } }),
       prisma.paymentTermProfile.findMany({ where: { status: "Active" } }),
@@ -86,12 +86,13 @@ export async function getInvoiceFormData() {
       prisma.taxProfile.findMany({ where: { status: "Active" } }),
       prisma.employee.findMany({ where: { status: "ACTIVE" }, include: { user: true } }),
       prisma.uomProfile.findMany({ where: { status: "Active" } }),
-      prisma.finishedGoodProfile.findMany({ where: { status: "Active" } })
+      prisma.finishedGoodProfile.findMany({ where: { status: "Active" } }),
+      prisma.bankProfile.findMany({ where: { status: "Active" } })
     ]);
     
     return { 
       success: true, 
-      data: JSON.parse(JSON.stringify({ companies, customers, paymentTerms, currencies, taxes, employees, uoms, parts }))
+      data: JSON.parse(JSON.stringify({ companies, customers, paymentTerms, currencies, taxes, employees, uoms, parts, banks }))
     };
   } catch (error: any) {
     return { success: false, error: error.message };

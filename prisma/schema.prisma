@@ -1393,3 +1393,16 @@ model DesignationProfile {
   createdAt      DateTime   @default(now())
   updatedAt      DateTime   @updatedAt
 }
+
+model BankProfile {
+  id          String   @id @default(cuid())
+  bankName    String
+  accountName String
+  accountNo   String   @unique
+  swiftCode   String?
+  branchCode  String?
+  remark      String?
+  status      String   @default("Active")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
