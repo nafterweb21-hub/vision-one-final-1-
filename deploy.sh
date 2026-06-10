@@ -37,8 +37,11 @@ rsync -avz --delete -e "ssh $SSH_OPTS" \
   .next/ \
   "$VPS_HOST:$DEPLOY_PATH/.next/"
 
-echo "==> Syncing public/ assets..."
-rsync -avz --delete -e "ssh $SSH_OPTS" \
+echo "==> Ensuring uploads directory exists on VPS..."
+ssh $SSH_OPTS "$VPS_HOST" "mkdir -p $DEPLOY_PATH/public/uploads"
+
+echo "==> Syncing public/ assets (preserving uploaded files)..."
+rsync -avz --delete --exclude='uploads/' -e "ssh $SSH_OPTS" \
   public/ \
   "$VPS_HOST:$DEPLOY_PATH/public/"
 

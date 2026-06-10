@@ -76,7 +76,7 @@ export default async function PrintPurchaseOrderPage(
       <div className="page">
         <div className="header-row">
           <div className="logo-box">
-            <CompanyLogo src={po.company?.uploadUrl || ""} alt="COMPANY LOGO" style={{ maxHeight: "60px", maxWidth: "100%", objectFit: "contain" }} />
+            <CompanyLogo src={po.company?.uploadUrl || ""} alt="COMPANY LOGO" companyName={po.company?.companyName} style={{ maxHeight: "60px", maxWidth: "100%", objectFit: "contain" }} />
           </div>
           <div className="company-info dyn">
             <div style={{ fontSize: '13px', marginBottom: '4px' }}>{po.company?.companyName}</div>
