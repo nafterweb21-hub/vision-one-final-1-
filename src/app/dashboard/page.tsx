@@ -365,7 +365,7 @@ export default function DashboardPage() {
         <div className="rounded-3xl border border-slate-200 bg-white shadow-sm flex flex-col p-6">
           <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
             <h4 className="text-lg font-bold text-slate-900">Open NCRs</h4>
-            <a href="/dashboard/quality/ncr" className="flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-100">
+            <a href="/dashboard/qc/ncr" className="flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-100">
               View All <ArrowRight className="h-3 w-3" />
             </a>
           </div>
