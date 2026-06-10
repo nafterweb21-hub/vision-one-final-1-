@@ -24,6 +24,9 @@ ssh $SSH_OPTS "$VPS_HOST" "mkdir -p $DEPLOY_PATH/.next $DEPLOY_PATH/public $DEPL
     grep -q '/swapfile' /etc/fstab || echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab; \
   fi"
 
+echo "==> Generating Prisma client locally..."
+npx prisma generate
+
 echo "==> Building Next.js app..."
 npm run build
 
