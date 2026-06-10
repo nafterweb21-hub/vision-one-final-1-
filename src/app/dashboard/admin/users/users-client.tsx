@@ -140,29 +140,33 @@ export default function UsersClient({ currentUserId }: { currentUserId: string }
           placeholder="Search by name, email, employee..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="flex-1 w-full rounded-xl border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
+          className="flex-1 min-w-[200px] w-full rounded-xl border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
         />
-        <SearchableSelect
-          value={roleFilter}
-          onChange={(e) => setRoleFilter(e.target.value as "ALL" | Role)}
-          className="w-full sm:w-64 rounded-xl border border-blue-200 bg-blue-50 px-3 py-2.5 text-sm"
-        >
-          <option value="ALL">All Roles</option>
-          {ROLES.map((r) => (
-            <option key={r} value={r}>
-              {r}
-            </option>
-          ))}
-        </SearchableSelect>
-        <SearchableSelect
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value as "ALL" | "ACTIVE" | "INACTIVE")}
-          className="w-full sm:w-64 rounded-xl border border-blue-200 bg-blue-50 px-3 py-2.5 text-sm"
-        >
-          <option value="ALL">All Statuses</option>
-          <option value="ACTIVE">Active</option>
-          <option value="INACTIVE">Inactive</option>
-        </SearchableSelect>
+        <div className="w-full sm:w-64 shrink-0">
+          <SearchableSelect
+            value={roleFilter}
+            onChange={(e) => setRoleFilter(e.target.value as "ALL" | Role)}
+            className="w-full rounded-xl border border-blue-200 bg-blue-50 px-3 py-2.5 text-sm"
+          >
+            <option value="ALL">All Roles</option>
+            {ROLES.map((r) => (
+              <option key={r} value={r}>
+                {r}
+              </option>
+            ))}
+          </SearchableSelect>
+        </div>
+        <div className="w-full sm:w-64 shrink-0">
+          <SearchableSelect
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value as "ALL" | "ACTIVE" | "INACTIVE")}
+            className="w-full rounded-xl border border-blue-200 bg-blue-50 px-3 py-2.5 text-sm"
+          >
+            <option value="ALL">All Statuses</option>
+            <option value="ACTIVE">Active</option>
+            <option value="INACTIVE">Inactive</option>
+          </SearchableSelect>
+        </div>
       </div>
 
       {/* Table */}
