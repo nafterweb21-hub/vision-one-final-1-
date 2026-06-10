@@ -145,7 +145,7 @@ export default function UsersClient({ currentUserId }: { currentUserId: string }
         <SearchableSelect
           value={roleFilter}
           onChange={(e) => setRoleFilter(e.target.value as "ALL" | Role)}
-          className="w-full sm:w-48 rounded-xl border border-blue-200 bg-blue-50 px-3 py-2.5 text-sm"
+          className="w-full sm:w-64 rounded-xl border border-blue-200 bg-blue-50 px-3 py-2.5 text-sm"
         >
           <option value="ALL">All Roles</option>
           {ROLES.map((r) => (
@@ -157,7 +157,7 @@ export default function UsersClient({ currentUserId }: { currentUserId: string }
         <SearchableSelect
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value as "ALL" | "ACTIVE" | "INACTIVE")}
-          className="w-full sm:w-48 rounded-xl border border-blue-200 bg-blue-50 px-3 py-2.5 text-sm"
+          className="w-full sm:w-64 rounded-xl border border-blue-200 bg-blue-50 px-3 py-2.5 text-sm"
         >
           <option value="ALL">All Statuses</option>
           <option value="ACTIVE">Active</option>
