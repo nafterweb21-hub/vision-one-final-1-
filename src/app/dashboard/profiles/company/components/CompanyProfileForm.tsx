@@ -29,6 +29,7 @@ export default function CompanyProfileForm({ initialData }: CompanyProfileFormPr
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [logoUploading, setLogoUploading] = useState(false);
 
   const [formData, setFormData] = useState<CompanyProfile>(
     initialData || {
@@ -57,6 +58,30 @@ export default function CompanyProfileForm({ initialData }: CompanyProfileFormPr
       setFormData(prev => ({ ...prev, [name]: checked }));
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
+    }
+  };
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setLogoUploading(true);
+    setError(null);
+    try {
+      const data = new FormData();
+      data.append("file", file);
+      const res = await fetch("/api/upload", { method: "POST", body: data });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Upload failed");
+      setFormData(prev => ({
+        ...prev,
+        uploadUrl: json.url,
+        logoName: prev.logoName || file.name,
+      }));
+    } catch (err: any) {
+      setError(err.message || "Logo upload failed.");
+    } finally {
+      setLogoUploading(false);
     }
   };
 
@@ -237,20 +262,39 @@ export default function CompanyProfileForm({ initialData }: CompanyProfileFormPr
             </div>
           </div>
 
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-blue-700">Upload URL <span className="text-rose-500">*</span></label>
-            <div className="flex gap-2">
+          {/* Company Logo Upload */}
+          <div className="space-y-2">
+            <label className="text-xs font-semibold text-blue-700">
+              Company Logo <span className="text-rose-500">*</span>
+            </label>
+
+            {/* Preview */}
+            {formData.uploadUrl && (
+              <div className="flex items-center justify-center rounded-lg border border-blue-200 bg-blue-50 p-3 h-24">
+                <img
+                  src={formData.uploadUrl}
+                  alt="Company Logo Preview"
+                  className="max-h-20 max-w-full object-contain"
+                />
+              </div>
+            )}
+
+            <label className={`flex items-center gap-3 w-full cursor-pointer rounded-lg border-2 border-dashed px-4 py-3 transition-colors ${logoUploading ? 'border-indigo-300 bg-indigo-50' : 'border-blue-200 bg-white hover:border-indigo-400 hover:bg-indigo-50/30'}`}>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+              </svg>
+              <span className="text-sm text-blue-600 font-medium">
+                {logoUploading ? "Uploading..." : formData.uploadUrl ? "Change Logo" : "Upload Logo Image"}
+              </span>
               <input
-                type="text"
-                name="uploadUrl"
-                value={formData.uploadUrl}
-                onChange={handleChange}
-                className="flex-1 rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm text-blue-900 placeholder:text-blue-300 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                placeholder="https://..."
-                required
+                type="file"
+                accept="image/png,image/jpeg,image/jpg,image/gif"
+                className="hidden"
+                onChange={handleLogoUpload}
+                disabled={logoUploading}
               />
-            </div>
-            <p className="text-[10px] text-blue-500">Provide the direct hyperlink URL to the company profile document or logo pack.</p>
+            </label>
+            <p className="text-[10px] text-blue-500">Upload PNG, JPG or GIF. This logo will appear on printed documents.</p>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
@@ -334,7 +378,7 @@ export default function CompanyProfileForm({ initialData }: CompanyProfileFormPr
         </button>
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || logoUploading}
           className="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-6 py-2.5 text-sm font-bold text-white shadow-md shadow-indigo-600/20 hover:bg-indigo-500 hover:shadow-lg disabled:opacity-50 transition-all cursor-pointer"
         >
           {loading && <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>}

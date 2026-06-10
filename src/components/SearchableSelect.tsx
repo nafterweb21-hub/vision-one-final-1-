@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect, ReactNode, ChangeEvent } from "react";
 import { ChevronDown, Search } from "lucide-react";
+import { createPortal } from "react-dom";
 
 export interface SearchableSelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
   children?: ReactNode;
@@ -29,6 +30,7 @@ export function SearchableSelect({
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
+  const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({});
   
   const [internalValue, setInternalValue] = useState(value !== undefined ? value : defaultValue);
 
@@ -66,9 +68,44 @@ export function SearchableSelect({
     o.label.toLowerCase().includes(search.toLowerCase())
   );
 
+  const updatePosition = () => {
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      setDropdownStyle({
+        position: 'fixed',
+        top: dropdownPosition === "top" ? 'auto' : rect.bottom + 4,
+        bottom: dropdownPosition === "top" ? window.innerHeight - rect.top + 4 : 'auto',
+        left: rect.left,
+        width: rect.width,
+        zIndex: 99999,
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (open) {
+      updatePosition();
+      window.addEventListener('scroll', updatePosition, true);
+      window.addEventListener('resize', updatePosition);
+      return () => {
+        window.removeEventListener('scroll', updatePosition, true);
+        window.removeEventListener('resize', updatePosition);
+      };
+    }
+  }, [open, dropdownPosition]);
+
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        // We also need to check if click is inside the portal dropdown
+        const portalNode = document.getElementById(`searchable-select-portal-${name || 'generic'}`);
+        if (portalNode && portalNode.contains(e.target as Node)) {
+          return;
+        }
+        // Since we don't have a specific ID, let's just close it if clicking outside container
+        // Wait, if they click the portal, it's not inside container. 
+        // A better approach is to check if the target has a specific class or let event bubbling handle it.
+        // We can just rely on the mousedown inside the dropdown stopping propagation.
         setOpen(false);
       }
     };
@@ -94,6 +131,55 @@ export function SearchableSelect({
     setSearch("");
   };
 
+  const portalContent = open && typeof document !== "undefined" ? createPortal(
+    <div 
+      className="bg-white border border-blue-200 rounded-lg shadow-xl overflow-hidden flex flex-col"
+      style={{ ...dropdownStyle, maxHeight: "240px" }}
+      onMouseDown={(e) => e.stopPropagation()} // Prevent handleClickOutside from triggering
+    >
+      <div className="p-2 border-b border-blue-100 bg-slate-50 sticky top-0">
+        <div className="relative">
+          <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input
+            type="text"
+            autoFocus
+            className="w-full pl-8 pr-3 py-1.5 text-sm border border-blue-200 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            placeholder="Search..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      </div>
+      <div className="overflow-y-auto overflow-x-hidden flex-1 p-1">
+        {filteredOptions.length === 0 ? (
+          <div className="px-3 py-2 text-sm text-slate-500 text-center">No options found</div>
+        ) : (
+          filteredOptions.map((opt, i) => (
+            <div
+              key={i}
+              className={`px-3 py-2 text-sm rounded-md cursor-pointer truncate ${
+                String(internalValue) === String(opt.value)
+                  ? "bg-indigo-50 text-indigo-700 font-medium"
+                  : opt.disabled 
+                    ? "opacity-50 cursor-not-allowed" 
+                    : "hover:bg-slate-100 text-slate-700"
+              }`}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (!opt.disabled) handleSelect(opt.value);
+              }}
+              title={opt.label}
+            >
+              {opt.label || "\u00A0"}
+            </div>
+          ))
+        )}
+      </div>
+    </div>,
+    document.body
+  ) : null;
+
   return (
     <div className="relative w-full" ref={containerRef}>
       <div
@@ -118,49 +204,7 @@ export function SearchableSelect({
         {children}
       </select>
 
-      {open && (
-        <div className={`absolute z-50 w-full ${dropdownPosition === "top" ? "bottom-full mb-1" : "mt-1"} bg-white border border-blue-200 rounded-lg shadow-xl overflow-hidden max-h-60 flex flex-col`}>
-          <div className="p-2 border-b border-blue-100 bg-slate-50 sticky top-0">
-            <div className="relative">
-              <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
-                type="text"
-                autoFocus
-                className="w-full pl-8 pr-3 py-1.5 text-sm border border-blue-200 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                placeholder="Search..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                onClick={(e) => e.stopPropagation()}
-              />
-            </div>
-          </div>
-          <div className="overflow-y-auto overflow-x-hidden flex-1 p-1">
-            {filteredOptions.length === 0 ? (
-              <div className="px-3 py-2 text-sm text-slate-500 text-center">No options found</div>
-            ) : (
-              filteredOptions.map((opt, i) => (
-                <div
-                  key={i}
-                  className={`px-3 py-2 text-sm rounded-md cursor-pointer truncate ${
-                    String(internalValue) === String(opt.value)
-                      ? "bg-indigo-50 text-indigo-700 font-medium"
-                      : opt.disabled 
-                        ? "opacity-50 cursor-not-allowed" 
-                        : "hover:bg-slate-100 text-slate-700"
-                  }`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (!opt.disabled) handleSelect(opt.value);
-                  }}
-                  title={opt.label}
-                >
-                  {opt.label || "\u00A0"}
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-      )}
+      {portalContent}
     </div>
   );
 }

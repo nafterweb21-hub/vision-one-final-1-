@@ -52,7 +52,7 @@ export default async function PrintPurchaseOrderPage(
         .dyn { color: #3b82f6; }
         
         .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .logo-box { width: 55%; background-color: #e0f2fe; display: flex; align-items: center; justify-content: center; min-height: 80px; padding: 10px; }
+        .logo-box { width: 55%; display: flex; align-items: center; justify-content: center; min-height: 80px; padding: 10px; }
         .company-info { width: 40%; font-size: 11px; line-height: 1.4; }
         
         h1.title { text-align: center; font-size: 18px; margin: 20px 0; font-weight: bold; text-decoration: underline; }
