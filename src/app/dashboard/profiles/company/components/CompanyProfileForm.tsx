@@ -259,7 +259,7 @@ export default function CompanyProfileForm({ initialData }: CompanyProfileFormPr
             {formData.uploadUrl && (
               <div className="flex items-center justify-center rounded-lg border border-blue-200 bg-blue-50 p-3 h-24">
                 <img
-                  src={formData.uploadUrl}
+                  src={formData.uploadUrl.startsWith("/uploads") ? `/api${formData.uploadUrl}` : formData.uploadUrl}
                   alt="Company Logo Preview"
                   className="max-h-20 max-w-full object-contain"
                 />
