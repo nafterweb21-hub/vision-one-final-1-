@@ -134,18 +134,18 @@ export default function UsersClient({ currentUserId }: { currentUserId: string }
       </div>
 
       {/* Filters */}
-      <div className="grid grid-cols-12 gap-4 rounded-2xl border border-blue-200 bg-white p-5 shadow-sm">
+      <div className="flex flex-col sm:flex-row items-center gap-4 rounded-2xl border border-blue-200 bg-white p-5 shadow-sm">
         <input
           type="text"
           placeholder="Search by name, email, employee..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="col-span-6 rounded-xl border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
+          className="flex-1 w-full rounded-xl border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
         />
         <SearchableSelect
           value={roleFilter}
           onChange={(e) => setRoleFilter(e.target.value as "ALL" | Role)}
-          className="col-span-3 rounded-xl border border-blue-200 bg-blue-50 px-3 py-2.5 text-sm"
+          className="w-full sm:w-48 rounded-xl border border-blue-200 bg-blue-50 px-3 py-2.5 text-sm"
         >
           <option value="ALL">All Roles</option>
           {ROLES.map((r) => (
@@ -157,7 +157,7 @@ export default function UsersClient({ currentUserId }: { currentUserId: string }
         <SearchableSelect
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value as "ALL" | "ACTIVE" | "INACTIVE")}
-          className="col-span-3 rounded-xl border border-blue-200 bg-blue-50 px-3 py-2.5 text-sm"
+          className="w-full sm:w-48 rounded-xl border border-blue-200 bg-blue-50 px-3 py-2.5 text-sm"
         >
           <option value="ALL">All Statuses</option>
           <option value="ACTIVE">Active</option>

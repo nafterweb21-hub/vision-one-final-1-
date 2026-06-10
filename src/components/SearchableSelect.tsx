@@ -77,6 +77,7 @@ export function SearchableSelect({
         bottom: dropdownPosition === "top" ? window.innerHeight - rect.top + 4 : 'auto',
         left: rect.left,
         width: rect.width,
+        minWidth: Math.max(rect.width, 160),
         zIndex: 99999,
       });
     }
