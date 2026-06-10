@@ -12,7 +12,6 @@ interface CompanyProfile {
   phoneNo: string;
   faxNo: string;
   email: string | null;
-  website: string | null;
   rocNo: string | null;
   gstRegistrationNo: string;
   uploadUrl: string;

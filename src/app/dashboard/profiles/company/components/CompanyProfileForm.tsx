@@ -10,7 +10,6 @@ interface CompanyProfile {
   phoneNo: string;
   faxNo: string;
   email: string | null;
-  website: string | null;
   rocNo: string | null;
   gstRegistrationNo: string;
   uploadUrl: string;
@@ -38,7 +37,6 @@ export default function CompanyProfileForm({ initialData }: CompanyProfileFormPr
       phoneNo: "",
       faxNo: "",
       email: "",
-      website: "",
       rocNo: "",
       gstRegistrationNo: "",
       uploadUrl: "",
@@ -214,17 +212,6 @@ export default function CompanyProfileForm({ initialData }: CompanyProfileFormPr
                 onChange={handleChange}
                 className="w-full rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm text-blue-900 placeholder:text-blue-300 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                 placeholder="info@company.com"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-blue-700">Website</label>
-              <input
-                type="text"
-                name="website"
-                value={formData.website || ""}
-                onChange={handleChange}
-                className="w-full rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm text-blue-900 placeholder:text-blue-300 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                placeholder="www.company.com"
               />
             </div>
           </div>
