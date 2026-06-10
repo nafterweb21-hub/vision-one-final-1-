@@ -335,26 +335,26 @@ export default function BankProfilePage() {
 
               <div className="space-y-2">
                 <label className="text-xs font-semibold uppercase tracking-wider text-blue-500 flex items-center gap-1">
-                  SWIFT Code
+                  IFSC Code
                 </label>
                 <input
                   type="text"
                   value={formSwiftCode}
                   onChange={(e) => setFormSwiftCode(e.target.value)}
-                  placeholder="e.g. DBSSXXXX"
+                  placeholder="e.g. ICIC0007934"
                   className="w-full px-3 py-2.5 text-sm bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-colors"
                 />
               </div>
 
               <div className="space-y-2">
                 <label className="text-xs font-semibold uppercase tracking-wider text-blue-500 flex items-center gap-1">
-                  Branch Code
+                  Branch Name
                 </label>
                 <input
                   type="text"
                   value={formBranchCode}
                   onChange={(e) => setFormBranchCode(e.target.value)}
-                  placeholder="e.g. 001"
+                  placeholder="e.g. Ranipet Branch"
                   className="w-full px-3 py-2.5 text-sm bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-colors"
                 />
               </div>
@@ -449,8 +449,8 @@ export default function BankProfilePage() {
                 { label: "Bank Name",      value: activeItem.bankName },
                 { label: "Account Name",   value: activeItem.accountName },
                 { label: "Account Number", value: activeItem.accountNo },
-                { label: "SWIFT Code",     value: activeItem.swiftCode || "—" },
-                { label: "Branch Code",    value: activeItem.branchCode || "—" },
+                { label: "IFSC Code",      value: activeItem.swiftCode || "—" },
+                { label: "Branch Name",    value: activeItem.branchCode || "—" },
                 { label: "Status",         value: activeItem.status === "Active" ? "Active" : "Deactive" },
                 { label: "Created Date",   value: formatDate(activeItem.createdAt) },
                 { label: "Updated Date",   value: formatDate(activeItem.updatedAt) },
@@ -563,7 +563,7 @@ export default function BankProfilePage() {
               <thead className="bg-blue-50 text-xs font-bold uppercase tracking-wider text-blue-500 border-b border-blue-200">
                 <tr>
                   <th className="px-5 py-4">Bank & Account</th>
-                  <th className="px-5 py-4">SWIFT / Branch</th>
+                  <th className="px-5 py-4">IFSC / Branch</th>
                   <th className="px-5 py-4">Status</th>
                   <th className="px-5 py-4 text-right">Action</th>
                 </tr>
@@ -594,7 +594,7 @@ export default function BankProfilePage() {
                     <td className="px-5 py-4 text-blue-500 text-sm">
                       {item.swiftCode || item.branchCode ? (
                         <div>
-                          {item.swiftCode && <span className="block">SWIFT: {item.swiftCode}</span>}
+                          {item.swiftCode && <span className="block">IFSC: {item.swiftCode}</span>}
                           {item.branchCode && <span className="block">Branch: {item.branchCode}</span>}
                         </div>
                       ) : (

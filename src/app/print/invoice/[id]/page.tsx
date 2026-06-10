@@ -44,6 +44,24 @@ function currencyToWords(amount: number): string {
   return words + ' ONLY';
 }
 
+function parseBankDetails(text: string) {
+  const data = { bankName: '', branch: '', accName: '', accNo: '', ifsc: '' };
+  if (!text) return data;
+  text.split('\n').forEach(line => {
+    const parts = line.split(':');
+    if (parts.length < 2) return;
+    const key = parts[0].trim().toLowerCase();
+    const val = parts.slice(1).join(':').trim();
+    if (key.includes('bank name')) data.bankName = val;
+    else if (key.includes('account name')) data.accName = val;
+    else if (key.includes('account no')) data.accNo = val;
+    else if (key.includes('ifsc') || key.includes('swift')) data.ifsc = val;
+    else if (key.includes('branch')) data.branch = val;
+  });
+  return data;
+}
+
+
 export default async function PrintInvoicePage(
   { params }: { params: Promise<{ id: string }> },
 ) {
@@ -83,6 +101,8 @@ export default async function PrintInvoicePage(
   const customerRoNumber = inv.customer.roNumber || "";
   const customerPan = inv.customer.pan || "";
   const customerPlace = inv.customer.placeOfSupply || "";
+
+  const bankData = parseBankDetails(inv.bankDetails || "");
 
   return (
     <>
@@ -378,19 +398,19 @@ export default async function PrintInvoicePage(
                   <tbody>
                     <tr>
                       <td style={{ padding: "4px", width: "20%" }}>Name</td>
-                      <td style={{ padding: "4px", width: "30%", fontWeight: "bold" }}>ICICI BANK</td>
+                      <td style={{ padding: "4px", width: "30%", fontWeight: "bold" }}>{bankData.bankName}</td>
                       <td style={{ padding: "4px", width: "20%" }}>Branch</td>
-                      <td style={{ padding: "4px", width: "30%", fontWeight: "bold" }}>Ranipet Branch</td>
+                      <td style={{ padding: "4px", width: "30%", fontWeight: "bold" }}>{bankData.branch}</td>
                     </tr>
                     <tr>
                       <td style={{ padding: "4px" }}>Acc. Name</td>
-                      <td style={{ padding: "4px", fontWeight: "bold" }}>Vision Fab Private Limited</td>
+                      <td style={{ padding: "4px", fontWeight: "bold" }}>{bankData.accName}</td>
                       <td style={{ padding: "4px" }}>Acc. Number</td>
-                      <td style={{ padding: "4px", fontWeight: "bold" }}>793405000558</td>
+                      <td style={{ padding: "4px", fontWeight: "bold" }}>{bankData.accNo}</td>
                     </tr>
                     <tr>
                       <td style={{ padding: "4px" }}>IFSC</td>
-                      <td style={{ padding: "4px", fontWeight: "bold" }}>ICIC0007934</td>
+                      <td style={{ padding: "4px", fontWeight: "bold" }}>{bankData.ifsc}</td>
                       <td style={{ padding: "4px" }}></td>
                       <td style={{ padding: "4px" }}></td>
                     </tr>

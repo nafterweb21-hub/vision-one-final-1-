@@ -194,14 +194,12 @@ export default function InvoiceFormPage() {
   const handleBankChange = (bankId: string) => {
     const bank = metadata.banks?.find((b: any) => b.id === bankId);
     if (bank) {
-      const details = [
-        `Bank Name: ${bank.bankName}`,
-        `Account Name: ${bank.accountName}`,
-        `Account No: ${bank.accountNo}`,
-        bank.swiftCode ? `SWIFT Code: ${bank.swiftCode}` : null,
-        bank.branchCode ? `Branch Code: ${bank.branchCode}` : null,
-      ].filter(Boolean).join("\n");
-      setFormData((prev: any) => ({ ...prev, bankDetails: details }));
+      const text = `Bank Name: ${bank.bankName}
+Account Name: ${bank.accountName}
+Account No: ${bank.accountNo}
+IFSC: ${bank.swiftCode || ""}
+Branch: ${bank.branchCode || ""}`;
+      setFormData((prev: any) => ({ ...prev, bankDetails: text.trim() }));
     }
   };
 
