@@ -137,12 +137,10 @@ export async function scanIn(input: { workOrderNo: string; inProcessId: string; 
     if (candidates.length === 0) {
       return { success: false, error: "No matching routing row found" };
     }
-    const target = candidates.find((c: any) => c.status !== "Completed");
+    let target = candidates.find((c: any) => c.status !== "Completed");
     if (!target) {
-      return { success: false, error: "All matching routing rows are already Completed" };
-    }
-    if (target.status === "Completed") {
-      return { success: false, error: "Routing process is already Completed" };
+      // Allow scanning into the last completed process for rework purposes
+      target = candidates[candidates.length - 1];
     }
 
     // Subcon gate

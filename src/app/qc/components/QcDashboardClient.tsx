@@ -56,9 +56,8 @@ export default function QcDashboardClient({ initialAwaiting, initialWorkOrders, 
     setDrawerType("WORK_ORDER");
     
     // Auto-calculate available qty to inspect
-    // If it's a first inspection, it's total qty. If it's a re-inspection, it might be the reworked qty,
-    // but the drawer data for WO is just the WO itself. We'll use quantity for now.
-    const qty = wo.quantity ? Number(wo.quantity) : 0;
+    // Default to the quantity that Production actually scanned out (producedQty).
+    const qty = wo.producedQty !== undefined ? Number(wo.producedQty) : (wo.quantity ? Number(wo.quantity) : 0);
     
     setPassedQty(qty);
     setDefectsFound(0);

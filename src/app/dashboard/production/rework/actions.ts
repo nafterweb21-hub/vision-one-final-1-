@@ -27,7 +27,7 @@ export async function getActiveReworks() {
 }
 
 export async function startRework(reworkId: string) {
-  await prisma.workOrderRework.update({
+  const rework = await prisma.workOrderRework.update({
     where: { id: reworkId },
     data: {
       status: "Rework In Progress",
@@ -35,8 +35,14 @@ export async function startRework(reworkId: string) {
     }
   });
 
+  await prisma.workOrder.update({
+    where: { workOrderNo: rework.workOrderNo },
+    data: { status: "WIP" }
+  });
+
   revalidatePath('/dashboard/production/rework');
   revalidatePath('/dashboard/production/work-order');
+  revalidatePath('/terminal');
   return { success: true };
 }
 

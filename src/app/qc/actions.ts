@@ -114,6 +114,11 @@ export async function submitWorkOrderQc(
   else if (qcAcceptance === "Rejected") status = "Rejected";
 
   const wo = await prisma.workOrder.findUnique({ where: { workOrderNo } });
+  
+  if (employeeId === "demo-qc") {
+    const defaultEmp = await prisma.employee.findFirst();
+    if (defaultEmp) employeeId = defaultEmp.id;
+  }
 
   if (qcAcceptance === "Rejected" && employeeId && wo) {
     const existingNcr = await prisma.ncr.findFirst({
@@ -235,6 +240,10 @@ export async function getReworkForReinspection() {
 }
 
 export async function approveRework(reworkId: string, employeeId: string, remark?: string) {
+  if (employeeId === "demo-qc") {
+    const defaultEmp = await prisma.employee.findFirst();
+    if (defaultEmp) employeeId = defaultEmp.id;
+  }
   const rework = await prisma.workOrderRework.findUnique({ where: { id: reworkId }, include: { workOrder: true } });
   if (!rework) return { success: false, error: "Rework task not found" };
 
@@ -273,6 +282,10 @@ export async function approveRework(reworkId: string, employeeId: string, remark
 }
 
 export async function rejectRework(reworkId: string, employeeId: string, rejectedQty: number, remark?: string) {
+  if (employeeId === "demo-qc") {
+    const defaultEmp = await prisma.employee.findFirst();
+    if (defaultEmp) employeeId = defaultEmp.id;
+  }
   const rework = await prisma.workOrderRework.findUnique({ where: { id: reworkId }, include: { workOrder: true } });
   if (!rework) return { success: false, error: "Rework task not found" };
 
