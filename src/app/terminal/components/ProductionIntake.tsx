@@ -356,6 +356,11 @@ export default function ProductionIntake({ isOpen, onClose, support, onSuccess, 
                   <div>
                     <div className="text-sm font-bold text-slate-900">{wo.workOrderNo}</div>
                     <div className="text-xs text-slate-500">{wo.customer?.customerName || "No Customer"}</div>
+                    {wo.quantity != null && (
+                      <div className="text-xs font-bold text-cyan-700 mt-1">
+                        TOTAL QTY: {wo.quantity} {wo.uom || ''}
+                      </div>
+                    )}
                   </div>
                   <button 
                     onClick={() => { setWo(null); setWoNo(""); }}
