@@ -384,6 +384,23 @@ export async function markRoutingProcessStatus(id: string, status: "New" | "WIP"
       await prisma.workOrder.update({ where: { workOrderNo: wo.workOrderNo }, data: { status: "WIP" } });
     }
 
+    if (status === "Completed") {
+      const allRps = await prisma.routingProcess.findMany({
+        where: {
+          inProcess: {
+            workOrderNo: wo.workOrderNo
+          }
+        }
+      });
+      const allCompleted = allRps.every((r: any) => r.status === "Completed");
+      if (allCompleted && wo.status !== "Completed" && wo.status !== "Rejected") {
+        await prisma.workOrder.update({
+          where: { workOrderNo: wo.workOrderNo },
+          data: { status: "Pending for QC" }
+        });
+      }
+    }
+
     revalidatePath(`/dashboard/production/work-order/${wo.workOrderNo}/routing`);
     revalidatePath(`/dashboard/production/work-order/${wo.workOrderNo}`);
     return { success: true };

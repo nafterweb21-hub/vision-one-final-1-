@@ -3,12 +3,13 @@
 import { useState, useEffect, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Search, ClipboardCheck, ArrowLeft, RefreshCw, FileText, CheckCircle, AlertCircle, X, Loader2, Calendar, User, Briefcase, Activity, LogOut } from "lucide-react";
-import { submitWorkOrderQc, submitProcessQc } from "../actions";
+import { submitWorkOrderQc, submitProcessQc, sendBackToProduction, approveRework, rejectRework } from "../actions";
 
-export default function QcDashboardClient({ initialAwaiting, initialWorkOrders }: { initialAwaiting: any[], initialWorkOrders: any[] }) {
+export default function QcDashboardClient({ initialAwaiting, initialWorkOrders, initialReworks }: { initialAwaiting: any[], initialWorkOrders: any[], initialReworks?: any[] }) {
   const router = useRouter();
   const [awaiting, setAwaiting] = useState<any[]>(initialAwaiting);
   const [workOrders, setWorkOrders] = useState<any[]>(initialWorkOrders);
+  const [reworks, setReworks] = useState<any[]>(initialReworks || []);
   const [searchQuery, setSearchQuery] = useState("");
   const [isRefreshing, setIsRefreshing] = useState(false);
   
@@ -16,7 +17,7 @@ export default function QcDashboardClient({ initialAwaiting, initialWorkOrders }
 
   // Drawer State
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [drawerType, setDrawerType] = useState<"WORK_ORDER" | "PROCESS" | null>(null);
+  const [drawerType, setDrawerType] = useState<"WORK_ORDER" | "PROCESS" | "REWORK" | null>(null);
   const [drawerData, setDrawerData] = useState<any>(null);
 
   // Form State
@@ -35,7 +36,8 @@ export default function QcDashboardClient({ initialAwaiting, initialWorkOrders }
   useEffect(() => {
     setAwaiting(initialAwaiting);
     setWorkOrders(initialWorkOrders);
-  }, [initialAwaiting, initialWorkOrders]);
+    setReworks(initialReworks || []);
+  }, [initialAwaiting, initialWorkOrders, initialReworks]);
 
   const handleRefresh = () => {
     setIsRefreshing(true);
@@ -52,7 +54,13 @@ export default function QcDashboardClient({ initialAwaiting, initialWorkOrders }
   const openWorkOrderInspection = (wo: any) => {
     setDrawerData(wo);
     setDrawerType("WORK_ORDER");
-    setPassedQty(wo.quantity ? Number(wo.quantity) : 0);
+    
+    // Auto-calculate available qty to inspect
+    // If it's a first inspection, it's total qty. If it's a re-inspection, it might be the reworked qty,
+    // but the drawer data for WO is just the WO itself. We'll use quantity for now.
+    const qty = wo.quantity ? Number(wo.quantity) : 0;
+    
+    setPassedQty(qty);
     setDefectsFound(0);
     setQcStatus("Approved");
     setRemarks("");
@@ -73,7 +81,17 @@ export default function QcDashboardClient({ initialAwaiting, initialWorkOrders }
     if (!drawerData) return;
     startTransition(async () => {
       const fullRemark = `[Passed: ${passedQty} | Defects: ${defectsFound}] ${remarks}`;
-      await submitWorkOrderQc(drawerData.workOrderNo, qcStatus, fullRemark);
+      
+      // Pass 'demo-qc' as employeeId for now to trigger the NCR and rework creation
+      await submitWorkOrderQc(
+        drawerData.workOrderNo, 
+        qcStatus, 
+        fullRemark, 
+        "demo-qc", // employeeId
+        passedQty, 
+        defectsFound
+      );
+      
       setDrawerOpen(false);
       handleRefresh();
     });
@@ -86,6 +104,45 @@ export default function QcDashboardClient({ initialAwaiting, initialWorkOrders }
       await submitProcessQc(drawerData.id, qcStatus, fullRemark);
       setDrawerOpen(false);
       handleRefresh();
+    });
+  };
+
+  const openReworkInspection = (rwk: any) => {
+    setDrawerData(rwk);
+    setDrawerType("REWORK");
+    setPassedQty(rwk.reworkedQty ? Number(rwk.reworkedQty) : 0);
+    setDefectsFound(0);
+    setQcStatus("Approved");
+    setRemarks("");
+    setDrawerOpen(true);
+  };
+
+  const handleSubmitRework = () => {
+    if (!drawerData) return;
+    startTransition(async () => {
+      // Pass 'demo-qc' as employeeId for now
+      if (qcStatus === "Approved") {
+        await approveRework(drawerData.id, "demo-qc", remarks);
+      } else {
+        await rejectRework(drawerData.id, "demo-qc", defectsFound, remarks);
+      }
+      setDrawerOpen(false);
+      handleRefresh();
+    });
+  };
+
+  const handleSendBack = (workOrderNo: string) => {
+    startTransition(async () => {
+      try {
+        const result = await sendBackToProduction(workOrderNo);
+        if (result?.success) {
+          handleRefresh();
+        } else {
+          alert(`Failed to send back: ${result?.error || 'Unknown error'}`);
+        }
+      } catch (err: any) {
+        alert(`Error: ${err?.message || 'Failed to send back to production'}`);
+      }
     });
   };
 
@@ -132,8 +189,7 @@ export default function QcDashboardClient({ initialAwaiting, initialWorkOrders }
           </button>
         </div>
       </div>
-
-      <div className="grid grid-cols-1 xl:grid-cols-[1fr_400px] lg:grid-cols-[1fr_350px] gap-6 relative z-10">
+      <div className="grid grid-cols-1 xl:grid-cols-[1fr_350px_350px] lg:grid-cols-[1fr_300px_300px] gap-6 relative z-10">
         
         {/* LEFT COLUMN: WORK ORDER INFORMATION */}
         <div className="bg-white/60 backdrop-blur-xl border border-white shadow-xl shadow-blue-900/5 rounded-3xl overflow-hidden flex flex-col">
@@ -198,8 +254,13 @@ export default function QcDashboardClient({ initialAwaiting, initialWorkOrders }
                               {wo.workOrderNo}
                             </div>
                             <div className="text-[9px] uppercase font-bold tracking-widest text-blue-400 mt-0.5">
-                              {Number(wo.quantity || 0)} UNITS
+                              {Number(wo.totalQty || 0)} UNITS
                             </div>
+                            {wo.rejectedQty > 0 && (
+                              <div className="text-[9px] uppercase font-bold tracking-widest text-rose-500 mt-0.5">
+                                {wo.rejectedQty} REJECTED
+                              </div>
+                            )}
                           </div>
                         </div>
                       </td>
@@ -235,11 +296,23 @@ export default function QcDashboardClient({ initialAwaiting, initialWorkOrders }
                             </div>
                           </div>
                           <div>
+                          <div 
+                            onClick={() => {
+                              if (wo.status !== 'Completed' && wo.qcAcceptance !== 'Approved') {
+                                openWorkOrderInspection(wo);
+                              }
+                            }}
+                            className={wo.status !== 'Completed' && wo.qcAcceptance !== 'Approved' ? "cursor-pointer hover:opacity-80 transition-opacity" : ""}
+                          >
                             {wo.status === 'Completed' || wo.qcAcceptance === 'Approved' ? (
                               <span className="px-3 py-1 text-[9px] uppercase tracking-widest font-bold rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200 shadow-sm">
                                 APPROVED
                               </span>
-                            ) : wo.status === 'Pending for QC' ? (
+                            ) : wo.qcAcceptance === 'Rejected' ? (
+                              <span className="px-3 py-1 text-[9px] uppercase tracking-widest font-bold rounded-full bg-rose-50 text-rose-600 border border-rose-200 shadow-sm">
+                                REJECTED
+                              </span>
+                            ) : wo.qcAcceptance === 'Pending' || wo.status === 'Pending for QC' ? (
                               <span className="px-3 py-1 text-[9px] uppercase tracking-widest font-bold rounded-full bg-amber-50 text-amber-600 border border-amber-200 shadow-sm">
                                 PENDING
                               </span>
@@ -249,15 +322,24 @@ export default function QcDashboardClient({ initialAwaiting, initialWorkOrders }
                               </span>
                             )}
                           </div>
+                          </div>
                         </div>
                       </td>
                       
-                      {/* ACTION */}
                       <td className="px-4 py-4 pr-6 text-right whitespace-nowrap">
-                        {wo.status !== 'Completed' && wo.qcAcceptance !== 'Approved' && (
+                        {wo.qcAcceptance === 'Rejected' ? (
+                          <button 
+                            onClick={() => handleSendBack(wo.workOrderNo)}
+                            className="px-4 py-2 bg-gradient-to-b from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-white border border-amber-400 text-xs font-bold tracking-wider rounded-xl transition-all shadow-[0_4px_10px_rgba(245,158,11,0.3)] hover:shadow-[0_6px_15px_rgba(245,158,11,0.4)]"
+                            disabled={isPending}
+                          >
+                            SEND BACK TO PROD
+                          </button>
+                        ) : wo.status !== 'Completed' && wo.qcAcceptance !== 'Approved' && (
                           <button 
                             onClick={() => openWorkOrderInspection(wo)}
                             className="px-4 py-2 bg-gradient-to-b from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white border border-emerald-400 text-xs font-bold tracking-wider rounded-xl transition-all shadow-[0_4px_10px_rgba(16,185,129,0.3)] hover:shadow-[0_6px_15px_rgba(16,185,129,0.4)]"
+                            disabled={isPending}
                           >
                             INSPECT
                           </button>
@@ -342,6 +424,76 @@ export default function QcDashboardClient({ initialAwaiting, initialWorkOrders }
             )}
           </div>
         </div>
+
+        {/* THIRD COLUMN: REWORK RE-INSPECTION */}
+        <div className="bg-white/60 backdrop-blur-xl border border-white shadow-xl shadow-blue-900/5 rounded-3xl flex flex-col min-h-[700px]">
+          <div className="p-6 border-b border-blue-100/50 bg-white/50 flex items-center justify-between">
+            <h2 className="text-sm font-bold tracking-widest uppercase text-blue-950 flex items-center gap-2">
+              <RefreshCw size={18} className="text-indigo-500" />
+              Rework Re-inspection
+            </h2>
+            <span className="px-3 py-1 bg-indigo-50 border border-indigo-100 text-indigo-600 shadow-sm text-xs font-bold rounded-full">
+              {reworks.length} Items
+            </span>
+          </div>
+
+          <div className="p-5 flex-1 overflow-y-auto custom-scrollbar">
+            {reworks.length === 0 ? (
+              <div className="h-full flex flex-col items-center justify-center text-blue-400 p-8 text-center">
+                <div className="p-4 bg-indigo-50 rounded-full mb-4 border border-indigo-100 shadow-inner">
+                  <CheckCircle size={48} className="text-indigo-400" />
+                </div>
+                <p className="text-sm font-bold uppercase tracking-widest text-indigo-600">All Caught Up</p>
+                <p className="text-xs font-medium mt-2 text-blue-400">No reworked items are awaiting inspection.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {reworks.map((rwk) => {
+                  const wo = rwk.workOrder;
+                  return (
+                    <div key={rwk.id} className="bg-white/80 border border-white rounded-2xl p-5 shadow-sm hover:shadow-lg shadow-blue-900/5 transition-all relative overflow-hidden group">
+                      <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-indigo-400 to-indigo-600 shadow-[2px_0_8px_rgba(99,102,241,0.3)]"></div>
+                      
+                      <div className="flex justify-between items-start mb-3">
+                        <div>
+                          <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1.5 flex items-center gap-2">
+                            <span suppressHydrationWarning className="text-slate-500">{new Date(rwk.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span> 
+                            <span className="w-1 h-1 rounded-full bg-slate-300"></span> 
+                            {rwk.reworkNo}
+                          </div>
+                          <div className="font-bold text-blue-950 text-base tracking-wide">
+                            {wo?.workOrderNo || "Unknown WO"}
+                          </div>
+                        </div>
+                        <span className="px-2.5 py-1 bg-indigo-50 text-indigo-700 text-[9px] uppercase font-bold tracking-widest rounded-lg border border-indigo-100 shadow-inner">
+                          REWORK
+                        </span>
+                      </div>
+                      
+                      <div className="flex gap-6 mt-4 pt-4 border-t border-slate-100">
+                        <div>
+                          <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Reworked Qty</div>
+                          <div className="text-sm font-bold text-blue-900">{Number(rwk.reworkedQty)}</div>
+                        </div>
+                        <div>
+                          <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Client</div>
+                          <div className="text-sm font-bold text-blue-900 truncate max-w-[150px]">{wo?.customer?.customerName || "N/A"}</div>
+                        </div>
+                      </div>
+
+                      <button 
+                        onClick={() => openReworkInspection(rwk)}
+                        className="w-full mt-5 py-3 bg-white hover:bg-indigo-50 text-indigo-600 text-xs font-bold tracking-widest rounded-xl border border-indigo-200 transition-all shadow-sm hover:shadow-md"
+                      >
+                        RE-INSPECT
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* INSPECTION DRAWER (MODAL) */}
@@ -387,7 +539,14 @@ export default function QcDashboardClient({ initialAwaiting, initialWorkOrders }
                     <input 
                       type="number" 
                       value={passedQty}
-                      onChange={(e) => setPassedQty(parseInt(e.target.value) || 0)}
+                      onChange={(e) => {
+                        const val = parseInt(e.target.value) || 0;
+                        setPassedQty(val);
+                        const total = drawerData.quantity ? Number(drawerData.quantity) : 0;
+                        setDefectsFound(Math.max(0, total - val));
+                        if (val < total) setQcStatus("Rejected");
+                        else setQcStatus("Approved");
+                      }}
                       className="w-full px-4 py-3 bg-white border border-blue-200 rounded-xl text-sm font-bold text-blue-950 shadow-sm focus:border-blue-400 focus:ring-1 focus:ring-blue-400 outline-none transition-all"
                     />
                   </div>
@@ -396,7 +555,14 @@ export default function QcDashboardClient({ initialAwaiting, initialWorkOrders }
                     <input 
                       type="number" 
                       value={defectsFound}
-                      onChange={(e) => setDefectsFound(parseInt(e.target.value) || 0)}
+                      onChange={(e) => {
+                        const val = parseInt(e.target.value) || 0;
+                        setDefectsFound(val);
+                        const total = drawerData.quantity ? Number(drawerData.quantity) : 0;
+                        setPassedQty(Math.max(0, total - val));
+                        if (val > 0) setQcStatus("Rejected");
+                        else setQcStatus("Approved");
+                      }}
                       className="w-full px-4 py-3 bg-white border border-blue-200 rounded-xl text-sm font-bold text-blue-950 shadow-sm focus:border-blue-400 focus:ring-1 focus:ring-blue-400 outline-none transition-all"
                     />
                   </div>
@@ -603,6 +769,120 @@ export default function QcDashboardClient({ initialAwaiting, initialWorkOrders }
                 >
                   {isPending ? <Loader2 size={18} className="animate-spin text-white" /> : <ClipboardCheck size={18} />}
                   SUBMIT INSPECTION
+                </button>
+              </div>
+            </div>
+          ) : drawerType === "REWORK" && drawerData ? (
+            <div className="relative w-full max-w-lg bg-white/95 backdrop-blur-2xl border border-white shadow-2xl rounded-3xl flex flex-col animate-scale-up overflow-hidden m-4">
+              <div className="p-6 border-b border-blue-100 flex items-center justify-between bg-blue-50/50">
+                <h3 className="text-xl font-black italic tracking-wide text-blue-950 uppercase flex items-center gap-2">
+                  <Activity className="text-indigo-500" size={24} />
+                  Rework Re-inspection
+                </h3>
+                <button 
+                  onClick={() => setDrawerOpen(false)}
+                  disabled={isPending}
+                  className="p-2 rounded-full hover:bg-slate-200 text-slate-500 transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-6">
+                
+                {/* REWORK NO / WORK ORDER FIELD */}
+                <div>
+                  <label className="block text-[10px] font-bold text-blue-500 uppercase tracking-widest mb-2">Rework Task</label>
+                  <div className="w-full px-4 py-3 bg-slate-50 border border-blue-100 rounded-xl text-sm font-bold text-blue-950 shadow-inner flex flex-col justify-center">
+                    <span>{drawerData.reworkNo}</span>
+                    <span className="text-xs text-blue-600 mt-1">For Work Order: {drawerData.workOrderNo}</span>
+                  </div>
+                </div>
+
+                <div className="bg-rose-50 p-4 rounded-xl border border-rose-100 shadow-sm">
+                  <div className="text-[10px] font-bold text-rose-500 uppercase tracking-widest mb-2">Original Rejection</div>
+                  <div className="text-xs text-rose-950 italic">
+                    "{drawerData.rejectionReason}"
+                  </div>
+                </div>
+
+                {/* QTY ROW */}
+                <div className="grid grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-[10px] font-bold text-blue-500 uppercase tracking-widest mb-2">Passed Qty</label>
+                    <input 
+                      type="number" 
+                      value={passedQty}
+                      onChange={(e) => {
+                        const val = parseInt(e.target.value) || 0;
+                        setPassedQty(val);
+                        const total = drawerData.reworkedQty ? Number(drawerData.reworkedQty) : 0;
+                        setDefectsFound(Math.max(0, total - val));
+                        if (val < total) setQcStatus("Rejected");
+                        else setQcStatus("Approved");
+                      }}
+                      className="w-full px-4 py-3 bg-white border border-blue-200 rounded-xl text-sm font-bold text-blue-950 shadow-sm focus:border-blue-400 focus:ring-1 focus:ring-blue-400 outline-none transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-blue-500 uppercase tracking-widest mb-2">Reject Again</label>
+                    <input 
+                      type="number" 
+                      value={defectsFound}
+                      onChange={(e) => {
+                        const val = parseInt(e.target.value) || 0;
+                        setDefectsFound(val);
+                        const total = drawerData.reworkedQty ? Number(drawerData.reworkedQty) : 0;
+                        setPassedQty(Math.max(0, total - val));
+                        if (val > 0) setQcStatus("Rejected");
+                        else setQcStatus("Approved");
+                      }}
+                      className="w-full px-4 py-3 bg-white border border-blue-200 rounded-xl text-sm font-bold text-blue-950 shadow-sm focus:border-blue-400 focus:ring-1 focus:ring-blue-400 outline-none transition-all"
+                    />
+                  </div>
+                </div>
+
+                {/* STATUS */}
+                <div>
+                  <label className="block text-[10px] font-bold text-blue-500 uppercase tracking-widest mb-2">Re-inspection Status</label>
+                  <div className="flex bg-slate-100 p-1 rounded-xl">
+                    <button 
+                      type="button" 
+                      onClick={() => setQcStatus("Approved")} 
+                      className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all ${qcStatus === 'Approved' ? 'bg-white text-emerald-600 shadow-sm border border-slate-200/50' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
+                    >
+                      Approved
+                    </button>
+                    <button 
+                      type="button" 
+                      onClick={() => setQcStatus("Rejected")} 
+                      className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all ${qcStatus === 'Rejected' ? 'bg-white text-rose-600 shadow-sm border border-slate-200/50' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
+                    >
+                      Rejected Again
+                    </button>
+                  </div>
+                </div>
+
+                {/* REMARKS */}
+                <div>
+                  <label className="block text-[10px] font-bold text-blue-500 uppercase tracking-widest mb-2">Remarks</label>
+                  <textarea 
+                    value={remarks}
+                    onChange={(e) => setRemarks(e.target.value)}
+                    placeholder="Re-inspection notes..."
+                    rows={3}
+                    className="w-full px-4 py-3 bg-white border border-blue-200 rounded-xl text-sm font-medium text-slate-700 shadow-sm focus:border-blue-400 focus:ring-1 focus:ring-blue-400 outline-none transition-all resize-none placeholder:text-slate-400"
+                  />
+                </div>
+
+                {/* SUBMIT */}
+                <button 
+                  onClick={handleSubmitRework}
+                  disabled={isPending}
+                  className="w-full py-4 bg-gradient-to-b from-indigo-400 to-indigo-500 hover:from-indigo-300 hover:to-indigo-400 border border-indigo-400 text-white font-bold text-sm tracking-widest rounded-xl transition-all shadow-[0_4px_15px_rgba(99,102,241,0.3)] hover:shadow-[0_6px_20px_rgba(99,102,241,0.4)] flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {isPending ? <Loader2 size={18} className="animate-spin text-white" /> : <ClipboardCheck size={18} />}
+                  SUBMIT RE-INSPECTION
                 </button>
               </div>
             </div>

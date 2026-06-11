@@ -97,6 +97,9 @@ export async function createCustomerProfile(data: CustomerProfileInput) {
     if (!customerName) {
       return { success: false, error: "Customer Name is required." };
     }
+    if (!data.gstin || !data.gstin.trim()) {
+      return { success: false, error: "GSTIN is required." };
+    }
 
     // Check uniqueness of Customer Code
     const existingCode = await prisma.customerProfile.findUnique({
@@ -139,6 +142,10 @@ export async function updateCustomerInfo(id: string, data: { remarks?: string; g
     });
     if (!existing) {
       return { success: false, error: "Customer profile not found." };
+    }
+
+    if (!data.gstin || !data.gstin.trim()) {
+      return { success: false, error: "GSTIN is required." };
     }
 
     const updated = await prisma.customerProfile.update({

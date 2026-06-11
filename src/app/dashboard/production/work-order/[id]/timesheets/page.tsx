@@ -251,6 +251,8 @@ export default async function WorkOrderTimesheetsPage({
                         welding={ts.weldingParameter ? JSON.parse(JSON.stringify(ts.weldingParameter)) : null}
                         spray={ts.sprayParameter ? JSON.parse(JSON.stringify(ts.sprayParameter)) : null}
                         machining={ts.machiningParameter ? JSON.parse(JSON.stringify(ts.machiningParameter)) : null}
+                        expectedType={ts.processName}
+                        targetTimesheetId={ts.id}
                         employees={employees}
                         workOrderNo={id}
                         editable={editable}

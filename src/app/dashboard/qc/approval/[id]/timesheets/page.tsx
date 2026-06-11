@@ -198,6 +198,8 @@ export default async function QcApprovalTimesheetsPage({
                         welding={ts.weldingParameter ? JSON.parse(JSON.stringify(ts.weldingParameter)) : null}
                         spray={ts.sprayParameter ? JSON.parse(JSON.stringify(ts.sprayParameter)) : null}
                         machining={ts.machiningParameter ? JSON.parse(JSON.stringify(ts.machiningParameter)) : null}
+                        expectedType={ts.processName}
+                        targetTimesheetId={ts.id}
                       />
                     </td>
                     <td className="px-4 py-3 text-center">

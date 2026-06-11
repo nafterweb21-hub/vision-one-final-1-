@@ -159,6 +159,7 @@ export default function CustomerProfilePage() {
 
     const code = newCode.trim();
     const name = newName.trim();
+    const gstin = newGstin.trim();
 
     if (!code) {
       setFormError("Customer Code is required.");
@@ -166,6 +167,10 @@ export default function CustomerProfilePage() {
     }
     if (!name) {
       setFormError("Customer Name is required.");
+      return;
+    }
+    if (!gstin) {
+      setFormError("GSTIN is required.");
       return;
     }
 
@@ -199,6 +204,12 @@ export default function CustomerProfilePage() {
   const handleSaveInfo = async () => {
     if (!selectedCustomerId) return;
     setRemarksSuccess(false);
+
+    if (!gstinEdit.trim()) {
+      hotToast.error("GSTIN is required.");
+      return;
+    }
+
     startTransition(async () => {
       const res = await updateCustomerInfo(selectedCustomerId, { remarks: remarksEdit, gstin: gstinEdit });
       if (res.success) {
@@ -444,7 +455,7 @@ export default function CustomerProfilePage() {
   );
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 bg-white text-black">
+    <div className="mx-auto max-w-6xl space-y-6 bg-white text-black p-6 md:p-8 rounded-2xl shadow-sm border border-blue-100">
       {/* Top Banner/Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -666,10 +677,11 @@ export default function CustomerProfilePage() {
               {/* GSTIN */}
               <div className="flex flex-col gap-1.5">
                 <label className="text-sm font-bold text-blue-800">
-                  GSTIN
+                  GSTIN <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
+                  required
                   placeholder="e.g. 22AAAAA0000A1Z5"
                   value={newGstin}
                   onChange={(e) => setNewGstin(e.target.value)}
@@ -801,10 +813,11 @@ export default function CustomerProfilePage() {
 
                       <div className="flex flex-col gap-1.5">
                         <label className="text-base font-bold text-blue-800">
-                          GSTIN
+                          GSTIN <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="text"
+                          required
                           placeholder="Enter GSTIN..."
                           value={gstinEdit}
                           onChange={(e) => setGstinEdit(e.target.value)}

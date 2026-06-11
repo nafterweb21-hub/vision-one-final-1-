@@ -9,6 +9,7 @@ const STATUS_STYLES: Record<string, string> = {
   "On Hold": "bg-orange-100 text-orange-700",
   "Pending for QC": "bg-purple-100 text-purple-700",
   Completed: "bg-emerald-100 text-emerald-700",
+  Rejected: "bg-rose-100 text-rose-700",
   Void: "bg-rose-100 text-rose-700",
   Cancelled: "bg-rose-100 text-rose-700",
 };
@@ -22,6 +23,7 @@ export default async function WorkOrdersPage() {
 
     try {
       workOrders = await prisma.workOrder.findMany({
+        where: { status: { notIn: ["Void", "Cancelled"] } },
         orderBy: { createdAt: "desc" },
         take: 500, // Prevent OOM on large datasets
         include: { 
@@ -33,7 +35,8 @@ export default async function WorkOrdersPage() {
                   sn: true,
                   productionTimesheets: {
                     select: {
-                      completedQty: true
+                      completedQty: true,
+                      rejectedQty: true
                     }
                   }
                 }
@@ -49,20 +52,25 @@ export default async function WorkOrdersPage() {
 
     const enrichedWorkOrders = (workOrders || []).filter(Boolean).map((wo: any) => {
       let producedQty = 0;
-      const totalQty = Number(wo?.quantity) || 0;
+      let rejectedQty = 0;
+      const totalQty = Number(wo.quantity) || 0;
       
-      if (wo?.status === "Completed") {
+      if (wo.status === "Completed") {
         producedQty = totalQty;
-      } else if (wo?.inProcesses && wo.inProcesses.length > 0) {
+      } else if (wo.inProcesses && wo.inProcesses.length > 0) {
         let lastProcess = null;
         let maxSn = -1;
         wo.inProcesses.forEach((ip: any) => {
-          ip?.routingProcesses?.forEach((rp: any) => {
+          ip.routingProcesses?.forEach((rp: any) => {
             const numericSn = parseInt(rp?.sn, 10);
             if (!isNaN(numericSn) && numericSn > maxSn) {
               maxSn = numericSn;
               lastProcess = rp;
             }
+            // Sum up rejected quantities across all processes
+            rp.productionTimesheets?.forEach((ts: any) => {
+              rejectedQty += (Number(ts.rejectedQty) || 0);
+            });
           });
         });
         
@@ -81,7 +89,9 @@ export default async function WorkOrdersPage() {
         jobDescription: wo.jobDescription || "-",
         uom: wo.uom || "",
         status: wo.status || "Unknown",
+        qcAcceptance: wo.qcAcceptance,
         producedQty,
+        rejectedQty,
         totalQty
       };
     });
@@ -95,7 +105,15 @@ export default async function WorkOrdersPage() {
               Work orders are created from confirmed Sales Order batches via Outstanding Work.
             </p>
           </div>
-          <OutstandingWorkButton />
+          <div className="flex items-center gap-4">
+            <Link 
+              href="/dashboard/production/rework" 
+              className="px-4 py-2 bg-amber-50 border border-amber-200 text-amber-700 font-bold text-sm rounded-lg hover:bg-amber-100 transition-colors"
+            >
+              Rework Queue
+            </Link>
+            <OutstandingWorkButton />
+          </div>
         </div>
 
         {errorMsg && (
@@ -129,8 +147,20 @@ export default async function WorkOrdersPage() {
                 </thead>
                 <tbody className="divide-y divide-slate-200">
                   {enrichedWorkOrders.map((wo: any, index: number) => (
-                    <tr key={wo.workOrderNo || `wo-${index}`} className="hover:bg-slate-50/50">
-                      <td className="px-6 py-4 font-medium text-blue-600">{wo.workOrderNo || "-"}</td>
+                    <tr
+                      key={wo.workOrderNo || `wo-${index}`}
+                      className={`hover:bg-slate-50/50 ${
+                        wo.status === 'Rejected' ? 'bg-rose-50 border-l-4 border-l-rose-500' : ''
+                      }`}
+                    >
+                      <td className="px-6 py-4 font-medium text-blue-600">
+                        {wo.workOrderNo || "-"}
+                        {wo.status === 'Rejected' && (
+                          <div className="text-[10px] font-bold text-rose-600 mt-0.5 uppercase tracking-wide">
+                            ⚠ QC Rejected — Rework Required
+                          </div>
+                        )}
+                      </td>
                       <td className="px-6 py-4">{wo.date ? new Date(wo.date).toLocaleDateString() : "-"}</td>
                       <td className="px-6 py-4">{wo.customerName}</td>
                       <td className="px-6 py-4 max-w-xs truncate">{wo.jobDescription}</td>
@@ -140,7 +170,12 @@ export default async function WorkOrdersPage() {
                             <span>{wo.producedQty} <span className="text-[9px] text-slate-400 font-medium uppercase">{wo.uom}</span></span>
                             <span className="text-slate-400">/ {wo.totalQty}</span>
                           </div>
-                          <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                          {wo.rejectedQty > 0 && (
+                            <div className="text-[10px] font-bold text-rose-500 mt-0.5">
+                              {wo.rejectedQty} Rejected
+                            </div>
+                          )}
+                          <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden mt-1">
                             <div 
                               className="bg-emerald-500 h-full rounded-full transition-all duration-500" 
                               style={{ width: `${wo.totalQty > 0 ? (wo.producedQty / wo.totalQty) * 100 : 0}%` }}
@@ -149,25 +184,49 @@ export default async function WorkOrdersPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <span
-                          className={`px-2.5 py-1 rounded-full text-xs font-medium ${
-                            wo.status ? (STATUS_STYLES[wo.status] ?? "bg-slate-100 text-slate-700") : "bg-slate-100 text-slate-700"
-                          }`}
-                        >
-                          {wo.status || "Unknown"}
-                        </span>
+                        {wo.status === 'Rejected' ? (
+                          <span className="px-2.5 py-1.5 rounded-full text-xs font-bold bg-rose-600 text-white">
+                            QC REJECTED
+                          </span>
+                        ) : wo.status === 'Completed' || wo.qcAcceptance === 'Approved' ? (
+                          <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">
+                            {wo.status || "Completed"}
+                          </span>
+                        ) : wo.status === 'Pending for QC' ? (
+                          <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-700">
+                            PENDING QC
+                          </span>
+                        ) : (
+                          <span
+                            className={`px-2.5 py-1 rounded-full text-xs font-medium ${
+                              wo.status ? (STATUS_STYLES[wo.status] ?? "bg-slate-100 text-slate-700") : "bg-slate-100 text-slate-700"
+                            }`}
+                          >
+                            {wo.status || "Unknown"}
+                          </span>
+                        )}
                       </td>
                       <td className="px-6 py-4 text-right">
-                        {wo.workOrderNo ? (
-                          <Link
-                            href={`/dashboard/production/work-order/${wo.workOrderNo}`}
-                            className="text-blue-600 hover:text-blue-800 font-medium text-sm"
-                          >
-                            Open
-                          </Link>
-                        ) : (
-                          <span className="text-slate-400 text-sm">Unavailable</span>
-                        )}
+                        <div className="flex items-center justify-end gap-3">
+                          {wo.status === 'Rejected' && (
+                            <Link 
+                              href="/dashboard/production/rework"
+                              className="text-amber-600 hover:text-amber-800 font-bold text-xs bg-amber-50 px-2 py-1 rounded"
+                            >
+                              Fix
+                            </Link>
+                          )}
+                          {wo.workOrderNo ? (
+                            <Link
+                              href={`/dashboard/production/work-order/${wo.workOrderNo}`}
+                              className="text-blue-600 hover:text-blue-800 font-medium text-sm"
+                            >
+                              Open
+                            </Link>
+                          ) : (
+                            <span className="text-slate-400 text-sm">Unavailable</span>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}

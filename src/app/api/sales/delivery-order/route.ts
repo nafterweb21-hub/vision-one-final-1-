@@ -51,6 +51,29 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Delivery Order No already exists." }, { status: 400 });
     }
 
+    // ── QC Guard: Only allow Completed + QC Approved work orders ──
+    if (items && items.length > 0) {
+      const workOrderNos = items.map((i: any) => i.workOrderNo).filter(Boolean);
+      const invalidWOs = await prisma.workOrder.findMany({
+        where: {
+          workOrderNo: { in: workOrderNos },
+          OR: [
+            { status: { not: "Completed" } },
+            { qcAcceptance: { not: "Approved" } },
+          ],
+        },
+        select: { workOrderNo: true, status: true, qcAcceptance: true },
+      });
+
+      if (invalidWOs.length > 0) {
+        const list = invalidWOs.map((w: any) => `${w.workOrderNo} (Status: ${w.status}, QC: ${w.qcAcceptance || "Pending"})`).join(", ");
+        return NextResponse.json(
+          { error: `Cannot create Delivery Order. The following Work Orders are not QC Approved: ${list}` },
+          { status: 400 }
+        );
+      }
+    }
+
     const newDO = await prisma.deliveryOrder.create({
       data: {
         doNo,

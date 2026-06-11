@@ -75,7 +75,7 @@ export default function CreateSupplierPage() {
   };
 
   return (
-    <div className="w-full space-y-6 bg-white text-black">
+    <div className="mx-auto max-w-6xl space-y-6 bg-white text-black p-6 md:p-8 rounded-2xl shadow-sm border border-blue-100">
       {/* Navigation & Header */}
       <div className="space-y-2">
         <Link
@@ -109,7 +109,7 @@ export default function CreateSupplierPage() {
             </div>
           )}
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             {/* LEFT PANEL — Supplier Profile (Span 5) */}
             <div className="lg:col-span-5 flex flex-col gap-4.5 lg:border-r lg:border-blue-100 pr-0 lg:pr-6">
               <div className="flex items-center gap-2 mb-1">
@@ -126,7 +126,7 @@ export default function CreateSupplierPage() {
                   placeholder="e.g. SUP001"
                   value={supplierCode}
                   onChange={(e) => setSupplierCode(e.target.value)}
-                  className="rounded-lg glossy-input px-3 py-2 text-base outline-hidden w-full focus:ring-2 focus:ring-blue-500/20"
+                  className="rounded-lg glossy-input px-3 py-2 text-sm outline-hidden w-full focus:ring-2 focus:ring-blue-500/20"
                 />
                 <p className="text-xs text-blue-500">Once saved, cannot be changed. Must be unique.</p>
               </div>
@@ -140,7 +140,7 @@ export default function CreateSupplierPage() {
                   placeholder="e.g. ABC Supplies Pte Ltd"
                   value={supplierName}
                   onChange={(e) => setSupplierName(e.target.value)}
-                  className="rounded-lg glossy-input px-3 py-2 text-base outline-hidden w-full focus:ring-2 focus:ring-blue-500/20"
+                  className="rounded-lg glossy-input px-3 py-2 text-sm outline-hidden w-full focus:ring-2 focus:ring-blue-500/20"
                 />
                 <p className="text-xs text-blue-500">Once saved, cannot be changed. Must be unique.</p>
               </div>
@@ -152,13 +152,13 @@ export default function CreateSupplierPage() {
                   placeholder="Enter remarks..."
                   value={remarks}
                   onChange={(e) => setRemarks(e.target.value)}
-                  className="rounded-lg glossy-input px-3 py-2 text-base outline-hidden resize-none w-full flex-1 min-h-[120px] focus:ring-2 focus:ring-blue-500/20"
+                  className="rounded-lg glossy-input px-3 py-2 text-sm outline-hidden resize-none w-full min-h-[120px] focus:ring-2 focus:ring-blue-500/20"
                 />
               </div>
             </div>
 
             {/* RIGHT PANEL — Contact Person + Address (Span 7) */}
-            <div className="lg:col-span-7 flex flex-col gap-5 justify-between pl-0">
+            <div className="lg:col-span-7 flex flex-col gap-5 justify-between lg:pl-6">
               {/* Contact Person */}
               <div className="flex flex-col gap-3">
                 <div className="flex items-center gap-2">
@@ -166,65 +166,65 @@ export default function CreateSupplierPage() {
                   <h3 className="text-base font-bold text-black">Contact Person</h3>
                   <span className="text-xs text-blue-500">(optional)</span>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div className="flex flex-col gap-1">
-                    <label className="text-xs font-bold text-blue-700">Contact Person</label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-1 sm:col-span-2">
+                    <label className="text-sm font-bold text-blue-700">Contact Person</label>
                     <input
                       type="text"
                       placeholder="Full name"
                       value={contactName}
                       onChange={(e) => setContactName(e.target.value)}
-                      className="rounded-lg glossy-input px-2.5 py-1.5 text-sm w-full focus:ring-2 focus:ring-blue-500/20"
+                      className="rounded-lg glossy-input px-3 py-2 text-sm w-full outline-hidden focus:ring-2 focus:ring-blue-500/20"
                     />
                   </div>
                   <div className="flex flex-col gap-1">
-                    <label className="text-xs font-bold text-blue-700">Tel No</label>
+                    <label className="text-sm font-bold text-blue-700">Tel No</label>
                     <input
                       type="text"
                       placeholder="Telephone"
                       value={contactTel}
                       onChange={(e) => setContactTel(e.target.value)}
-                      className="rounded-lg glossy-input px-2.5 py-1.5 text-sm w-full focus:ring-2 focus:ring-blue-500/20"
+                      className="rounded-lg glossy-input px-3 py-2 text-sm w-full outline-hidden focus:ring-2 focus:ring-blue-500/20"
                     />
                   </div>
                   <div className="flex flex-col gap-1">
-                    <label className="text-xs font-bold text-blue-700">Mobile No</label>
+                    <label className="text-sm font-bold text-blue-700">Mobile No</label>
                     <input
                       type="text"
                       placeholder="Mobile"
                       value={contactMobile}
                       onChange={(e) => setContactMobile(e.target.value)}
-                      className="rounded-lg glossy-input px-2.5 py-1.5 text-sm w-full focus:ring-2 focus:ring-blue-500/20"
+                      className="rounded-lg glossy-input px-3 py-2 text-sm w-full outline-hidden focus:ring-2 focus:ring-blue-500/20"
                     />
                   </div>
                   <div className="flex flex-col gap-1">
-                    <label className="text-xs font-bold text-blue-700">Fax No</label>
+                    <label className="text-sm font-bold text-blue-700">Fax No</label>
                     <input
                       type="text"
                       placeholder="Fax"
                       value={contactFax}
                       onChange={(e) => setContactFax(e.target.value)}
-                      className="rounded-lg glossy-input px-2.5 py-1.5 text-sm w-full focus:ring-2 focus:ring-blue-500/20"
+                      className="rounded-lg glossy-input px-3 py-2 text-sm w-full outline-hidden focus:ring-2 focus:ring-blue-500/20"
                     />
                   </div>
                   <div className="flex flex-col gap-1">
-                    <label className="text-xs font-bold text-blue-700">Email</label>
+                    <label className="text-sm font-bold text-blue-700">Email</label>
                     <input
                       type="email"
                       placeholder="Email"
                       value={contactEmail}
                       onChange={(e) => setContactEmail(e.target.value)}
-                      className="rounded-lg glossy-input px-2.5 py-1.5 text-sm w-full focus:ring-2 focus:ring-blue-500/20"
+                      className="rounded-lg glossy-input px-3 py-2 text-sm w-full outline-hidden focus:ring-2 focus:ring-blue-500/20"
                     />
                   </div>
-                  <div className="flex flex-col gap-1">
-                    <label className="text-xs font-bold text-blue-700">Designation</label>
+                  <div className="flex flex-col gap-1 sm:col-span-2">
+                    <label className="text-sm font-bold text-blue-700">Designation</label>
                     <input
                       type="text"
                       placeholder="Job title"
                       value={contactDesignation}
                       onChange={(e) => setContactDesignation(e.target.value)}
-                      className="rounded-lg glossy-input px-2.5 py-1.5 text-sm w-full focus:ring-2 focus:ring-blue-500/20"
+                      className="rounded-lg glossy-input px-3 py-2 text-sm w-full outline-hidden focus:ring-2 focus:ring-blue-500/20"
                     />
                   </div>
                 </div>
@@ -240,7 +240,7 @@ export default function CreateSupplierPage() {
                   <span className="text-xs text-blue-500">(optional)</span>
                 </div>
                 <div className="flex flex-col gap-1 flex-1">
-                  <label className="text-xs font-bold text-blue-700">Address</label>
+                  <label className="text-sm font-bold text-blue-700">Address</label>
                   <textarea
                     placeholder="Enter full address..."
                     value={addressText}

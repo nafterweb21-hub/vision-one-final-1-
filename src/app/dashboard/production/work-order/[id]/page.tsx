@@ -19,6 +19,13 @@ export default async function WorkOrderDetailPage({
       customer: true,
       labelUom: true,
       qcBy: true,
+      reworks: {
+        orderBy: { createdAt: 'desc' },
+        include: {
+          rejectedBy: true,
+          reInspectedBy: true
+        }
+      }
     },
   });
 
@@ -89,6 +96,80 @@ export default async function WorkOrderDetailPage({
 
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
         <WorkOrderHeader wo={serialised} uoms={uoms} />
+      </div>
+
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="p-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+          <h2 className="text-lg font-bold text-slate-800">Quality Control & Rework</h2>
+          <div className="px-3 py-1 bg-white border border-slate-200 rounded-lg text-sm font-bold text-slate-600 shadow-sm">
+            Total Qty: {Number(workOrder.quantity || 0)}
+          </div>
+        </div>
+        
+        <div className="p-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div className="bg-emerald-50 border border-emerald-100 p-4 rounded-xl flex flex-col items-center justify-center">
+              <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mb-1">Accepted Qty</span>
+              <span className="text-2xl font-black text-emerald-700">{Number(workOrder.acceptedQty || 0)}</span>
+            </div>
+            <div className="bg-rose-50 border border-rose-100 p-4 rounded-xl flex flex-col items-center justify-center">
+              <span className="text-[10px] font-bold text-rose-600 uppercase tracking-widest mb-1">Rejected Qty</span>
+              <span className="text-2xl font-black text-rose-700">{Number(workOrder.rejectedQty || 0)}</span>
+            </div>
+            <div className="bg-amber-50 border border-amber-100 p-4 rounded-xl flex flex-col items-center justify-center">
+              <span className="text-[10px] font-bold text-amber-600 uppercase tracking-widest mb-1">Reworked Qty</span>
+              <span className="text-2xl font-black text-amber-700">{Number(workOrder.reworkedQty || 0)}</span>
+            </div>
+            <div className="bg-blue-50 border border-blue-100 p-4 rounded-xl flex flex-col items-center justify-center">
+              <span className="text-[10px] font-bold text-blue-600 uppercase tracking-widest mb-1">Final Approved Qty</span>
+              <span className="text-2xl font-black text-blue-700">{Number(workOrder.finalApprovedQty || 0)}</span>
+            </div>
+          </div>
+
+          <h3 className="text-sm font-bold text-slate-700 uppercase tracking-widest mb-4">Rework History</h3>
+          
+          {serialised.reworks.length === 0 ? (
+            <div className="text-center py-8 text-slate-400 bg-slate-50 border border-slate-200 border-dashed rounded-xl text-sm font-medium">
+              No rework tasks recorded for this work order.
+            </div>
+          ) : (
+            <div className="overflow-x-auto border border-slate-200 rounded-xl">
+              <table className="w-full text-sm text-left">
+                <thead className="text-[10px] text-slate-500 uppercase bg-slate-50 border-b border-slate-200 tracking-widest font-bold">
+                  <tr>
+                    <th className="px-4 py-3">Rework Task</th>
+                    <th className="px-4 py-3">Rejected Qty</th>
+                    <th className="px-4 py-3">Reworked Qty</th>
+                    <th className="px-4 py-3">Status</th>
+                    <th className="px-4 py-3">Reason</th>
+                    <th className="px-4 py-3">Timeline</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200">
+                  {serialised.reworks.map((rwk: any) => (
+                    <tr key={rwk.id} className="hover:bg-slate-50/50">
+                      <td className="px-4 py-4 font-bold text-slate-800">{rwk.reworkNo}</td>
+                      <td className="px-4 py-4 font-bold text-rose-600">{Number(rwk.rejectedQty)}</td>
+                      <td className="px-4 py-4 font-bold text-emerald-600">{Number(rwk.reworkedQty)}</td>
+                      <td className="px-4 py-4">
+                        <span className="px-2 py-1 bg-slate-100 text-slate-700 text-[10px] uppercase font-bold tracking-widest rounded">
+                          {rwk.status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-4 text-xs italic text-slate-600 max-w-[200px] truncate">"{rwk.rejectionReason}"</td>
+                      <td className="px-4 py-4 text-xs text-slate-500">
+                        <div className="flex flex-col gap-1">
+                          <span>Rejected: {new Date(rwk.rejectedAt).toLocaleDateString()}</span>
+                          {rwk.reInspectedAt && <span>Re-inspected: {new Date(rwk.reInspectedAt).toLocaleDateString()}</span>}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

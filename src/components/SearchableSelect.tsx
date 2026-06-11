@@ -71,14 +71,22 @@ export function SearchableSelect({
   const updatePosition = () => {
     if (containerRef.current) {
       const rect = containerRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const spaceAbove = rect.top;
+      
+      // Auto flip to top if there's not enough space below (need ~250px) and there's more space above
+      const shouldDropUp = dropdownPosition === "top" || (spaceBelow < 250 && spaceAbove > spaceBelow);
+
       setDropdownStyle({
         position: 'fixed',
-        top: dropdownPosition === "top" ? 'auto' : rect.bottom + 4,
-        bottom: dropdownPosition === "top" ? window.innerHeight - rect.top + 4 : 'auto',
+        top: shouldDropUp ? 'auto' : rect.bottom + 4,
+        bottom: shouldDropUp ? window.innerHeight - rect.top + 4 : 'auto',
         left: rect.left,
         width: rect.width,
         minWidth: Math.max(rect.width, 160),
         zIndex: 99999,
+        // Limit max height to available space
+        maxHeight: shouldDropUp ? Math.max(spaceAbove - 16, 100) : Math.max(spaceBelow - 16, 100),
       });
     }
   };
@@ -134,8 +142,12 @@ export function SearchableSelect({
 
   const portalContent = open && typeof document !== "undefined" ? createPortal(
     <div 
+      id={`searchable-select-portal-${name || 'generic'}`}
       className="bg-white border border-blue-200 rounded-lg shadow-xl overflow-hidden flex flex-col"
-      style={{ ...dropdownStyle, maxHeight: "240px" }}
+      style={{ 
+        ...dropdownStyle, 
+        maxHeight: dropdownStyle.maxHeight ? `${dropdownStyle.maxHeight}px` : "240px" 
+      }}
       onMouseDown={(e) => e.stopPropagation()} // Prevent handleClickOutside from triggering
     >
       <div className="p-2 border-b border-blue-100 bg-slate-50 sticky top-0">

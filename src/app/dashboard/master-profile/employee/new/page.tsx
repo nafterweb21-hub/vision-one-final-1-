@@ -117,9 +117,9 @@ export default function NewEmployeePage() {
       {/* Toast Notification */}
       {notification && (
         <div
-          className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-4 rounded-xl shadow-2xl border text-sm transition-all duration-300 transform scale-100 ${notification.type === "success"
-              ? "bg-emerald-50 border-emerald-200 text-emerald-800 "
-              : "bg-rose-50 border-rose-200 text-rose-800 "
+          className={`fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[9999] flex items-center gap-3 px-6 py-5 rounded-2xl shadow-2xl border text-base transition-all duration-300 transform scale-100 min-w-[300px] justify-center ${notification.type === "success"
+              ? "bg-emerald-50 border-emerald-200 text-emerald-800"
+              : "bg-rose-50 border-rose-200 text-rose-800"
             }`}
         >
           {notification.type === "success" ? (

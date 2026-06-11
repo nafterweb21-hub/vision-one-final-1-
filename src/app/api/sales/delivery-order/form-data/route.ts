@@ -27,13 +27,14 @@ export async function GET() {
       }),
       prisma.workOrder.findMany({
         where: {
-          status: { notIn: ["Void", "Cancelled"] },
+          status: "Completed",
+          qcAcceptance: "Approved",
         },
         select: {
           workOrderNo: true,
           customerId: true,
           quantity: true,
-          uom: true, // This is a string in WorkOrder
+          uom: true,
           deliveryDate: true,
         },
         orderBy: { workOrderNo: "asc" },

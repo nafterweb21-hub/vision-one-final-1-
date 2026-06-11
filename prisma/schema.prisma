@@ -151,6 +151,8 @@ model Employee {
   qcWorkOrders                                  WorkOrder[]                     @relation("WorkOrderQc")
   preparedInvoices                              Invoice[]                       @relation("InvoicePreparedBy")
   receipts                                      Receipt[]                       @relation("ReceiptCreator")
+  reworkRejected                                WorkOrderRework[]               @relation("ReworkRejectedBy")
+  reworkReInspected                             WorkOrderRework[]               @relation("ReworkReInspectedBy")
 }
 
 model TaxProfile {
@@ -559,8 +561,13 @@ model WorkOrder {
   labelUomId           String?
   uploadUrl            String?
   status               String                    @default("Draft")
+  acceptedQty          Decimal?
+  rejectedQty          Decimal?
+  reworkedQty          Decimal?
+  finalApprovedQty     Decimal?
   createdAt            DateTime                  @default(now())
   updatedAt            DateTime                  @updatedAt
+  reworks              WorkOrderRework[]
   cocs                 CertificateOfConformity[]
   deliveryOrderItems   DeliveryOrderItem[]
   Ncr                  Ncr[]
@@ -571,6 +578,37 @@ model WorkOrder {
   qcBy                 Employee?                 @relation("WorkOrderQc", fields: [qcById], references: [id])
   inProcesses          WorkOrderInProcess[]
   invoiceItems         InvoiceItem[]
+}
+
+model WorkOrderRework {
+  id                  String    @id @default(cuid())
+  reworkNo            String    @unique
+  workOrderNo         String
+  originalQty         Decimal
+  acceptedQty         Decimal   @default(0)
+  rejectedQty         Decimal
+  reworkedQty         Decimal   @default(0)
+  finalApprovedQty    Decimal   @default(0)
+  status              String    @default("Rework In Progress")
+  
+  rejectedById        String?
+  rejectedAt          DateTime
+  rejectionReason     String?
+
+  reworkStartTime     DateTime?
+  reworkEndTime       DateTime?
+
+  reInspectedById     String?
+  reInspectedAt       DateTime?
+  reInspectionResult  String?
+  reInspectionRemark  String?
+
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  workOrder           WorkOrder @relation(fields: [workOrderNo], references: [workOrderNo])
+  rejectedBy          Employee? @relation("ReworkRejectedBy", fields: [rejectedById], references: [id])
+  reInspectedBy       Employee? @relation("ReworkReInspectedBy", fields: [reInspectedById], references: [id])
 }
 
 model WorkOrderInProcess {

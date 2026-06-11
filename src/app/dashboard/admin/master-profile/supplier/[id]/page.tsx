@@ -362,7 +362,7 @@ export default function ManageSupplierPage() {
   }
 
   return (
-    <div className="w-full space-y-6 bg-white text-black">
+    <div className="w-full space-y-6 bg-white text-black p-6 md:p-8 rounded-2xl shadow-sm border border-blue-100">
       {/* Navigation & Header */}
       <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
         <div className="space-y-2">
@@ -436,7 +436,7 @@ export default function ManageSupplierPage() {
       </div>
 
       {/* Tab Content Areas */}
-      <div className="w-full bg-white min-h-[460px] pb-10">
+      <div className="w-full min-h-[460px]">
         
         {/* GENERAL INFO TAB */}
         {detailTab === "general" && (

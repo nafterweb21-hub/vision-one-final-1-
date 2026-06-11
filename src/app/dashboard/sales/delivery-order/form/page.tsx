@@ -366,6 +366,7 @@ export default function DeliveryOrderFormPage() {
                         value={item.workOrderNo}
                         onChange={(e) => updateItem(index, "workOrderNo", e.target.value)}
                         disabled={!isDraft}
+                        dropdownPosition="top"
                         className="w-full px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-60"
                       >
                         <option value="">Select Work Order...</option>
@@ -390,6 +391,7 @@ export default function DeliveryOrderFormPage() {
                         value={item.uomId || ""}
                         onChange={(e) => updateItem(index, "uomId", e.target.value)}
                         disabled={!isDraft}
+                        dropdownPosition="top"
                         className="w-full px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-60"
                       >
                         <option value="">Select UOM...</option>
