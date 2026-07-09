@@ -2,11 +2,19 @@
 
 import { usePathname } from "next/navigation";
 import GlobalHeader from "./GlobalHeader";
+import type { PermissionsMap } from "@/lib/access";
 
-export default function GlobalHeaderWrapper() {
+interface GlobalHeaderWrapperProps {
+  userEmail?: string | null;
+  userRole?: string | null;
+  userPermissions?: PermissionsMap | null;
+  canSeeDashboard?: boolean;
+}
+
+export default function GlobalHeaderWrapper(props: GlobalHeaderWrapperProps) {
   const pathname = usePathname();
 
-  // Do not show the header on the dashboard, the login page, or print pages
+  // The dashboard has its own Sidebar; the rest render no chrome at all.
   if (
     pathname?.startsWith("/dashboard") ||
     pathname === "/" ||
@@ -18,9 +26,9 @@ export default function GlobalHeaderWrapper() {
 
   return (
     <>
-      <GlobalHeader />
-      {/* Add padding to the top so content doesn't get hidden behind the fixed header */}
-      <div className="h-16 no-print" />
+      <GlobalHeader {...props} />
+      {/* Offset the fixed header so content is not hidden behind it. */}
+      <div className="no-print h-16" />
     </>
   );
 }

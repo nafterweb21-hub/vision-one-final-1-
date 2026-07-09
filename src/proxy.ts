@@ -1,7 +1,12 @@
 import NextAuth from "next-auth";
 import { NextResponse } from "next/server";
 import { authConfig } from "@/lib/auth.config";
-import { canAccess, canAccessApi, type PermissionsMap } from "@/lib/access";
+import {
+  canAccess,
+  canAccessApi,
+  landingPathFor,
+  type PermissionsMap,
+} from "@/lib/access";
 
 const { auth } = NextAuth(authConfig);
 
@@ -33,6 +38,15 @@ export default auth((req) => {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
     return NextResponse.next();
+  }
+
+  // Sign-in defaults to /dashboard, which is open to every authenticated user.
+  // Shop-floor-only roles would find it empty, so send them to their terminal.
+  if (pathname === "/dashboard") {
+    const landing = landingPathFor(permissions, role);
+    if (landing !== "/dashboard") {
+      return NextResponse.redirect(new URL(landing, req.nextUrl));
+    }
   }
 
   if (!canAccess(pathname, permissions, role)) {

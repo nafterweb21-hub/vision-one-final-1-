@@ -9,7 +9,6 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   const session = await auth();
-  const isAdmin = session?.user?.role === "ADMIN";
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-slate-50 font-sans antialiased text-slate-900">
@@ -18,7 +17,6 @@ export default async function DashboardLayout({
         userEmail={session?.user?.email}
         userRole={session?.user?.role}
         userPermissions={session?.user?.permissions}
-        isAdmin={isAdmin}
       />
 
       {/* Top Header */}

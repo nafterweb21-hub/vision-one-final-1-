@@ -226,12 +226,6 @@ export const APP_MODULES: AppModuleDef[] = [
     pathPrefixes: ['/dashboard/production/process-parameter-confirmation'],
   },
   {
-    code: 'PRODUCTION_TERMINAL',
-    name: 'Production Terminal',
-    group: 'Production',
-    pathPrefixes: ['/terminal'],
-  },
-  {
     code: 'REWORK',
     name: 'Production Rework',
     group: 'Production',
@@ -245,13 +239,23 @@ export const APP_MODULES: AppModuleDef[] = [
     apiPrefixes: ['/api/reports/work-order-costing-report'],
   },
 
-  // ── QC ───────────────────────────────────────────────────────────────────
+  // ── Shop Floor ───────────────────────────────────────────────────────────
+  // Operator-facing screens. A role scoped to these alone (welder, QC operator)
+  // sees nothing of the office ERP.
   {
-    code: 'QC_DASHBOARD',
-    name: 'QC Dashboard',
-    group: 'QC',
+    code: 'PRODUCTION_TERMINAL',
+    name: 'Production Terminal',
+    group: 'Shop Floor',
+    pathPrefixes: ['/terminal'],
+  },
+  {
+    code: 'QC_TERMINAL',
+    name: 'QC Terminal',
+    group: 'Shop Floor',
     pathPrefixes: ['/qc'],
   },
+
+  // ── QC ───────────────────────────────────────────────────────────────────
   {
     code: 'QC_APPROVAL',
     name: 'QC Approval',
@@ -506,6 +510,7 @@ export const APP_MODULES: AppModuleDef[] = [
 /** Stable ordering for the role-permission grid. */
 export const MODULE_GROUP_ORDER: string[] = [
   'Admin',
+  'Shop Floor',
   'Sales',
   'Purchasing',
   'Subcon',
@@ -515,3 +520,22 @@ export const MODULE_GROUP_ORDER: string[] = [
   'Finance',
   'Master Profile',
 ];
+
+/**
+ * Where to send a user after sign-in, most specific first. A welder holds only
+ * PRODUCTION_TERMINAL and lands on the terminal; office staff fall through to
+ * the dashboard. Order matters: the first module the user can view wins.
+ */
+export const LANDING_MODULES: { code: string; path: string }[] = [
+  { code: 'PRODUCTION_TERMINAL', path: '/terminal' },
+  { code: 'QC_TERMINAL', path: '/qc' },
+];
+
+/**
+ * Old module code -> new code. `sync-modules` renames the row in place so its
+ * existing role grants survive; without this the prune step would delete the
+ * module and cascade away every permission attached to it.
+ */
+export const MODULE_RENAMES: Record<string, string> = {
+  QC_DASHBOARD: 'QC_TERMINAL',
+};

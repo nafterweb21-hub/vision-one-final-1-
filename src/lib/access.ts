@@ -1,5 +1,6 @@
 import {
   APP_MODULES,
+  LANDING_MODULES,
   PUBLIC_AUTHED_API_PATHS,
   PUBLIC_AUTHED_PATHS,
   PUBLIC_AUTHED_PATH_PREFIXES,
@@ -166,6 +167,30 @@ export function canAccessApi(
   const action = (!isRead && actionForSegment(pathname)) || actionForMethod(method);
 
   return hasAction(permissions, moduleCode, action, role);
+}
+
+/**
+ * Where this user should land after signing in.
+ *
+ * Anyone with a foothold in the office ERP goes to the dashboard. A role scoped
+ * purely to the shop floor (welder, QC operator) would only find an empty
+ * dashboard, so send it straight to its terminal instead.
+ */
+export function landingPathFor(
+  permissions: PermissionsMap | null | undefined,
+  role?: string | null,
+): string {
+  if (isSuperRole(role)) return '/dashboard';
+
+  const hasDashboardModule = APP_MODULES.some(
+    (mod) =>
+      mod.pathPrefixes.some((p) => p.startsWith('/dashboard')) &&
+      hasAction(permissions, mod.code, 'v', role),
+  );
+  if (hasDashboardModule) return '/dashboard';
+
+  const landing = LANDING_MODULES.find((m) => hasAction(permissions, m.code, 'v', role));
+  return landing?.path ?? '/dashboard';
 }
 
 // Granular helpers for UI gating.

@@ -7,12 +7,35 @@
  */
 // Must precede the prisma import — it reads DATABASE_URL at module load.
 import 'dotenv/config';
-import { APP_MODULES } from '../src/lib/modules.config';
+import { APP_MODULES, MODULE_RENAMES } from '../src/lib/modules.config';
 import { prisma } from '../src/lib/prisma';
 
 const SUPER_ROLE = 'ADMIN';
 
+/** Rename before upserting, so the prune step does not drop the old row. */
+async function applyRenames() {
+  for (const [from, to] of Object.entries(MODULE_RENAMES)) {
+    const [oldRow, newRow] = await Promise.all([
+      prisma.appModule.findUnique({ where: { code: from } }),
+      prisma.appModule.findUnique({ where: { code: to } }),
+    ]);
+
+    if (!oldRow) continue;
+
+    if (newRow) {
+      // Both exist: the new row is authoritative, drop the stale one.
+      await prisma.appModule.delete({ where: { code: from } });
+      console.log(`Dropped duplicate module ${from} (${to} already present).`);
+      continue;
+    }
+
+    await prisma.appModule.update({ where: { code: from }, data: { code: to } });
+    console.log(`Renamed module ${from} -> ${to} (grants preserved).`);
+  }
+}
+
 async function main() {
+  await applyRenames();
   console.log(`Syncing ${APP_MODULES.length} modules...`);
 
   for (const def of APP_MODULES) {
