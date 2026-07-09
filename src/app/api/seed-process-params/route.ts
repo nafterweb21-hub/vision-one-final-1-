@@ -1,7 +1,14 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireRole } from "@/lib/authz";
+import { SUPER_ROLE } from "@/lib/access";
 
 export async function GET() {
+  // This endpoint writes despite being a GET, so the verb-based check in
+  // access.ts would read it as a view. Restrict it explicitly.
+  const { error } = await requireRole(SUPER_ROLE);
+  if (error) return error;
+
   try {
     console.log("Seeding process parameters...");
 

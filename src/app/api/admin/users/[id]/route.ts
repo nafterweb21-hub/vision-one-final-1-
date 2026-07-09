@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
-import { requireRole } from "@/lib/authz";
+import { requirePermission } from "@/lib/authz";
+import { invalidateUserCache } from "@/lib/permissions";
 
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const { error } = await requireRole("ADMIN");
+  const { error } = await requirePermission("USERS", "v");
   if (error) return error;
   const { id } = await params;
 
@@ -26,7 +27,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 }
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const { session, error } = await requireRole("ADMIN");
+  const { session, error } = await requirePermission("USERS", "e");
   if (error) return error;
   const { id } = await params;
 
@@ -81,6 +82,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       data,
       select: { id: true, name: true, email: true, role: true, isActive: true, employeeId: true },
     });
+    invalidateUserCache(id);
     return NextResponse.json(user);
   } catch (e) {
     const err = e as { code?: string };
@@ -95,7 +97,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 }
 
 export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const { session, error } = await requireRole("ADMIN");
+  const { session, error } = await requirePermission("USERS", "d");
   if (error) return error;
   const { id } = await params;
 
@@ -108,6 +110,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
 
   try {
     await prisma.user.delete({ where: { id } });
+    invalidateUserCache(id);
     return NextResponse.json({ ok: true });
   } catch (e) {
     const err = e as { code?: string };

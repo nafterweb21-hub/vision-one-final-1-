@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
-import { requireRole } from "@/lib/authz";
+import { requirePermission } from "@/lib/authz";
 
 
 export async function GET() {
-  const { error } = await requireRole("ADMIN");
+  const { error } = await requirePermission("USERS", "v");
   if (error) return error;
 
   const users = await prisma.user.findMany({
@@ -26,7 +26,7 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  const { error } = await requireRole("ADMIN");
+  const { error } = await requirePermission("USERS", "c");
   if (error) return error;
 
   const body = await req.json();

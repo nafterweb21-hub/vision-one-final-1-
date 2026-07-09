@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requirePermission } from "@/lib/authz";
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { error: authError } = await requirePermission("PURCHASE_ORDER", "e");
+  if (authError) return authError;
+
   try {
     const { id } = await params;
     const { action, userId } = await req.json();

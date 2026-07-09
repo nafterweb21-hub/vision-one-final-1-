@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requirePermission } from "@/lib/authz";
 
-export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function POST(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { session, error } = await requirePermission("CERTIFICATE_OF_CONFORMITY", "a");
+  if (error) return error;
+
   try {
     const { id } = await params;
-    const body = await req.json();
-    const { userId } = body; // Assume the frontend passes the currently logged-in user's ID
-
-    if (!userId) {
-       return NextResponse.json({ error: "User ID is required." }, { status: 400 });
-    }
+    // The checker is whoever is signed in — never a client-supplied id.
+    const userId = session.user.id;
 
     const current = await prisma.certificateOfConformity.findUnique({
       where: { id },

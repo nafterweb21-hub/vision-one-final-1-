@@ -15,6 +15,8 @@ import {
   Clock
 } from "lucide-react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
+import { canAccess } from "@/lib/access";
 import { getDashboardMetrics } from "./dashboard.actions";
 
 const formatCurrency = (value: number) => {
@@ -28,6 +30,9 @@ const formatCurrency = (value: number) => {
 };
 
 export default function DashboardPage() {
+  const { data: session } = useSession();
+  const permissions = (session?.user as any)?.permissions || null;
+  const role = session?.user?.role || null;
   const [activeCompany, setActiveCompany] = useState("Vision One Pte Ltd");
   const [metrics, setMetrics] = useState({
     activeWorkOrders: { count: 0, pendingQc: 0, onHold: 0 },
@@ -63,6 +68,11 @@ export default function DashboardPage() {
 
     return () => window.removeEventListener("companyChanged", handleCompanyChange);
   }, []);
+
+  const allowSales = canAccess("/dashboard/sales/sales-order", permissions, role);
+  const allowPurchasing = canAccess("/dashboard/purchasing/purchase-order", permissions, role);
+  const allowProduction = canAccess("/dashboard/production/work-order", permissions, role);
+  const allowQC = canAccess("/dashboard/qc/ncr", permissions, role);
 
   return (
     <div className="space-y-8 animate-fade-in pb-12">
@@ -116,75 +126,88 @@ export default function DashboardPage() {
           </h3>
         </div>
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {[
-            { 
-              label: "Active Work Orders", 
-              value: metrics.activeWorkOrders.count.toString(), 
-              sub: `${metrics.activeWorkOrders.pendingQc} Pending QC · ${metrics.activeWorkOrders.onHold} On Hold`, 
-              icon: <ClipboardList className="w-5 h-5" />,
-              color: "indigo"
-            },
-            { 
-              label: "Open Sales Orders", 
-              value: metrics.openSalesOrders.count.toString(), 
-              sub: `${formatCurrency(metrics.openSalesOrders.totalValue)} Total Value`, 
-              icon: <ShoppingCart className="w-5 h-5" />,
-              color: "amber"
-            },
-            { 
-              label: "POs Awaiting Delivery", 
-              value: metrics.posAwaitingDelivery.count.toString(), 
-              sub: `${metrics.posAwaitingDelivery.overdue} Overdue`, 
-              icon: <FileText className="w-5 h-5" />,
-              color: "sky"
-            },
-            { 
-              label: "Open NCRs", 
-              value: metrics.openNcrs.count.toString(), 
-              sub: `${metrics.openNcrs.pendingClosure} Pending Closure`, 
-              icon: <AlertCircle className="w-5 h-5" />,
-              color: "rose"
-            },
-          ].map((card) => {
-            const colors = {
-              indigo: "bg-indigo-50 text-indigo-600 border-indigo-100",
-              amber: "bg-amber-50 text-amber-600 border-amber-100",
-              sky: "bg-sky-50 text-sky-600 border-sky-100",
-              rose: "bg-rose-50 text-rose-600 border-rose-100",
-            }[card.color];
-
-            return (
-              <div
-                key={card.label}
-                className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all hover:shadow-md"
-              >
-                <div className={`absolute -right-4 -top-4 rounded-full p-4 opacity-50 transition-transform group-hover:scale-150 ${colors}`}>
-                  {card.icon}
-                </div>
-                <div className={`mb-4 inline-flex rounded-xl p-3 ${colors}`}>
-                  {card.icon}
-                </div>
-                <p className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                  {card.label}
-                </p>
-                <div className="mt-2 flex items-baseline gap-2">
-                  <p className="text-3xl font-extrabold text-slate-900">
-                    {card.value}
-                  </p>
-                </div>
-                <p className="mt-2 text-sm font-medium text-slate-500 flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5" />
-                  {card.sub}
-                </p>
+          {allowProduction && (
+            <div className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all hover:shadow-md">
+              <div className="absolute -right-4 -top-4 rounded-full p-4 opacity-50 transition-transform group-hover:scale-150 bg-indigo-50 text-indigo-600 border-indigo-100">
+                <ClipboardList className="w-5 h-5" />
               </div>
-            );
-          })}
+              <div className="mb-4 inline-flex rounded-xl p-3 bg-indigo-50 text-indigo-600 border-indigo-100">
+                <ClipboardList className="w-5 h-5" />
+              </div>
+              <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Active Work Orders</p>
+              <div className="mt-2 flex items-baseline gap-2">
+                <p className="text-3xl font-extrabold text-slate-900">{metrics.activeWorkOrders.count}</p>
+              </div>
+              <p className="mt-2 text-sm font-medium text-slate-500 flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5" />
+                {metrics.activeWorkOrders.pendingQc} Pending QC · {metrics.activeWorkOrders.onHold} On Hold
+              </p>
+            </div>
+          )}
+
+          {allowSales && (
+            <div className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all hover:shadow-md">
+              <div className="absolute -right-4 -top-4 rounded-full p-4 opacity-50 transition-transform group-hover:scale-150 bg-amber-50 text-amber-600 border-amber-100">
+                <ShoppingCart className="w-5 h-5" />
+              </div>
+              <div className="mb-4 inline-flex rounded-xl p-3 bg-amber-50 text-amber-600 border-amber-100">
+                <ShoppingCart className="w-5 h-5" />
+              </div>
+              <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Open Sales Orders</p>
+              <div className="mt-2 flex items-baseline gap-2">
+                <p className="text-3xl font-extrabold text-slate-900">{metrics.openSalesOrders.count}</p>
+              </div>
+              <p className="mt-2 text-sm font-medium text-slate-500 flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5" />
+                {formatCurrency(metrics.openSalesOrders.totalValue)} Total Value
+              </p>
+            </div>
+          )}
+
+          {allowPurchasing && (
+            <div className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all hover:shadow-md">
+              <div className="absolute -right-4 -top-4 rounded-full p-4 opacity-50 transition-transform group-hover:scale-150 bg-sky-50 text-sky-600 border-sky-100">
+                <FileText className="w-5 h-5" />
+              </div>
+              <div className="mb-4 inline-flex rounded-xl p-3 bg-sky-50 text-sky-600 border-sky-100">
+                <FileText className="w-5 h-5" />
+              </div>
+              <p className="text-xs font-bold uppercase tracking-wider text-slate-500">POs Awaiting Delivery</p>
+              <div className="mt-2 flex items-baseline gap-2">
+                <p className="text-3xl font-extrabold text-slate-900">{metrics.posAwaitingDelivery.count}</p>
+              </div>
+              <p className="mt-2 text-sm font-medium text-slate-500 flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5" />
+                {metrics.posAwaitingDelivery.overdue} Overdue
+              </p>
+            </div>
+          )}
+
+          {allowQC && (
+            <div className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all hover:shadow-md">
+              <div className="absolute -right-4 -top-4 rounded-full p-4 opacity-50 transition-transform group-hover:scale-150 bg-rose-50 text-rose-600 border-rose-100">
+                <AlertCircle className="w-5 h-5" />
+              </div>
+              <div className="mb-4 inline-flex rounded-xl p-3 bg-rose-50 text-rose-600 border-rose-100">
+                <AlertCircle className="w-5 h-5" />
+              </div>
+              <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Open NCRs</p>
+              <div className="mt-2 flex items-baseline gap-2">
+                <p className="text-3xl font-extrabold text-slate-900">{metrics.openNcrs.count}</p>
+              </div>
+              <p className="mt-2 text-sm font-medium text-slate-500 flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5" />
+                {metrics.openNcrs.pendingClosure} Pending Closure
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
       {/* NEW DASHBOARD SECTION */}
       <div className="grid gap-8 lg:grid-cols-2">
         {/* Recent Work Orders Panel */}
+        {allowProduction && (
         <div className="rounded-3xl border border-slate-200 bg-white shadow-sm flex flex-col">
           <div className="flex items-center justify-between p-6 border-b border-slate-100">
             <h4 className="text-lg font-bold text-slate-900">Recent Work Orders</h4>
@@ -252,8 +275,10 @@ export default function DashboardPage() {
             </table>
           </div>
         </div>
+        )}
 
         {/* Process Load Panel */}
+        {allowProduction && (
         <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-6 flex flex-col">
           <div className="flex items-center justify-between border-b border-slate-100 pb-6 mb-6">
             <h4 className="text-lg font-bold text-slate-900">Process Load — This Week</h4>
@@ -302,11 +327,13 @@ export default function DashboardPage() {
             )})}
           </div>
         </div>
+        )}
       </div>
 
       {/* OPERATIONS CARDS */}
       <div className="grid gap-8 lg:grid-cols-3">
         {/* PO Approvals Pending Panel */}
+        {allowPurchasing && (
         <div className="rounded-3xl border border-slate-200 bg-white shadow-sm flex flex-col p-6">
           <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
             <h4 className="text-lg font-bold text-slate-900">PO Approvals Pending</h4>
@@ -361,8 +388,10 @@ export default function DashboardPage() {
             )}
           </div>
         </div>
+        )}
 
         {/* Open NCRs Panel */}
+        {allowQC && (
         <div className="rounded-3xl border border-slate-200 bg-white shadow-sm flex flex-col p-6">
           <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
             <h4 className="text-lg font-bold text-slate-900">Open NCRs</h4>
@@ -412,8 +441,10 @@ export default function DashboardPage() {
             )}
           </div>
         </div>
+        )}
 
         {/* WO Status Distribution Panel */}
+        {allowProduction && (
         <div className="rounded-3xl border border-slate-200 bg-white shadow-sm flex flex-col p-6">
           <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-6">
             <h4 className="text-lg font-bold text-slate-900">WO Status Distribution</h4>
@@ -496,9 +527,11 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
+        )}
       </div>
 
       {/* Main Actions Panel */}
+      {role === "ADMIN" && (
       <div className="grid gap-8 lg:grid-cols-3">
         {/* Master Profiles Portal */}
         <div className="lg:col-span-2 rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
@@ -616,6 +649,7 @@ export default function DashboardPage() {
           })()}
         </div>
       </div>
+      )}
     </div>
   );
 }

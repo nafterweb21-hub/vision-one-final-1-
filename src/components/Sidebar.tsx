@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { signOut } from "next-auth/react";
-import { canAccess, type Role } from "@/lib/access";
+import { canAccess, type PermissionsMap } from "@/lib/access";
 import {
   LayoutDashboard,
   LogOut,
@@ -65,15 +65,84 @@ import {
 interface SidebarProps {
   userEmail?: string | null;
   userRole?: string | null;
+  userPermissions?: PermissionsMap | null;
   isAdmin?: boolean;
 }
 
-export default function Sidebar({ userEmail, userRole, isAdmin }: SidebarProps) {
+export default function Sidebar({ userEmail, userRole, userPermissions, isAdmin }: SidebarProps) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [isReportsOpen, setIsReportsOpen] = useState(false);
-  const role = (userRole ?? null) as Role | null;
-  const allow = (path: string) => canAccess(path, role);
+  const allow = (path: string) => canAccess(path, userPermissions, userRole);
+  /** Hide a whole section once none of its links are visible. */
+  const anyAllow = (...paths: string[]) => paths.some(allow);
+
+  const OPERATION = [
+    "/dashboard/sales/sales-order",
+    "/dashboard/production/work-order",
+    "/dashboard/qc/approval",
+    "/dashboard/sales/delivery-order",
+    "/dashboard/qc/coc",
+    "/dashboard/production/process-parameter-confirmation",
+    "/dashboard/sales/quotation",
+  ];
+  const PROCUREMENT = [
+    "/dashboard/purchasing/purchase-requisition",
+    "/dashboard/purchasing/purchase-order",
+    "/dashboard/purchasing/purchase-order-approval",
+    "/dashboard/purchasing/goods-receive",
+    "/dashboard/purchasing/goods-return",
+    "/dashboard/inventory",
+  ];
+  const SUBCON = [
+    "/dashboard/purchasing/purchase-order-subcon",
+    "/dashboard/purchasing/purchase-order-subcon-approval",
+    "/dashboard/purchasing/subcon-request-form",
+    "/dashboard/purchasing/subcon-return-tracking",
+    "/dashboard/purchasing/subcon-reject-tracking",
+  ];
+  const FINANCE = [
+    "/dashboard/sales/quotation",
+    "/dashboard/sales/invoice",
+    "/dashboard/sales/receipt",
+    "/dashboard/cost-monitoring",
+    "/dashboard/qc/ncr",
+  ];
+  const PROFILE = [
+    "/dashboard/profiles/company",
+    "/dashboard/profiles/bank",
+    "/dashboard/master-profile/employee",
+    "/dashboard/master-profile/designation",
+    "/dashboard/profiles/approval-levels",
+    "/dashboard/admin/master-profile/customer",
+    "/dashboard/admin/master-profile/supplier",
+    "/dashboard/profiles/currency",
+    "/dashboard/admin/master-profile/tax",
+    "/dashboard/profiles/payment-term",
+    "/dashboard/profiles/uom",
+    "/dashboard/profiles/material-categories",
+    "/dashboard/master-profile/material",
+    "/dashboard/master-profile/process-profile",
+    "/dashboard/master-profile/main-process",
+    "/dashboard/profiles/incoterm",
+    "/dashboard/master-profile/material-type",
+    "/dashboard/admin/master-profile/finished-good",
+    "/dashboard/profiles/finished-good",
+    "/dashboard/master-profile/welding-type",
+    "/dashboard/master-profile/joint",
+    "/dashboard/profiles/machine",
+    "/dashboard/profiles/elcometer",
+    "/dashboard/master-profile/painting-method",
+    "/dashboard/master-profile/failure-mode",
+  ];
+  const REPORTS = [
+    "/dashboard/sales/sales-report",
+    "/dashboard/production/work-order-costing-report",
+    "/dashboard/qc/ncr-report",
+    "/dashboard/purchasing/purchasing-report",
+    "/dashboard/purchasing/subcon-purchasing-report",
+    "/dashboard/inventory/report",
+  ];
 
   const linkClass = (path: string) => {
     // Exact match for dashboard or check if it is exactly the path or starts with the path + "/" for nested routes
@@ -136,21 +205,28 @@ export default function Sidebar({ userEmail, userRole, isAdmin }: SidebarProps) 
           </Link>
 
           {/* ADMINISTRATOR */}
-          <div className="pt-4">
-            <p className="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-              ADMINISTRATOR
-            </p>
-            <Link href="/dashboard/admin/users" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/admin/users")}>
-              <Users size={16} className="text-blue-500" />
-              <span>Users</span>
-            </Link>
-            <Link href="/dashboard/admin/roles" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/admin/roles")}>
-              <Key size={16} className="text-yellow-500" />
-              <span>Roles</span>
-            </Link>
-          </div>
+          {(allow("/dashboard/admin/users") || allow("/dashboard/admin/roles")) && (
+            <div className="pt-4">
+              <p className="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                ADMINISTRATOR
+              </p>
+              {allow("/dashboard/admin/users") && (
+                <Link href="/dashboard/admin/users" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/admin/users")}>
+                  <Users size={16} className="text-blue-500" />
+                  <span>Users</span>
+                </Link>
+              )}
+              {allow("/dashboard/admin/roles") && (
+                <Link href="/dashboard/admin/roles" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/admin/roles")}>
+                  <Key size={16} className="text-yellow-500" />
+                  <span>Roles</span>
+                </Link>
+              )}
+            </div>
+          )}
 
           {/* OPERATION */}
+          {anyAllow(...OPERATION) && (
           <div className="pt-4">
             <p className="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
               OPERATION
@@ -188,10 +264,12 @@ export default function Sidebar({ userEmail, userRole, isAdmin }: SidebarProps) 
                 <span>Certificate Of Conformity</span>
               </Link>
             )}
-            <Link href="/dashboard/production/process-parameter-confirmation" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/production/process-parameter-confirmation")}>
-              <SquareSplitHorizontal size={16} className="text-slate-600" fill="currentColor" />
-              <span>Process Parameter Confirmation</span>
-            </Link>
+            {allow("/dashboard/production/process-parameter-confirmation") && (
+              <Link href="/dashboard/production/process-parameter-confirmation" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/production/process-parameter-confirmation")}>
+                <SquareSplitHorizontal size={16} className="text-slate-600" fill="currentColor" />
+                <span>Process Parameter Confirmation</span>
+              </Link>
+            )}
             {allow("/dashboard/sales/quotation") && (
               <Link href="/dashboard/sales/quotation" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/sales/quotation")}>
                 <Briefcase size={16} className="text-yellow-600" fill="currentColor" />
@@ -199,8 +277,10 @@ export default function Sidebar({ userEmail, userRole, isAdmin }: SidebarProps) 
               </Link>
             )}
           </div>
+          )}
 
           {/* PROCUREMENT */}
+          {anyAllow(...PROCUREMENT) && (
           <div className="pt-4">
             <p className="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
               PROCUREMENT
@@ -243,8 +323,10 @@ export default function Sidebar({ userEmail, userRole, isAdmin }: SidebarProps) 
               </Link>
             )}
           </div>
+          )}
 
           {/* SUBCON */}
+          {anyAllow(...SUBCON) && (
           <div className="pt-4">
             <p className="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
               SUBCON
@@ -280,8 +362,10 @@ export default function Sidebar({ userEmail, userRole, isAdmin }: SidebarProps) 
               </Link>
             )}
           </div>
+          )}
 
           {/* FINANCE */}
+          {anyAllow(...FINANCE) && (
           <div className="pt-4">
             <p className="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
               FINANCE
@@ -305,10 +389,12 @@ export default function Sidebar({ userEmail, userRole, isAdmin }: SidebarProps) 
                 <span className="flex-1">Receipt / Payment Record</span>
               </Link>
             )}
-            <Link href="/dashboard/cost-monitoring" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/cost-monitoring")}>
-              <BarChart2 size={16} className="text-blue-500" fill="currentColor" />
-              <span>Cost Monitoring</span>
-            </Link>
+            {allow("/dashboard/cost-monitoring") && (
+              <Link href="/dashboard/cost-monitoring" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/cost-monitoring")}>
+                <BarChart2 size={16} className="text-blue-500" fill="currentColor" />
+                <span>Cost Monitoring</span>
+              </Link>
+            )}
             {allow("/dashboard/qc/ncr") && (
               <Link href="/dashboard/qc/ncr" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/qc/ncr")}>
                 <AlertTriangle size={16} className="text-slate-500" />
@@ -316,8 +402,10 @@ export default function Sidebar({ userEmail, userRole, isAdmin }: SidebarProps) 
               </Link>
             )}
           </div>
+          )}
 
           {/* PROFILE */}
+          {anyAllow(...PROFILE) && (
           <div className="pt-4">
             <p className="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
               PROFILE
@@ -475,10 +563,12 @@ export default function Sidebar({ userEmail, userRole, isAdmin }: SidebarProps) 
               </Link>
             )}
           </div>
+          )}
 
           {/* REPORT */}
+          {anyAllow(...REPORTS) && (
           <div className="pt-4">
-            <button 
+            <button
               onClick={() => setIsReportsOpen(!isReportsOpen)}
               className="w-full flex items-center justify-between px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase tracking-wider hover:bg-slate-50 rounded-lg transition-colors cursor-pointer"
             >
@@ -492,10 +582,12 @@ export default function Sidebar({ userEmail, userRole, isAdmin }: SidebarProps) 
                   <span>Sales Report</span>
                 </Link>
               )}
-              <Link href="/dashboard/production/work-order-costing-report" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/production/work-order-costing-report")}>
-                <TrendingUp size={16} className="text-red-500" />
-                <span>Work Order Costing Report</span>
-              </Link>
+              {allow("/dashboard/production/work-order-costing-report") && (
+                <Link href="/dashboard/production/work-order-costing-report" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/production/work-order-costing-report")}>
+                  <TrendingUp size={16} className="text-red-500" />
+                  <span>Work Order Costing Report</span>
+                </Link>
+              )}
               {allow("/dashboard/qc/ncr-report") && (
                 <Link href="/dashboard/qc/ncr-report" onClick={() => setIsOpen(false)} className={linkClass("/dashboard/qc/ncr-report")}>
                   <AlertTriangle size={16} className="text-slate-500" />
@@ -522,6 +614,7 @@ export default function Sidebar({ userEmail, userRole, isAdmin }: SidebarProps) 
               )}
             </div>
           </div>
+          )}
         </div>
 
         {/* Footer: user + sign out */}

@@ -2,6 +2,7 @@ import Sidebar from "@/components/Sidebar";
 import { auth } from "@/lib/auth";
 import { Bell, Search, UserCircle } from "lucide-react";
 import GlobalSearch from "@/components/GlobalSearch";
+import AuthProvider from "@/components/AuthProvider";
 export default async function DashboardLayout({
   children,
 }: {
@@ -16,6 +17,7 @@ export default async function DashboardLayout({
       <Sidebar
         userEmail={session?.user?.email}
         userRole={session?.user?.role}
+        userPermissions={session?.user?.permissions}
         isAdmin={isAdmin}
       />
 
@@ -63,7 +65,7 @@ export default async function DashboardLayout({
         {/* Dynamic page contents scrollable */}
         <main className="flex-1 overflow-y-auto overflow-x-hidden relative z-10 w-full px-4 pt-16 pb-12 sm:px-8 md:px-12 lg:px-16">
           <div className="mx-auto max-w-7xl">
-            {children}
+            <AuthProvider session={session}>{children}</AuthProvider>
           </div>
         </main>
       </div>

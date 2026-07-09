@@ -1,22 +1,41 @@
 import NextAuth from "next-auth";
 import { NextResponse } from "next/server";
 import { authConfig } from "@/lib/auth.config";
-import { canAccess, type Role } from "@/lib/access";
+import { canAccess, canAccessApi, type PermissionsMap } from "@/lib/access";
 
 const { auth } = NextAuth(authConfig);
 
+/**
+ * First line of defence only. Next.js documents Proxy as unsuitable as the sole
+ * authorization layer, so route handlers re-check with `requirePermission`.
+ */
 export default auth((req) => {
-  const isLoggedIn = !!req.auth;
   const { pathname, search } = req.nextUrl;
+  const isApi = pathname.startsWith("/api");
 
-  if (!isLoggedIn) {
+  if (!req.auth) {
+    if (isApi) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     const signInUrl = new URL("/auth/signin", req.nextUrl);
     signInUrl.searchParams.set("callbackUrl", pathname + search);
     return NextResponse.redirect(signInUrl);
   }
 
-  const role = (req.auth?.user as { role?: Role } | undefined)?.role ?? null;
-  if (!canAccess(pathname, role)) {
+  const user = req.auth.user as
+    | { role?: string | null; permissions?: PermissionsMap | null }
+    | undefined;
+  const permissions = user?.permissions ?? null;
+  const role = user?.role ?? null;
+
+  if (isApi) {
+    if (!canAccessApi(pathname, req.method, permissions, role)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+    return NextResponse.next();
+  }
+
+  if (!canAccess(pathname, permissions, role)) {
     const forbiddenUrl = new URL("/forbidden", req.nextUrl);
     forbiddenUrl.searchParams.set("from", pathname);
     return NextResponse.rewrite(forbiddenUrl);
@@ -26,5 +45,13 @@ export default auth((req) => {
 });
 
 export const config = {
-  matcher: ["/dashboard/:path*"],
+  // `/api/auth/*` must stay open so sign-in itself can work.
+  matcher: [
+    "/dashboard/:path*",
+    "/print/:path*",
+    "/terminal/:path*",
+    "/qc/:path*",
+    "/uploads/:path*",
+    "/api/((?!auth/).*)",
+  ],
 };

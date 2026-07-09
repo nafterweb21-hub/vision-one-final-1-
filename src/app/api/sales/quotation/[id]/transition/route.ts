@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { transitionQuotation } from "@/lib/quotations";
+import { requirePermission } from "@/lib/authz";
 
 export async function POST(request: Request, ctx: { params: Promise<{ id: string }> }) {
+  const { error: authError } = await requirePermission("QUOTATION", "e");
+  if (authError) return authError;
+
   try {
     const { id } = await ctx.params;
     const { action } = await request.json();

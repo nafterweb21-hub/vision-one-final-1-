@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requirePermission } from "@/lib/authz";
 
 export async function POST(req: Request, context: { params: Promise<{ id: string }> }) {
+  const { error: authError } = await requirePermission("SUBCON_REQUEST_FORM", "e");
+  if (authError) return authError;
+
   try {
     const { id } = await context.params;
     const { action } = await req.json(); // "submit" | "void"

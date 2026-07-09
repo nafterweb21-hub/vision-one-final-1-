@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { requirePermission } from "@/lib/authz";
 import { prisma } from "@/lib/prisma";
 
 // Dummy function to simulate sending emails
@@ -11,6 +12,9 @@ async function sendEmailNotification(to: string, subject: string, body: string) 
 }
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { error: authError } = await requirePermission("PO_APPROVAL", "a");
+  if (authError) return authError;
+
   try {
     const { id } = await params;
     const body = await req.json();

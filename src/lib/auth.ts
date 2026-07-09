@@ -3,8 +3,7 @@ import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { authConfig } from "@/lib/auth.config";
-import type { Role } from "@/lib/access";
-import type { JWT } from "next-auth/jwt";
+import type { PermissionsMap } from "@/lib/access";
 
 declare module "next-auth" {
   interface Session {
@@ -12,17 +11,10 @@ declare module "next-auth" {
       id: string;
       role: string;
       employeeId: string | null;
+      permissions: PermissionsMap;
     } & DefaultSession["user"];
   }
   interface User {
-    role: string;
-    employeeId: string | null;
-  }
-}
-
-declare module "next-auth/jwt" {
-  interface JWT {
-    id: string;
     role: string;
     employeeId: string | null;
   }

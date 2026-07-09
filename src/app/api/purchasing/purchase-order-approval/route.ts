@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
+import { requirePermission } from "@/lib/authz";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(req: Request) {
+  const { error: authError } = await requirePermission("PO_APPROVAL", "v");
+  if (authError) return authError;
+
   try {
     const url = new URL(req.url);
     const search = url.searchParams.get("search") || "";

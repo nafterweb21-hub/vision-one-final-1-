@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requirePermission } from "@/lib/authz";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { error: authError } = await requirePermission("DELIVERY_ORDER", "e");
+  if (authError) return authError;
+
   try {
     const { id } = await params;
     const doItem = await prisma.deliveryOrder.findUnique({
