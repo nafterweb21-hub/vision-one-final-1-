@@ -95,6 +95,7 @@ model MaterialType {
   status                    String                   @default("Active")
   processParameterWeldingId String?
   processParameterWelding   ProcessParameterWelding? @relation(fields: [processParameterWeldingId], references: [id])
+  stockItems                StockItem[]
 }
 
 model Currency {
@@ -153,6 +154,8 @@ model Employee {
   receipts                                      Receipt[]                       @relation("ReceiptCreator")
   reworkRejected                                WorkOrderRework[]               @relation("ReworkRejectedBy")
   reworkReInspected                             WorkOrderRework[]               @relation("ReworkReInspectedBy")
+  fixedAssets                                   FixedAsset[]                    @relation("FixedAssetAssignee")
+  consumptionsIssued                            MaterialConsumption[]           @relation("ConsumptionIssuedBy")
 }
 
 model TaxProfile {
@@ -253,6 +256,7 @@ model MaterialProfile {
   category                 MaterialCategory          @relation(fields: [categoryId], references: [id])
   purchaseOrderItems       PurchaseOrderItem[]
   purchaseRequisitionItems PurchaseRequisitionItem[]
+  stockItem                StockItem?
 }
 
 model WeldingTypeProfile {
@@ -330,6 +334,7 @@ model SupplierProfile {
   subconRejectTrackings SubconRejectTracking[]
   addresses             SupplierAddress[]
   contactPersons        SupplierContactPerson[]
+  stockItems            StockItem[]
 }
 
 model SupplierContactPerson {
@@ -390,6 +395,7 @@ model UomProfile {
   salesOrderItems          SalesOrderItem[]
   workOrders               WorkOrder[]
   invoiceItems             InvoiceItem[]
+  stockItems               StockItem[]
 }
 
 model ElcometerProfile {
@@ -578,6 +584,7 @@ model WorkOrder {
   qcBy                 Employee?                 @relation("WorkOrderQc", fields: [qcById], references: [id])
   inProcesses          WorkOrderInProcess[]
   invoiceItems         InvoiceItem[]
+  consumptions         MaterialConsumption[]
 }
 
 model WorkOrderRework {
@@ -1075,11 +1082,12 @@ model NcrFailureMode {
 }
 
 model DepartmentProfile {
-  id        String   @id @default(cuid())
-  name      String   @unique
-  status    String   @default("Active")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String       @id @default(cuid())
+  name        String       @unique
+  status      String       @default("Active")
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  fixedAssets FixedAsset[]
 }
 
 model GoodsReceive {
@@ -1479,4 +1487,102 @@ model RolePermission {
   module      AppModule   @relation(fields: [moduleId], references: [id], onDelete: Cascade)
 
   @@unique([roleId, moduleId])
+}
+
+/// Stock-keeping attributes for a material: reorder level, cost, where it lives.
+///
+/// One row per `MaterialProfile`, which stays the master record for code,
+/// description and category. `itemType` separates raw materials from
+/// consumables — they are the same shape, so they share a table.
+///
+/// There is deliberately no `currentStock` column. On-hand quantity is derived
+/// from the document trail (PO / GR / GRN / MC) by `getStockAggregates`, the
+/// same source Inventory Summary reads, so the two screens cannot disagree.
+model StockItem {
+  id                String           @id @default(cuid())
+  materialProfileId String           @unique
+  itemType          String
+  materialTypeId    String?
+  grade             String?
+  uomId             String
+  openingStock      Decimal          @default(0)
+  reorderLevel      Decimal          @default(0)
+  unitCost          Decimal          @default(0)
+  supplierId        String?
+  warehouse         String?
+  status            String           @default("Active")
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  materialProfile   MaterialProfile  @relation(fields: [materialProfileId], references: [id])
+  materialType      MaterialType?    @relation(fields: [materialTypeId], references: [id])
+  uom               UomProfile       @relation(fields: [uomId], references: [id])
+  supplier          SupplierProfile? @relation(fields: [supplierId], references: [id])
+  consumptionItems  MaterialConsumptionItem[]
+
+  @@index([itemType])
+}
+
+/// A material issue: stock leaving the store against a work order.
+///
+/// This is the document that actually decrements on-hand stock. A purchase
+/// requisition only *reserves* material (it records what a job asked for);
+/// consumption records what the storekeeper handed over. Only `Submitted`
+/// rows count — Draft is still being typed, Void has been reversed.
+///
+/// Per the spec's no-DELETE rule, a submitted consumption is voided, never
+/// removed, so `mcNo` running numbers stay contiguous.
+model MaterialConsumption {
+  id          String                    @id @default(cuid())
+  mcNo        String                    @unique
+  date        DateTime
+  workOrderNo String
+  issuedById  String
+  remark      String?
+  status      String                    @default("Draft")
+  createdAt   DateTime                  @default(now())
+  updatedAt   DateTime                  @updatedAt
+  workOrder   WorkOrder                 @relation(fields: [workOrderNo], references: [workOrderNo])
+  issuedBy    Employee                  @relation("ConsumptionIssuedBy", fields: [issuedById], references: [id])
+  items       MaterialConsumptionItem[]
+
+  @@index([workOrderNo])
+  @@index([status])
+}
+
+/// `unitCost` is copied from the StockItem at submit time, not joined at read
+/// time, so voiding or re-pricing an item never rewrites historical job cost.
+model MaterialConsumptionItem {
+  id                    String              @id @default(cuid())
+  materialConsumptionId String
+  stockItemId           String
+  quantity              Decimal
+  unitCost              Decimal             @default(0)
+  remark                String?
+  sortOrder             Int                 @default(0)
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+  materialConsumption   MaterialConsumption @relation(fields: [materialConsumptionId], references: [id], onDelete: Cascade)
+  stockItem             StockItem           @relation(fields: [stockItemId], references: [id])
+
+  @@index([stockItemId])
+}
+
+model FixedAsset {
+  id            String             @id @default(cuid())
+  assetCode     String             @unique
+  assetName     String
+  assetCategory String
+  brand         String?
+  model         String?
+  serialNumber  String?            @unique
+  purchaseDate  DateTime?
+  purchaseCost  Decimal            @default(0)
+  departmentId  String?
+  assignedToId  String?
+  location      String?
+  status        String             @default("Active")
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  department    DepartmentProfile? @relation(fields: [departmentId], references: [id])
+  assignedTo    Employee?          @relation("FixedAssetAssignee", fields: [assignedToId], references: [id])
 }

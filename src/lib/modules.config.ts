@@ -45,6 +45,7 @@ export const PUBLIC_AUTHED_PATH_PREFIXES: string[] = ['/uploads'];
  * (search, pickers, uploads) and expose no module data directly.
  */
 export const PUBLIC_AUTHED_API_PATHS: string[] = [
+  '/api/inventory/lookups',
   '/api/profiles/summary',
   '/api/upload',
   '/api/uploads',
@@ -303,6 +304,34 @@ export const APP_MODULES: AppModuleDef[] = [
     group: 'Inventory',
     pathPrefixes: ['/dashboard/inventory/report'],
     apiPrefixes: ['/api/inventory/report'],
+  },
+  {
+    code: 'RAW_MATERIAL',
+    name: 'Raw Materials',
+    group: 'Inventory',
+    pathPrefixes: ['/dashboard/inventory/raw-materials'],
+    apiPrefixes: ['/api/inventory/raw-materials'],
+  },
+  {
+    code: 'CONSUMABLE',
+    name: 'Consumables',
+    group: 'Inventory',
+    pathPrefixes: ['/dashboard/inventory/consumables'],
+    apiPrefixes: ['/api/inventory/consumables'],
+  },
+  {
+    code: 'FIXED_ASSET',
+    name: 'Fixed Assets',
+    group: 'Inventory',
+    pathPrefixes: ['/dashboard/inventory/fixed-assets'],
+    apiPrefixes: ['/api/inventory/fixed-assets'],
+  },
+  {
+    code: 'MATERIAL_CONSUMPTION',
+    name: 'Material Consumption',
+    group: 'Inventory',
+    pathPrefixes: ['/dashboard/inventory/consumption'],
+    apiPrefixes: ['/api/inventory/consumption'],
   },
 
   // ── Finance ──────────────────────────────────────────────────────────────

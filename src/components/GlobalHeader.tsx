@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { LayoutDashboard, LogOut, Menu, X } from "lucide-react";
 import { type PermissionsMap } from "@/lib/access";
-import { NavLink, isActivePath, visibleSections } from "./NavLink";
+import { NavTree, isActivePath, visibleSections } from "./NavLink";
 
 interface GlobalHeaderProps {
   userEmail?: string | null;
@@ -121,15 +121,12 @@ export default function GlobalHeader({
               <p className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">
                 {section.title}
               </p>
-              {section.items.map((item) => (
-                <NavLink
-                  key={item.href}
-                  item={item}
-                  active={isActivePath(pathname, item.href)}
-                  onNavigate={close}
-                  className={linkClass(item.href)}
-                />
-              ))}
+              <NavTree
+                nodes={section.items}
+                pathname={pathname}
+                linkClass={linkClass}
+                onNavigate={close}
+              />
             </div>
           ))}
         </div>

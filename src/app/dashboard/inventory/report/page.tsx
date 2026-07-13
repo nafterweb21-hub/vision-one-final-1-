@@ -17,10 +17,13 @@ type ReportRow = {
   description: string;
   category: string;
   internalUom: string;
+  openingStock: number;
   onOrderQty: number;
   netReceivedQty: number;
-  demandQty: number;
+  consumedQty: number;
+  reservedQty: number;
   balance: number;
+  available: number;
 };
 
 export default function InventoryReportPage() {
@@ -74,10 +77,13 @@ export default function InventoryReportPage() {
       "Description": r.description,
       "Category": r.category,
       "Internal UOM": r.internalUom,
+      "Opening Stock": r.openingStock,
       "Total On-Order Qty": r.onOrderQty,
       "Net Received Qty": r.netReceivedQty,
-      "Total Demand Qty": r.demandQty,
+      "Consumed Qty": r.consumedQty,
+      "Reserved Qty": r.reservedQty,
       "Balance": r.balance,
+      "Available": r.available,
     }));
     const worksheet = XLSX.utils.json_to_sheet(exportData);
     const workbook = XLSX.utils.book_new();
@@ -208,16 +214,19 @@ export default function InventoryReportPage() {
                   <th className="px-4 py-3">Part No</th>
                   <th className="px-4 py-3">Description</th>
                   <th className="px-4 py-3">Category</th>
+                  <th className="px-4 py-3 text-right" title="Stock held before any document was raised">Opening Stock</th>
                   <th className="px-4 py-3 text-right">On-Order Qty</th>
                   <th className="px-4 py-3 text-right">Net Received</th>
-                  <th className="px-4 py-3 text-right">Demand Qty</th>
-                  <th className="px-4 py-3 text-right">Balance</th>
+                  <th className="px-4 py-3 text-right" title="Issued to work orders">Consumed</th>
+                  <th className="px-4 py-3 text-right" title="Requisitioned but not yet issued">Reserved</th>
+                  <th className="px-4 py-3 text-right" title="On hand: opening stock plus net received, less consumed">Balance</th>
+                  <th className="px-4 py-3 text-right" title="Balance less reserved">Available</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-blue-100">
                 {rows.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="px-4 py-12 text-center text-blue-500">
+                    <td colSpan={11} className="px-4 py-12 text-center text-blue-500">
                       No data to display. Click "Generate Report".
                     </td>
                   </tr>
@@ -227,11 +236,16 @@ export default function InventoryReportPage() {
                     <td className="px-4 py-3 font-bold text-blue-900">{r.partNo || "—"}</td>
                     <td className="px-4 py-3 text-blue-700 max-w-[250px] truncate" title={r.description}>{r.description}</td>
                     <td className="px-4 py-3 text-blue-700">{r.category}</td>
+                    <td className="px-4 py-3 text-right text-blue-700">{r.openingStock.toFixed(2)} <span className="text-[10px]">{r.internalUom}</span></td>
                     <td className="px-4 py-3 text-right text-blue-700">{r.onOrderQty.toFixed(2)} <span className="text-[10px]">{r.internalUom}</span></td>
                     <td className="px-4 py-3 text-right text-emerald-700 font-medium">{r.netReceivedQty.toFixed(2)} <span className="text-[10px]">{r.internalUom}</span></td>
-                    <td className="px-4 py-3 text-right text-rose-700">{r.demandQty.toFixed(2)} <span className="text-[10px]">{r.internalUom}</span></td>
+                    <td className="px-4 py-3 text-right text-rose-700">{r.consumedQty.toFixed(2)} <span className="text-[10px]">{r.internalUom}</span></td>
+                    <td className="px-4 py-3 text-right text-amber-700">{r.reservedQty.toFixed(2)} <span className="text-[10px]">{r.internalUom}</span></td>
                     <td className={`px-4 py-3 text-right font-bold ${r.balance < 0 ? "text-rose-600" : "text-blue-900"}`}>
                       {r.balance.toFixed(2)} <span className="text-[10px]">{r.internalUom}</span>
+                    </td>
+                    <td className={`px-4 py-3 text-right font-medium ${r.available < 0 ? "text-rose-600" : "text-blue-700"}`}>
+                      {r.available.toFixed(2)} <span className="text-[10px]">{r.internalUom}</span>
                     </td>
                   </tr>
                 ))}

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getOpeningStocks } from "@/lib/stock-balance";
 
 export async function GET(req: Request) {
   try {
@@ -85,8 +86,8 @@ export async function GET(req: Request) {
       }
     });
 
-    // Demand
-    const prFilter: any = { workOrderNo: { not: null } };
+    // Reserved: requisitioned against a work order but not yet issued.
+    const prFilter: any = { workOrderNo: { not: null }, status: { notIn: ["Void", "Old Version"] } };
     if (companyId) prFilter.companyId = companyId;
     if (startDate && endDate) prFilter.date = { gte: new Date(startDate), lte: new Date(endDate) };
 
@@ -101,19 +102,43 @@ export async function GET(req: Request) {
       }
     });
 
+    // Consumed: material actually issued to a work order. This, not the
+    // requisition, is what moves the balance — see `src/lib/stock-balance.ts`.
+    const mcFilter: any = { status: "Submitted" };
+    if (startDate && endDate) mcFilter.date = { gte: new Date(startDate), lte: new Date(endDate) };
+
+    const mcItems = await prisma.materialConsumptionItem.findMany({
+      where: {
+        stockItem: { materialProfileId: { in: materialIds } },
+        materialConsumption: mcFilter
+      },
+      select: {
+        quantity: true,
+        stockItem: { select: { materialProfileId: true, uom: { select: { uomName: true } } } }
+      }
+    });
+
+    // The balance starts from what the store already held. Opening stock is not
+    // a document, so the date filter above does not scope it — it is the figure
+    // the filtered movements are applied to.
+    const openings = await getOpeningStocks(materialIds);
+
     // Aggregate
     const summaryMap = new Map();
     materials.forEach(m => {
+      const opening = openings.get(m.id);
       summaryMap.set(m.id, {
         id: m.id,
         partNo: m.partNo || "",
         description: m.description || "",
         category: m.category?.name || "",
         internalUom: "",
+        openingStock: opening?.openingStock ?? 0,
         onOrderQty: 0,
         receivedQty: 0,
         returnedQty: 0,
-        demandQty: 0,
+        consumedQty: 0,
+        reservedQty: 0,
       });
     });
 
@@ -147,17 +172,38 @@ export async function GET(req: Request) {
     prItems.forEach(item => {
       if (!item.materialProfileId) return;
       const data = summaryMap.get(item.materialProfileId);
-      if (data) data.demandQty += Number(item.prQuantity || 0);
+      if (data) data.reservedQty += Number(item.prQuantity || 0);
+    });
+
+    mcItems.forEach(item => {
+      const matId = item.stockItem?.materialProfileId;
+      if (!matId) return;
+      const data = summaryMap.get(matId);
+      if (data) {
+        data.consumedQty += Number(item.quantity || 0);
+        if (item.stockItem?.uom?.uomName && !data.internalUom) data.internalUom = item.stockItem.uom.uomName;
+      }
     });
 
     let results = Array.from(summaryMap.values()).map(data => {
       const netReceivedQty = data.receivedQty - data.returnedQty;
-      const balance = netReceivedQty - data.demandQty;
-      return { ...data, netReceivedQty, balance };
+      const balance = data.openingStock + netReceivedQty - data.consumedQty;
+      return {
+        ...data,
+        // The trail names the UOM; a material with no trail still has one on
+        // its stock item.
+        internalUom: data.internalUom || openings.get(data.id)?.uomName || "",
+        netReceivedQty,
+        balance,
+        available: balance - data.reservedQty,
+      };
     });
 
+    // A shortfall is "outstanding requisitions exceed what is left", which is
+    // `available`, not `balance`. Before consumption existed the two were the
+    // same number, so filtering on `balance` here would quietly narrow it.
     if (shortfallOnly) {
-      results = results.filter(r => r.balance < 0);
+      results = results.filter(r => r.available < 0);
     }
 
     return NextResponse.json(results);

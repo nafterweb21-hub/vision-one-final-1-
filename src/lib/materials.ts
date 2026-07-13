@@ -75,7 +75,28 @@ export async function updateMaterial(
   });
 }
 
+/**
+ * A material referenced by a document cannot be removed — the foreign key would
+ * reject it anyway, but with an opaque error. Name the blockers instead.
+ */
 export async function deleteMaterial(id: string) {
+  const [poLines, prLines, stockItem] = await Promise.all([
+    prisma.purchaseOrderItem.count({ where: { materialProfileId: id } }),
+    prisma.purchaseRequisitionItem.count({ where: { materialProfileId: id } }),
+    prisma.stockItem.findUnique({ where: { materialProfileId: id }, select: { itemType: true } }),
+  ]);
+
+  const blockers: string[] = [];
+  if (poLines > 0) blockers.push(`${poLines} purchase order line${poLines > 1 ? "s" : ""}`);
+  if (prLines > 0) blockers.push(`${prLines} purchase requisition line${prLines > 1 ? "s" : ""}`);
+  if (stockItem) {
+    blockers.push(stockItem.itemType === "RAW_MATERIAL" ? "a raw material record" : "a consumable record");
+  }
+
+  if (blockers.length > 0) {
+    throw new Error(`This material is used by ${blockers.join(" and ")}, so it cannot be deleted.`);
+  }
+
   await prisma.materialProfile.delete({ where: { id } });
   return true;
 }

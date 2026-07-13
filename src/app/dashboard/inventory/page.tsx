@@ -1,8 +1,13 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
-import { Search, Loader2, AlertCircle, FileText, Box, ArrowLeftRight } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { Search, Loader2, AlertCircle, FileText, Box, ArrowLeftRight, Plus, ChevronDown, Layers, Droplet, Armchair, Edit2, Trash2 } from "lucide-react";
+import { canCreate, canEdit, canDelete } from "@/lib/access";
+import { customConfirm } from "@/lib/customConfirm";
+import { toast as hotToast } from "react-hot-toast";
+import { deleteMaterialProfile } from "@/app/dashboard/master-profile/material/actions";
 import MovementModal from "./movement-modal";
 
 type InventorySummary = {
@@ -14,13 +19,16 @@ type InventorySummary = {
   category: string;
   materialStatus: string;
   internalUom: string;
+  openingStock: number;
   onOrderQty: number;
   receivedQty: number;
   returnedQty: number;
-  demandQty: number;
+  consumedQty: number;
+  reservedQty: number;
   openPoCount: number;
   netReceivedQty: number;
   balance: number;
+  available: number;
 };
 
 type WorkOrderSummary = {
@@ -45,6 +53,7 @@ type WorkOrderSummary = {
 };
 
 export default function InventoryPage() {
+  const { data: session } = useSession();
   const [activeTab, setActiveTab] = useState<"summary" | "by-work-order">("summary");
   
   // Summary State
@@ -98,6 +107,26 @@ export default function InventoryPage() {
     }
   }
 
+  // Summary rows are Material Profiles, so editing and deleting them is governed
+  // by that module, not by Inventory.
+  const role = session?.user?.role;
+  const permissions = session?.user?.permissions;
+  const allowEdit = canEdit(permissions, "MATERIAL_PROFILE", role);
+  const allowDelete = canDelete(permissions, "MATERIAL_PROFILE", role);
+
+  async function handleDeleteMaterial(row: InventorySummary) {
+    const label = row.partNo || row.description;
+    if (!(await customConfirm(`Delete material "${label}"? This action cannot be undone.`))) return;
+
+    const res = await deleteMaterialProfile(row.id);
+    if (res.success) {
+      hotToast.success("Material deleted");
+      fetchSummary();
+    } else {
+      hotToast.error(res.error || "Failed to delete material");
+    }
+  }
+
   return (
     <div className="p-6 lg:p-8 space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 pb-6 border-b border-blue-200">
@@ -117,6 +146,8 @@ export default function InventoryPage() {
             </div>
           </div>
         </div>
+
+        <AddItemMenu />
       </div>
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -152,11 +183,14 @@ export default function InventoryPage() {
       </div>
 
       {activeTab === "summary" ? (
-        <SummaryView 
-          rows={summaryRows} 
-          loading={summaryLoading} 
-          error={summaryError} 
+        <SummaryView
+          rows={summaryRows}
+          loading={summaryLoading}
+          error={summaryError}
           onOpenMovement={(id, desc) => { setSelectedMaterialId(id); setSelectedMaterialDesc(desc); }}
+          allowEdit={allowEdit}
+          allowDelete={allowDelete}
+          onDelete={handleDeleteMaterial}
         />
       ) : (
         <WorkOrderView rows={woRows} loading={woLoading} error={woError} />
@@ -173,7 +207,86 @@ export default function InventoryPage() {
   );
 }
 
-function SummaryView({ rows, loading, error, onOpenMovement }: { rows: InventorySummary[], loading: boolean, error: string, onOpenMovement: (id: string, desc: string) => void }) {
+/**
+ * Inventory Summary is derived from documents, so there is nothing to create
+ * here. This is pure navigation into the Item Master pages, and it only offers
+ * the ones the role may actually create in.
+ */
+function AddItemMenu() {
+  const { data: session } = useSession();
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  const role = session?.user?.role;
+  const permissions = session?.user?.permissions;
+
+  const targets = [
+    { code: "RAW_MATERIAL", href: "/dashboard/inventory/raw-materials", label: "Raw Material", icon: Layers, iconClass: "text-amber-600" },
+    { code: "CONSUMABLE", href: "/dashboard/inventory/consumables", label: "Consumable", icon: Droplet, iconClass: "text-cyan-600" },
+    { code: "FIXED_ASSET", href: "/dashboard/inventory/fixed-assets", label: "Fixed Asset", icon: Armchair, iconClass: "text-purple-600" },
+  ].filter((t) => canCreate(permissions, t.code, role));
+
+  useEffect(() => {
+    if (!open) return;
+    const onClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    const onEsc = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    document.addEventListener("mousedown", onClick);
+    document.addEventListener("keydown", onEsc);
+    return () => {
+      document.removeEventListener("mousedown", onClick);
+      document.removeEventListener("keydown", onEsc);
+    };
+  }, [open]);
+
+  if (targets.length === 0) return null;
+
+  return (
+    <div className="relative shrink-0" ref={ref}>
+      <button
+        id="btn-add-inventory"
+        onClick={() => setOpen(!open)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        className="inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 rounded-lg shadow-md shadow-blue-500/20 active:scale-95 transition-all duration-200"
+      >
+        <Plus size={16} /> Add
+        <ChevronDown size={14} className={`transform transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+
+      {open && (
+        <div
+          role="menu"
+          className="absolute right-0 z-20 mt-2 w-52 overflow-hidden bg-white border border-blue-200 rounded-xl shadow-lg"
+        >
+          {targets.map(({ href, label, icon: Icon, iconClass }) => (
+            <Link
+              key={href}
+              href={href}
+              role="menuitem"
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-blue-700 hover:bg-blue-50 transition-colors"
+            >
+              <Icon size={15} className={iconClass} />
+              {label}
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SummaryView({ rows, loading, error, onOpenMovement, allowEdit, allowDelete, onDelete }: {
+  rows: InventorySummary[],
+  loading: boolean,
+  error: string,
+  onOpenMovement: (id: string, desc: string) => void,
+  allowEdit: boolean,
+  allowDelete: boolean,
+  onDelete: (row: InventorySummary) => void,
+}) {
   if (loading) {
     return (
       <div className="h-64 flex flex-col items-center justify-center gap-2">
@@ -202,10 +315,13 @@ function SummaryView({ rows, loading, error, onOpenMovement }: { rows: Inventory
               <th className="px-4 py-3">Part No</th>
               <th className="px-4 py-3">Description</th>
               <th className="px-4 py-3">Status</th>
+              <th className="px-4 py-3 text-right" title="Stock held before any document was raised">Opening Stock</th>
               <th className="px-4 py-3 text-right">On-Order Qty</th>
               <th className="px-4 py-3 text-right">Net Received</th>
-              <th className="px-4 py-3 text-right">Demand Qty</th>
-              <th className="px-4 py-3 text-right">Balance</th>
+              <th className="px-4 py-3 text-right">Consumed</th>
+              <th className="px-4 py-3 text-right" title="Requisitioned but not yet issued">Reserved</th>
+              <th className="px-4 py-3 text-right" title="On hand: opening stock plus net received, less consumed">Balance</th>
+              <th className="px-4 py-3 text-right" title="Balance less reserved">Available</th>
               <th className="px-4 py-3 text-center">Open POs</th>
               <th className="px-4 py-3">Action</th>
             </tr>
@@ -213,7 +329,7 @@ function SummaryView({ rows, loading, error, onOpenMovement }: { rows: Inventory
           <tbody className="divide-y divide-blue-100">
             {rows.length === 0 ? (
               <tr>
-                <td colSpan={10} className="px-4 py-12 text-center text-blue-500">
+                <td colSpan={13} className="px-4 py-12 text-center text-blue-500">
                   No inventory records found.
                 </td>
               </tr>
@@ -229,11 +345,16 @@ function SummaryView({ rows, loading, error, onOpenMovement }: { rows: Inventory
                     {r.materialStatus}
                   </span>
                 </td>
+                <td className="px-4 py-3 text-right text-blue-700">{r.openingStock.toFixed(2)} {r.internalUom}</td>
                 <td className="px-4 py-3 text-right text-blue-700">{r.onOrderQty.toFixed(2)} {r.internalUom}</td>
                 <td className="px-4 py-3 text-right text-emerald-700 font-medium">{r.netReceivedQty.toFixed(2)} {r.internalUom}</td>
-                <td className="px-4 py-3 text-right text-rose-700">{r.demandQty.toFixed(2)} {r.internalUom}</td>
+                <td className="px-4 py-3 text-right text-rose-700">{r.consumedQty.toFixed(2)} {r.internalUom}</td>
+                <td className="px-4 py-3 text-right text-amber-700">{r.reservedQty.toFixed(2)} {r.internalUom}</td>
                 <td className={`px-4 py-3 text-right font-bold ${r.balance < 0 ? "text-rose-600" : "text-blue-900"}`}>
                   {r.balance.toFixed(2)} {r.internalUom}
+                </td>
+                <td className={`px-4 py-3 text-right font-medium ${r.available < 0 ? "text-rose-600" : "text-blue-700"}`}>
+                  {r.available.toFixed(2)} {r.internalUom}
                 </td>
                 <td className="px-4 py-3 text-center text-blue-700">
                   {r.openPoCount > 0 ? (
@@ -243,12 +364,36 @@ function SummaryView({ rows, loading, error, onOpenMovement }: { rows: Inventory
                   ) : "—"}
                 </td>
                 <td className="px-4 py-3">
-                  <button 
-                    onClick={() => onOpenMovement(r.id, r.description)}
-                    className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-800 transition-colors"
-                  >
-                    <ArrowLeftRight size={14} /> Detail
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => onOpenMovement(r.id, r.description)}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold text-blue-600 border border-blue-200 hover:bg-blue-50 transition-all active:scale-95"
+                      title="Movement History"
+                    >
+                      <ArrowLeftRight size={14} /> Detail
+                    </button>
+
+                    {/* Rows are Material Profiles — edit them where they live. */}
+                    {allowEdit && (
+                      <Link
+                        href={`/dashboard/master-profile/material/${r.id}/edit`}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold text-indigo-600 border border-indigo-200 hover:bg-indigo-50 transition-all active:scale-95"
+                        title="Edit Material Profile"
+                      >
+                        <Edit2 size={13} /> Edit
+                      </Link>
+                    )}
+
+                    {allowDelete && (
+                      <button
+                        onClick={() => onDelete(r)}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold text-rose-600 border border-rose-200 hover:bg-rose-50 transition-all active:scale-95"
+                        title="Delete Material Profile"
+                      >
+                        <Trash2 size={13} /> Delete
+                      </button>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}

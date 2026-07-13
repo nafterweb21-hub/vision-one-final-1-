@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { requirePermission } from "@/lib/authz";
 import {
   getMaterials,
   getMaterialById,
@@ -87,9 +88,16 @@ export async function toggleMaterialStatus(id: string) {
 }
 
 export async function deleteMaterialProfile(id: string) {
+  // Server actions post to whatever page invoked them, so `proxy.ts` only ever
+  // checked view on that page. Inventory calls this too — enforce the real
+  // permission here rather than trusting the caller's route.
+  const { error } = await requirePermission("MATERIAL_PROFILE", "d");
+  if (error) return { success: false, error: "You do not have permission to delete materials." };
+
   try {
     await deleteMaterial(id);
     revalidatePath("/dashboard/master-profile/material");
+    revalidatePath("/dashboard/inventory");
     return { success: true };
   } catch (error: any) {
     console.error("Error deleting material:", error);

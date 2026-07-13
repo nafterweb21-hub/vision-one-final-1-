@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { signOut } from "next-auth/react";
 import { type PermissionsMap } from "@/lib/access";
-import { NavLink, isActivePath, visibleSections } from "./NavLink";
+import { NavTree, isActivePath, visibleSections } from "./NavLink";
 import { ChevronDown, LayoutDashboard, LogOut, Menu, X } from "lucide-react";
 
 interface SidebarProps {
@@ -89,15 +89,12 @@ export default function Sidebar({ userEmail, userRole, userPermissions }: Sideba
                     isReportsOpen ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
                   }`}
                 >
-                  {section.items.map((item) => (
-                    <NavLink
-                      key={item.href}
-                      item={item}
-                      active={isActivePath(pathname, item.href)}
-                      onNavigate={close}
-                      className={linkClass(item.href)}
-                    />
-                  ))}
+                  <NavTree
+                    nodes={section.items}
+                    pathname={pathname}
+                    linkClass={linkClass}
+                    onNavigate={close}
+                  />
                 </div>
               </div>
             ) : (
@@ -105,15 +102,12 @@ export default function Sidebar({ userEmail, userRole, userPermissions }: Sideba
                 <p className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">
                   {section.title}
                 </p>
-                {section.items.map((item) => (
-                  <NavLink
-                    key={item.href}
-                    item={item}
-                    active={isActivePath(pathname, item.href)}
-                    onNavigate={close}
-                    className={linkClass(item.href)}
-                  />
-                ))}
+                <NavTree
+                  nodes={section.items}
+                  pathname={pathname}
+                  linkClass={linkClass}
+                  onNavigate={close}
+                />
               </div>
             ),
           )}

@@ -1,5 +1,6 @@
 import {
   AlertTriangle,
+  Armchair,
   Banknote,
   BarChart,
   BarChart2,
@@ -17,6 +18,7 @@ import {
   CornerUpLeft,
   Cpu,
   Diamond,
+  Droplet,
   Factory,
   File,
   Flame,
@@ -26,10 +28,12 @@ import {
   Hexagon,
   Key,
   Landmark,
+  Layers,
   Link2,
   List,
   ListTree,
   Package,
+  PackageMinus,
   PackageOpen,
   Receipt,
   RefreshCw,
@@ -59,9 +63,22 @@ export interface NavItem {
   filled?: boolean;
 }
 
+/**
+ * A node in the navigation tree.
+ *
+ * A node with `children` is a branch. A branch may also carry an `href` — the
+ * Inventory branch links to its own page *and* nests Item Master beneath it.
+ * A branch without an `href` (Item Master) is a pure grouping label that only
+ * expands. Every node must have one or the other.
+ */
+export interface NavNode extends Omit<NavItem, "href"> {
+  href?: string;
+  children?: NavNode[];
+}
+
 export interface NavSection {
   title: string;
-  items: NavItem[];
+  items: NavNode[];
   /** Rendered behind a disclosure toggle in the sidebar. */
   collapsible?: boolean;
 }
@@ -101,7 +118,18 @@ export const NAV_SECTIONS: NavSection[] = [
       { href: '/dashboard/purchasing/purchase-order-approval', label: 'Purchase Order Approval', icon: CheckSquare, iconClass: 'text-green-500', filled: true },
       { href: '/dashboard/purchasing/goods-receive', label: 'Goods Receive', icon: PackageOpen, iconClass: 'text-amber-700', filled: true },
       { href: '/dashboard/purchasing/goods-return', label: 'Goods Return', icon: CornerUpLeft, iconClass: 'text-slate-600' },
-      { href: '/dashboard/inventory', label: 'Inventory', icon: Box, iconClass: 'text-blue-600' },
+      {
+        href: '/dashboard/inventory',
+        label: 'Inventory',
+        icon: Box,
+        iconClass: 'text-blue-600',
+        children: [
+          { href: '/dashboard/inventory/raw-materials', label: 'Raw Materials', icon: Layers, iconClass: 'text-amber-600' },
+          { href: '/dashboard/inventory/consumables', label: 'Consumables', icon: Droplet, iconClass: 'text-cyan-600' },
+          { href: '/dashboard/inventory/fixed-assets', label: 'Fixed Assets', icon: Armchair, iconClass: 'text-purple-600' },
+          { href: '/dashboard/inventory/consumption', label: 'Material Consumption', icon: PackageMinus, iconClass: 'text-rose-600' },
+        ],
+      },
     ],
   },
   {
