@@ -1,9 +1,21 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, type DragEvent } from "react";
 import { useRouter } from "next/navigation";
+import { GripVertical } from "lucide-react";
 import { markRoutingProcessStatus } from "../actions";
 import ParameterDetailDrawer from "./ParameterDetailDrawer";
+
+type DndProps = {
+  enabled: boolean;
+  dragging: boolean;
+  over: boolean;
+  onDragStart: () => void;
+  onDragEnd: () => void;
+  onDragEnter: () => void;
+  onDragOver: (e: DragEvent) => void;
+  onDrop: () => void;
+};
 
 type Props = {
   rp: any;
@@ -11,6 +23,7 @@ type Props = {
   employees?: any[];
   supportData?: any;
   workOrderNo?: string;
+  dnd?: DndProps | null;
 };
 
 function fmtDate(d?: string | Date | null) {
@@ -32,6 +45,7 @@ export default function RoutingProcessRow({
   employees = [],
   supportData = {},
   workOrderNo = "",
+  dnd = null,
 }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -63,8 +77,34 @@ export default function RoutingProcessRow({
   const expectedType = expectsWelding ? "Welding" : expectsSpray ? "Spray Painting" : expectsMachining ? "Machining" : null;
 
   return (
-    <tr className="hover:bg-slate-50/60">
-      <td className="px-3 py-2 text-slate-600">{rp?.sn}</td>
+    <tr
+      className={`hover:bg-slate-50/60 ${dnd?.dragging ? "opacity-40" : ""} ${
+        dnd?.over ? "bg-blue-50/70 border-t-2 border-blue-400" : ""
+      }`}
+      onDragEnter={dnd ? dnd.onDragEnter : undefined}
+      onDragOver={dnd ? dnd.onDragOver : undefined}
+      onDrop={dnd ? dnd.onDrop : undefined}
+    >
+      {dnd && (
+        <td className="px-2 py-2 w-8 align-middle">
+          {dnd.enabled ? (
+            <span
+              draggable
+              onDragStart={dnd.onDragStart}
+              onDragEnd={dnd.onDragEnd}
+              title="Drag to reorder"
+              className="inline-flex cursor-grab active:cursor-grabbing text-slate-400 hover:text-slate-600"
+            >
+              <GripVertical size={16} />
+            </span>
+          ) : (
+            <span className="inline-flex text-slate-200" title="Completed steps cannot be reordered">
+              <GripVertical size={16} />
+            </span>
+          )}
+        </td>
+      )}
+      <td className="px-3 py-2 text-slate-600">{rp?.sequence}</td>
       <td className="px-3 py-2">{rp?.mainProcess?.process ?? "-"}</td>
       <td className="px-3 py-2 font-medium text-slate-800">
         {rp?.routingProcess?.routingProcess ?? "-"}

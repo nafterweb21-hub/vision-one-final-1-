@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/generated/prisma";
+import { nextDocumentNo } from "@/lib/document-numbering";
 
 export async function GET(request: Request) {
   try {
@@ -90,22 +91,15 @@ export async function POST(request: Request) {
       status,
     } = data;
 
-    // Generate srjNo: SRJYYXXXXX
-    const currentYear = new Date().getFullYear().toString().slice(-2);
-    const prefix = `SRJ${currentYear}`;
-    const lastRecord = await prisma.subconRejectTracking.findFirst({
-      where: { srjNo: { startsWith: prefix } },
-      orderBy: { srjNo: "desc" },
-    });
-
-    let runningDigit = 1;
-    if (lastRecord) {
-      const lastDigitStr = lastRecord.srjNo.slice(-5);
-      runningDigit = parseInt(lastDigitStr, 10) + 1;
-    }
-    const srjNo = `${prefix}${runningDigit.toString().padStart(5, "0")}`;
-
     const newSrt = await prisma.$transaction(async (tx) => {
+      // Taken inside the transaction that writes the row — the counter's lock
+      // is only held for the life of the transaction.
+      const srjNo = await nextDocumentNo(tx, "SUBCON_REJECT_TRACKING", {
+        companyId,
+        isTaken: async (no) =>
+          (await tx.subconRejectTracking.count({ where: { srjNo: no } })) > 0,
+      });
+
       const srt = await tx.subconRejectTracking.create({
         data: {
           srjNo,

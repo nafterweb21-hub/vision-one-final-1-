@@ -25,6 +25,7 @@ export default function SalesOrderFormPage() {
   // Form State
   const [order, setOrder] = useState<any>({
     date: new Date().toISOString().split("T")[0],
+    orderType: "Direct",
     salespersonId: "",
     customerId: "",
     customerPoRef: "",
@@ -415,6 +416,17 @@ export default function SalesOrderFormPage() {
                   onChange={(e) => handleOrderChange("date", e.target.value)}
                   className="w-full px-3 py-2 text-sm bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                 />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-blue-700 mb-1">Order Type <span className="text-red-500">*</span></label>
+                <select
+                  value={order.orderType || "Direct"}
+                  onChange={(e) => handleOrderChange("orderType", e.target.value)}
+                  className="w-full px-3 py-2 text-sm bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                >
+                  <option value="Direct">Direct</option>
+                  <option value="Sub-contract">Sub-contract</option>
+                </select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-blue-700 mb-1">Salesperson <span className="text-red-500">*</span></label>

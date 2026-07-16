@@ -1,40 +1,14 @@
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/generated/prisma";
+import { nextDocumentNo } from "@/lib/document-numbering";
 
 const Prisma_Decimal = Prisma.Decimal;
 
 export type PurchaseRequisitionStatus = "Draft" | "Submitted" | "Void" | "Old Version";
 
-export async function nextPrNo(): Promise<string> {
-  const currentYear = new Date().getFullYear();
-  const yy = String(currentYear).slice(-2); // e.g. "26" for 2026
-
-  // Find the latest PR for the current calendar year (revision 0)
-  const latest = await prisma.purchaseRequisition.findFirst({
-    where: {
-      revision: 0,
-      prNo: {
-        startsWith: `PR${yy}`,
-      },
-    },
-    orderBy: { prNo: "desc" },
-    select: { prNo: true },
-  });
-
-  let nextVal = 1;
-  if (latest?.prNo) {
-    const match = latest.prNo.match(/^PR\d{2}(\d{5})$/);
-    if (match) {
-      const num = parseInt(match[1], 10);
-      if (!isNaN(num)) {
-        nextVal = num + 1;
-      }
-    }
-  }
-
-  const runningDigits = String(nextVal).padStart(5, "0");
-  return `PR${yy}${runningDigits}`;
-}
+/** A PR number is shared across revisions, so only revision 0 consumes one. */
+const prNoTaken = (tx: Prisma.TransactionClient) => async (no: string) =>
+  (await tx.purchaseRequisition.count({ where: { prNo: no } })) > 0;
 
 export type PRItemInput = {
   fromMaterialProfile: boolean;
@@ -80,9 +54,15 @@ export async function createPurchaseRequisition(input: PurchaseRequisitionInput)
     throw new Error("Backdate is not allowed for Purchase Requisition Date");
   }
 
-  const prNo = await nextPrNo();
+  // The number is taken and the PR written in one transaction: the counter's
+  // row lock only holds for as long as the transaction does.
+  return prisma.$transaction(async (tx) => {
+    const prNo = await nextDocumentNo(tx, "PURCHASE_REQUISITION", {
+      companyId: input.companyId,
+      isTaken: prNoTaken(tx),
+    });
 
-  return prisma.purchaseRequisition.create({
+    return tx.purchaseRequisition.create({
     data: {
       prNo,
       revision: 0,
@@ -120,6 +100,7 @@ export async function createPurchaseRequisition(input: PurchaseRequisitionInput)
       },
     },
     include: { items: true },
+    });
   });
 }
 

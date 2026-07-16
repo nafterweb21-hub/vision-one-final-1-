@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { nextDocumentNo } from "@/lib/document-numbering";
 
 export async function GET(req: NextRequest) {
   try {
@@ -41,15 +42,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { doNo, date, customerId, salesOrderId, cocRequired, items } = body;
-
-    // Validate if doNo already exists
-    const existing = await prisma.deliveryOrder.findUnique({
-      where: { doNo },
-    });
-    if (existing) {
-      return NextResponse.json({ error: "Delivery Order No already exists." }, { status: 400 });
-    }
+    const { date, customerId, salesOrderId, cocRequired, items } = body;
 
     // ── QC Guard: Only allow Completed + QC Approved work orders ──
     if (items && items.length > 0) {
@@ -74,26 +67,35 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const newDO = await prisma.deliveryOrder.create({
-      data: {
-        doNo,
-        date: new Date(date),
-        customerId,
-        salesOrderId,
-        cocRequired: !!cocRequired,
-        status: "Draft",
-        items: {
-          create: items.map((item: any) => ({
-            workOrderNo: item.workOrderNo,
-            quantity: Number(item.quantity),
-            uomId: item.uomId || null,
-            deliveryDate: item.deliveryDate ? new Date(item.deliveryDate) : null,
-          })),
+    // The number is taken and the DO written in one transaction: the counter's
+    // row lock only holds for as long as the transaction does. It is generated
+    // here, not sent by the client — see Admin → Document Numbering.
+    const newDO = await prisma.$transaction(async (tx) => {
+      const doNo = await nextDocumentNo(tx, "DELIVERY_ORDER", {
+        isTaken: async (no) => (await tx.deliveryOrder.count({ where: { doNo: no } })) > 0,
+      });
+
+      return tx.deliveryOrder.create({
+        data: {
+          doNo,
+          date: new Date(date),
+          customerId,
+          salesOrderId,
+          cocRequired: !!cocRequired,
+          status: "Draft",
+          items: {
+            create: items.map((item: any) => ({
+              workOrderNo: item.workOrderNo,
+              quantity: Number(item.quantity),
+              uomId: item.uomId || null,
+              deliveryDate: item.deliveryDate ? new Date(item.deliveryDate) : null,
+            })),
+          },
         },
-      },
+      });
     });
 
-    return NextResponse.json({ success: true, id: newDO.id });
+    return NextResponse.json({ success: true, id: newDO.id, doNo: newDO.doNo });
   } catch (error: any) {
     console.error("Create Delivery Order Error:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });

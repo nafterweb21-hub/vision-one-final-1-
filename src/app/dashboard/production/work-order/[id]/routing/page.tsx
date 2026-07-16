@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import AddInProcessModal from "../../components/AddInProcessModal";
 import AddRoutingProcessModal from "../../components/AddRoutingProcessModal";
-import RoutingProcessRow from "../../components/RoutingProcessRow";
+import RoutingProcessTable from "../../components/RoutingProcessTable";
 import { getRoutingDropdownData } from "../../actions";
 
 const IP_STATUS_BADGE: Record<string, string> = {
@@ -28,7 +28,7 @@ export default async function WorkOrderRoutingPage({
         include: {
           conditionalSn: { select: { sn: true, description: true } },
           routingProcesses: {
-            orderBy: { sn: "asc" },
+            orderBy: { sequence: "asc" },
             include: {
               mainProcess: { select: { process: true } },
               routingProcess: { select: { routingProcess: true, welding: true, sprayPainting: true, machining: true } },
@@ -220,8 +220,13 @@ export default async function WorkOrderRoutingPage({
                     </div>
                     <AddRoutingProcessModal
                       inProcessId={ip.id}
+                      inProcessTargetDate={new Date(ip.targetCompletionDate).toISOString().slice(0, 10)}
                       mainProcesses={mainProcesses}
                       processProfiles={processProfiles}
+                      existingPairs={(ip.routingProcesses || []).map((r: any) => ({
+                        mainProcessId: r.mainProcessId,
+                        routingProcessId: r.routingProcessId,
+                      }))}
                       disabled={!editable}
                     />
                   </div>
@@ -232,34 +237,14 @@ export default async function WorkOrderRoutingPage({
                     No routing processes yet.
                   </div>
                 ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm text-left">
-                      <thead className="text-xs text-slate-500 uppercase bg-white border-b border-slate-100">
-                        <tr>
-                          <th className="px-3 py-2 font-semibold w-12">SN</th>
-                          <th className="px-3 py-2 font-semibold">Main Process</th>
-                          <th className="px-3 py-2 font-semibold">Routing Process</th>
-                          <th className="px-3 py-2 font-semibold">Target Date</th>
-                          <th className="px-3 py-2 font-semibold text-center">Fully Recv?</th>
-                          <th className="px-3 py-2 font-semibold text-center">Process Parameter</th>
-                          <th className="px-3 py-2 font-semibold">Status</th>
-                          <th className="px-3 py-2 font-semibold text-right">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100">
-                        {ip.routingProcesses.map((rp: any) => (
-                          <RoutingProcessRow 
-                            key={rp.id} 
-                            rp={JSON.parse(JSON.stringify(rp))} 
-                            woStatus={workOrder.status} 
-                            employees={employees}
-                            supportData={supportData}
-                            workOrderNo={id}
-                          />
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                  <RoutingProcessTable
+                    inProcessId={ip.id}
+                    rows={JSON.parse(JSON.stringify(ip.routingProcesses))}
+                    woStatus={workOrder.status}
+                    employees={employees}
+                    supportData={supportData}
+                    workOrderNo={id}
+                  />
                 )}
               </div>
             ))}

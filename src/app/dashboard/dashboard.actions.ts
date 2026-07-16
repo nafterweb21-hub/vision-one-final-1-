@@ -120,9 +120,9 @@ export async function getDashboardMetrics() {
     // NEW DATA FETCHING FOR REALTIME DASHBOARD PANELS
     
     // 7. PO Approvals Pending
-    // Fallback to all not Draft/Cancelled if "Pending Approval" is empty
+    // Fallback to all not Draft/Cancelled if "Pending For Approval" is empty
     let pendingPosRaw = await prisma.purchaseOrder.findMany({
-      where: { status: "Pending Approval" },
+      where: { status: "Pending For Approval" },
       take: 4,
       orderBy: { createdAt: "desc" },
       include: { supplier: { select: { supplierName: true } } }

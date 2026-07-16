@@ -18,7 +18,7 @@ export default async function QcApprovalTimesheetsPage({
         orderBy: { sn: "asc" },
         include: {
           routingProcesses: {
-            orderBy: { sn: "asc" },
+            orderBy: { sequence: "asc" },
             include: {
               mainProcess: true,
               routingProcess: true,

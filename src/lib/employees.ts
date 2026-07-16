@@ -12,6 +12,7 @@ export interface Employee {
   contactNo: string | null;
   employmentType: string | null;
   status: string;
+  roleProfileId: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -27,6 +28,7 @@ export interface EmployeeInput {
   contactNo?: string;
   employmentType?: string;
   status?: string;
+  roleProfileId?: string | null;
 }
 
 function toEmployee(emp: any): Employee {
@@ -42,6 +44,7 @@ function toEmployee(emp: any): Employee {
     contactNo: emp.contactNo,
     employmentType: emp.employmentType,
     status: emp.status,
+    roleProfileId: emp.roleProfileId ?? null,
     createdAt: emp.createdAt.toISOString(),
     updatedAt: emp.updatedAt.toISOString(),
   };
@@ -76,6 +79,7 @@ export async function createEmployee(data: EmployeeInput): Promise<Employee> {
       contactNo: data.contactNo || null,
       employmentType: data.employmentType || null,
       status: data.status || "ACTIVE",
+      roleProfileId: data.roleProfileId || null,
     },
   });
   return toEmployee(emp);
@@ -113,6 +117,7 @@ export async function updateEmployee(id: string, data: Partial<EmployeeInput>): 
       contactNo: data.contactNo,
       employmentType: data.employmentType,
       status: data.status,
+      ...(data.roleProfileId !== undefined ? { roleProfileId: data.roleProfileId || null } : {}),
     },
   });
   return toEmployee(emp);

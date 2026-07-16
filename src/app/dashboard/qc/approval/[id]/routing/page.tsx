@@ -24,7 +24,7 @@ export default async function QcApprovalRoutingPage({
         include: {
           conditionalSn: { select: { sn: true, description: true } },
           routingProcesses: {
-            orderBy: { sn: "asc" },
+            orderBy: { sequence: "asc" },
             include: {
               mainProcess: { select: { process: true } },
               routingProcess: { select: { routingProcess: true } },

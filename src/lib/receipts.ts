@@ -1,31 +1,11 @@
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/generated/prisma";
 import { z } from "zod";
+import { nextDocumentNo } from "@/lib/document-numbering";
 
 const Prisma_Decimal = Prisma.Decimal;
 
 export type ReceiptStatus = "Draft" | "Confirmed" | "Void";
-
-export async function nextReceiptNo(): Promise<string> {
-  const currentYear = new Date().getFullYear().toString().slice(-2);
-  const prefix = `RCPT${currentYear}`;
-
-  const latest = await prisma.receipt.findFirst({
-    where: { receiptNo: { startsWith: prefix } },
-    orderBy: { receiptNo: "desc" },
-    select: { receiptNo: true },
-  });
-
-  let runningNumber = 1;
-  if (latest?.receiptNo) {
-    const match = latest.receiptNo.match(/RCPT\d{2}(\d{5})/);
-    if (match && match[1]) {
-      runningNumber = parseInt(match[1], 10) + 1;
-    }
-  }
-
-  return `${prefix}${String(runningNumber).padStart(5, "0")}`;
-}
 
 export const receiptFormSchema = z.object({
   receiptDate: z.string().or(z.date()),
@@ -47,9 +27,15 @@ const cleanStr = (v: any) => (v == null || v === "" ? null : String(v));
 export async function createReceipt(input: ReceiptInput & { creatorId: string }) {
   const validated = receiptFormSchema.parse(input);
 
-  const receiptNo = await nextReceiptNo();
+  // The number is taken and the receipt written in one transaction: the
+  // counter's row lock only holds for as long as the transaction does.
+  return prisma.$transaction(async (tx) => {
+    const receiptNo = await nextDocumentNo(tx, "RECEIPT", {
+      companyId: validated.companyId,
+      isTaken: async (no) => (await tx.receipt.count({ where: { receiptNo: no } })) > 0,
+    });
 
-  return prisma.receipt.create({
+    return tx.receipt.create({
     data: {
       receiptNo,
       receiptDate: new Date(validated.receiptDate),
@@ -65,6 +51,7 @@ export async function createReceipt(input: ReceiptInput & { creatorId: string })
       creatorId: input.creatorId,
       status: "Draft",
     },
+    });
   });
 }
 

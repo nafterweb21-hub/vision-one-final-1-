@@ -4,8 +4,9 @@ import { useState, useMemo, useTransition, useEffect } from "react";
 import { ArrowLeft, Monitor, Camera, QrCode, Search, Calendar, Clock, Send, Package, ChevronDown, LogOut } from "lucide-react";
 import CameraScanner from "./CameraScanner";
 import { lookupWorkOrder, scanIn, scanOutQuick } from "../actions";
+import { computeGating, type GateRow } from "@/lib/routing-gating";
 type Support = {
-  employees: { id: string; name: string; code: string }[];
+  employees: { id: string; name: string; code: string; roleProfileId?: string | null }[];
   activeWorkOrders?: { workOrderNo: string }[];
 };
 
@@ -40,37 +41,102 @@ export default function ProductionIntake({ isOpen, onClose, support, onSuccess, 
     machineCodes: "",
   });
 
-  const inProcessOptions = wo?.inProcesses ?? [];
-  const selectedInProcess = inProcessOptions.find((ip: any) => ip.id === inForm.inProcessId);
-  
+  const allInProcesses = wo?.inProcesses ?? [];
+
   const selectedEmployee = useMemo(() => {
     return support.employees.find(e => e.id === inForm.employeeId) || null;
   }, [support.employees, inForm.employeeId]);
+  const operatorRoleId = selectedEmployee?.roleProfileId ?? null;
 
-  const mainProcessOptions = useMemo(() => {
-    const seen = new Map<string, { id: string; label: string }>();
-    selectedInProcess?.routingProcesses.forEach((rp: any) => {
-      if (rp.mainProcess && !seen.has(rp.mainProcess.id)) {
-        seen.set(rp.mainProcess.id, { id: rp.mainProcess.id, label: rp.mainProcess.process });
+  // Sequence + role gate over the whole work order. Only the current step (and
+  // completed steps) that the operator's role may run are "visible".
+  const visibleRowIds = useMemo(() => {
+    const rows: GateRow[] = [];
+    for (const ip of allInProcesses) {
+      for (const rp of ip.routingProcesses ?? []) {
+        rows.push({
+          id: rp.id,
+          inProcessSn: ip.sn ?? 0,
+          sequence: rp.sequence,
+          status: rp.status,
+          mainProcessId: rp.mainProcessId,
+          allowedRoleIds: (rp.mainProcess?.allowedRoles ?? []).map((x: any) => x.id),
+        });
       }
-    });
-    return Array.from(seen.values());
-  }, [selectedInProcess]);
+    }
+    return new Set(computeGating(rows, operatorRoleId).filter((g) => g.visible).map((g) => g.id));
+  }, [allInProcesses, operatorRoleId]);
 
-  const routingProcessOptions = useMemo(() => {
+  function visMainOpts(ip: any): { id: string; label: string }[] {
     const seen = new Map<string, { id: string; label: string }>();
-    selectedInProcess?.routingProcesses
-      .filter((rp: any) => rp.mainProcessId === inForm.mainProcessId)
+    (ip?.routingProcesses ?? [])
+      .filter((rp: any) => visibleRowIds.has(rp.id))
       .forEach((rp: any) => {
-        if (rp.routingProcess && !seen.has(rp.routingProcess.id)) {
-          seen.set(rp.routingProcess.id, {
-            id: rp.routingProcess.id,
-            label: rp.routingProcess.routingProcess,
-          });
+        if (rp.mainProcess && !seen.has(rp.mainProcess.id)) {
+          seen.set(rp.mainProcess.id, { id: rp.mainProcess.id, label: rp.mainProcess.process });
         }
       });
     return Array.from(seen.values());
-  }, [selectedInProcess, inForm.mainProcessId]);
+  }
+  function visRoutingOpts(ip: any, mainId: string): { id: string; label: string }[] {
+    const seen = new Map<string, { id: string; label: string }>();
+    (ip?.routingProcesses ?? [])
+      .filter((rp: any) => rp.mainProcessId === mainId && visibleRowIds.has(rp.id))
+      .forEach((rp: any) => {
+        if (rp.routingProcess && !seen.has(rp.routingProcess.id)) {
+          seen.set(rp.routingProcess.id, { id: rp.routingProcess.id, label: rp.routingProcess.routingProcess });
+        }
+      });
+    return Array.from(seen.values());
+  }
+
+  const inProcessOptions = useMemo(
+    () =>
+      allInProcesses.filter((ip: any) =>
+        (ip.routingProcesses ?? []).some((rp: any) => visibleRowIds.has(rp.id)),
+      ),
+    [allInProcesses, visibleRowIds],
+  );
+  const selectedInProcess = inProcessOptions.find((ip: any) => ip.id === inForm.inProcessId);
+
+  const mainProcessOptions = useMemo(
+    () => visMainOpts(selectedInProcess),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [selectedInProcess, visibleRowIds],
+  );
+  const routingProcessOptions = useMemo(
+    () => visRoutingOpts(selectedInProcess, inForm.mainProcessId),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [selectedInProcess, inForm.mainProcessId, visibleRowIds],
+  );
+
+  // Keep the cascade valid as gating changes: drop selections that are no longer
+  // visible and auto-select when exactly one option remains.
+  useEffect(() => {
+    if (!wo) return;
+    setInForm((prev) => {
+      let ip = prev.inProcessId;
+      if (ip && !inProcessOptions.some((o: any) => o.id === ip)) ip = "";
+      if (!ip && inProcessOptions.length === 1) ip = inProcessOptions[0].id;
+
+      const chosenIp = inProcessOptions.find((o: any) => o.id === ip);
+      const mpOpts = visMainOpts(chosenIp);
+      let mp = prev.mainProcessId;
+      if (mp && !mpOpts.some((o) => o.id === mp)) mp = "";
+      if (!mp && mpOpts.length === 1) mp = mpOpts[0].id;
+
+      const rpOpts = visRoutingOpts(chosenIp, mp);
+      let rp = prev.routingProcessProfileId;
+      if (rp && !rpOpts.some((o) => o.id === rp)) rp = "";
+      if (!rp && rpOpts.length === 1) rp = rpOpts[0].id;
+
+      if (ip === prev.inProcessId && mp === prev.mainProcessId && rp === prev.routingProcessProfileId) {
+        return prev;
+      }
+      return { ...prev, inProcessId: ip, mainProcessId: mp, routingProcessProfileId: rp };
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wo, inProcessOptions, visibleRowIds]);
 
   function lookup(searchStr?: string) {
     setError("");
@@ -85,46 +151,13 @@ export default function ProductionIntake({ isOpen, onClose, support, onSuccess, 
         return;
       }
       setWo(res.wo);
-
-      // Auto-select logic if there is only 1 option for each step
-      let newInProcessId = "";
-      let newMainProcessId = "";
-      let newRoutingProcessId = "";
-
-      const ipOptions = res.wo.inProcesses ?? [];
-      if (ipOptions.length === 1) {
-        newInProcessId = ipOptions[0].id;
-        
-        const seenMp = new Map<string, { id: string }>();
-        ipOptions[0].routingProcesses.forEach((rp: any) => {
-          if (rp.mainProcess && !seenMp.has(rp.mainProcess.id)) {
-            seenMp.set(rp.mainProcess.id, { id: rp.mainProcess.id });
-          }
-        });
-        const mpOptions = Array.from(seenMp.values());
-        if (mpOptions.length === 1) {
-          newMainProcessId = mpOptions[0].id;
-
-          const seenRp = new Map<string, { id: string }>();
-          ipOptions[0].routingProcesses
-            .filter((rp: any) => rp.mainProcessId === newMainProcessId)
-            .forEach((rp: any) => {
-              if (rp.routingProcess && !seenRp.has(rp.routingProcess.id)) {
-                seenRp.set(rp.routingProcess.id, { id: rp.routingProcess.id });
-              }
-            });
-          const rpOptions = Array.from(seenRp.values());
-          if (rpOptions.length === 1) {
-            newRoutingProcessId = rpOptions[0].id;
-          }
-        }
-      }
-
+      // The gating effect auto-selects singletons and drops invalid choices once
+      // the work order (and the operator's role) resolve.
       setInForm(prev => ({
         ...prev,
-        inProcessId: newInProcessId,
-        mainProcessId: newMainProcessId,
-        routingProcessProfileId: newRoutingProcessId
+        inProcessId: "",
+        mainProcessId: "",
+        routingProcessProfileId: "",
       }));
     });
   }
@@ -387,6 +420,12 @@ export default function ProductionIntake({ isOpen, onClose, support, onSuccess, 
                 </div>
             )}
           </div>
+
+          {wo && inProcessOptions.length === 0 && (
+            <div className="mb-6 text-sm text-amber-700 bg-amber-50 border border-amber-200 p-4 rounded-xl font-medium">
+              No process is available to start right now. Earlier routing processes must be completed first, or your role is not permitted for the current step.
+            </div>
+          )}
 
           {wo && (
             <div className="grid grid-cols-2 gap-4 mb-6 flex-1 overflow-visible pr-2 content-start">

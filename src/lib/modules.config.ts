@@ -55,6 +55,18 @@ export const PUBLIC_AUTHED_API_PATHS: string[] = [
 export const APP_MODULES: AppModuleDef[] = [
   // ── Admin ────────────────────────────────────────────────────────────────
   {
+    code: 'KPI_SCORECARD',
+    name: 'KPI & KRA Scorecard',
+    group: 'Admin',
+    pathPrefixes: ['/dashboard/admin/kpi'],
+  },
+  {
+    code: 'DOCUMENT_NUMBERING',
+    name: 'Document Numbering',
+    group: 'Admin',
+    pathPrefixes: ['/dashboard/admin/document-numbering'],
+  },
+  {
     code: 'ROLES',
     name: 'Role Management',
     group: 'Admin',

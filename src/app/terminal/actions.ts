@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { computeGating, isRolePermitted, type GateRow } from "@/lib/routing-gating";
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Lookup work order + active employees + machine lists
@@ -15,9 +16,9 @@ export async function lookupWorkOrder(woNo: string) {
         orderBy: { sn: "asc" },
         include: {
           routingProcesses: {
-            orderBy: { sn: "asc" },
+            orderBy: { sequence: "asc" },
             include: {
-              mainProcess: true,
+              mainProcess: { include: { allowedRoles: { select: { id: true } } } },
               routingProcess: true,
             },
           },
@@ -38,10 +39,10 @@ export async function getTerminalSupportData() {
   const [employees, weldingMachines, machiningMachines, materialTypes, weldingTypes, joints, elcometers, activeWorkOrders] =
     await Promise.all([
       prisma.employee.findMany({
-        where: { 
+        where: {
           status: "ACTIVE"
         },
-        select: { id: true, name: true, code: true },
+        select: { id: true, name: true, code: true, roleProfileId: true },
         orderBy: { name: "asc" },
       }),
       prisma.machineProfile.findMany({
@@ -125,14 +126,14 @@ export async function scanIn(input: { workOrderNo: string; inProcessId: string; 
     }
 
     // Find all matching routing rows for this in-process + main + routing combo,
-    // ordered by SN ascending. Spec: pick the earliest non-completed.
+    // ordered by sequence ascending. Spec: pick the earliest non-completed.
     const candidates = await prisma.routingProcess.findMany({
       where: {
         inProcessId: input.inProcessId,
         mainProcessId: input.mainProcessId,
         routingProcessId: input.routingProcessProfileId,
       },
-      orderBy: { sn: "asc" },
+      orderBy: { sequence: "asc" },
     });
     if (candidates.length === 0) {
       return { success: false, error: "No matching routing row found" };
@@ -141,6 +142,52 @@ export async function scanIn(input: { workOrderNo: string; inProcessId: string; 
     if (!target) {
       // Allow scanning into the last completed process for rework purposes
       target = candidates[candidates.length - 1];
+    }
+
+    // ── Sequence + role enforcement ─────────────────────────────────────────
+    // Processes run strictly serial across the whole work order. Load every
+    // routing row for this WO, compute the gate, and reject scanning into a
+    // locked (future) or role-restricted step. Completed rows stay scannable
+    // for rework.
+    const allRows = await prisma.routingProcess.findMany({
+      where: { inProcess: { workOrderNo: input.workOrderNo } },
+      select: {
+        id: true,
+        sequence: true,
+        status: true,
+        mainProcessId: true,
+        inProcess: { select: { sn: true } },
+        mainProcess: { select: { allowedRoles: { select: { id: true } } } },
+      },
+    });
+    const gateRows: GateRow[] = allRows.map((r: any) => ({
+      id: r.id,
+      inProcessSn: r.inProcess?.sn ?? 0,
+      sequence: r.sequence,
+      status: r.status,
+      mainProcessId: r.mainProcessId,
+      allowedRoleIds: (r.mainProcess?.allowedRoles ?? []).map((x: any) => x.id),
+    }));
+
+    const employee = await prisma.employee.findUnique({
+      where: { id: input.employeeId },
+      select: { roleProfileId: true },
+    });
+    const gated = computeGating(gateRows, employee?.roleProfileId);
+    const targetGate = gated.find((g) => g.id === target!.id);
+
+    if (targetGate?.locked) {
+      return {
+        success: false,
+        error: "This process is locked — earlier routing processes must be completed first.",
+      };
+    }
+    const targetAllowedRoleIds = gateRows.find((g) => g.id === target!.id)?.allowedRoleIds ?? [];
+    if (!isRolePermitted(targetAllowedRoleIds, employee?.roleProfileId)) {
+      return {
+        success: false,
+        error: "Your role is not permitted to run this process.",
+      };
     }
 
     // Subcon gate

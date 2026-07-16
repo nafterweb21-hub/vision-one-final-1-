@@ -128,8 +128,10 @@ model Employee {
   contactNo                                     String?
   employmentType                                String?
   status                                        String                          @default("ACTIVE")
+  roleProfileId                                 String?
   createdAt                                     DateTime                        @default(now())
   updatedAt                                     DateTime                        @updatedAt
+  roleProfile                                   RoleProfile?                    @relation("EmployeeRole", fields: [roleProfileId], references: [id], onDelete: SetNull)
   cocPainters                                   CertificateOfConformity[]       @relation("CocPainter")
   cocWelders                                    CertificateOfConformity[]       @relation("CocWelder")
   goodsReceives                                 GoodsReceive[]
@@ -300,6 +302,7 @@ model MainProcess {
   processProfiles    ProcessProfile[]
   purchaseOrderItems PurchaseOrderItem[]
   routingProcesses   RoutingProcess[]
+  allowedRoles       RoleProfile[]       @relation("MainProcessRoles")
 }
 
 model ProcessProfile {
@@ -447,6 +450,7 @@ model SalesOrder {
   orderNo            String                 @unique
   revision           Int                    @default(0)
   date               DateTime
+  orderType          String                 @default("Direct")
   salespersonId      String
   customerId         String
   customerPoRef      String?
@@ -644,6 +648,7 @@ model RoutingProcess {
   id                   String                @id @default(cuid())
   inProcessId          String
   sn                   String
+  sequence             Int                   @default(0)
   mainProcessId        String?
   routingProcessId     String?
   targetCompletionDate DateTime
@@ -826,6 +831,39 @@ model CompanyProfile {
   invoices              Invoice[]
   receipts              Receipt[]
   msmeNo                String?
+  documentNumberFormats DocumentNumberFormat[]
+}
+
+/// How a document type's serial number is built, and where its running sequence
+/// has got to. See src/lib/document-numbering.config.ts.
+///
+/// Documents that carry a company (invoice, PO, receipt...) get one counter per
+/// company. The rest (quotation, sales order, NCR...) have no company to scope
+/// by and share a single global counter.
+model DocumentNumberFormat {
+  id              String          @id @default(cuid())
+  docType         String // DocType — "INVOICE", "PURCHASE_ORDER", ...
+  /// Null for document types that are not company-scoped.
+  companyId       String?
+  company         CompanyProfile? @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  /// `companyId`, or "GLOBAL" when there is none. Postgres treats NULLs as
+  /// distinct, so a nullable companyId cannot carry the unique index itself.
+  scopeKey        String
+  prefix          String          @default("")
+  periodFormat    String          @default("NONE") // NONE | YY | YYYY | MM | YYMM | YYYYMM
+  separator       String          @default("")
+  sequenceLength  Int             @default(5)
+  suffix          String          @default("")
+  includeRevision Boolean         @default(false) // trailing -R{n}
+  resetPeriod     String          @default("NEVER") // NEVER | YEARLY | MONTHLY
+  /// The number the next document of this type will be given.
+  nextSequence    Int             @default(1)
+  /// The reset bucket `nextSequence` belongs to; when it changes, the sequence restarts.
+  periodKey       String          @default("")
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@unique([docType, scopeKey])
 }
 
 model Quotation {
@@ -1398,15 +1436,17 @@ model Receipt {
 }
 
 model RoleProfile {
-  id              String           @id @default(cuid())
-  name            String           @unique
-  permissions     String[]
-  remark          String?
-  status          String           @default("Active")
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  users           User[]
-  rolePermissions RolePermission[]
+  id                   String           @id @default(cuid())
+  name                 String           @unique
+  permissions          String[]
+  remark               String?
+  status               String           @default("Active")
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+  users                User[]
+  rolePermissions      RolePermission[]
+  employees            Employee[]       @relation("EmployeeRole")
+  allowedMainProcesses MainProcess[]    @relation("MainProcessRoles")
 }
 
 model SubconRejectTracking {

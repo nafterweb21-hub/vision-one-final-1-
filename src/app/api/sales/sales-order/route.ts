@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { nextDocumentNo } from "@/lib/document-numbering";
 import { createWorkOrderFromBatch } from "@/app/dashboard/production/work-order/actions";
 
 export async function GET(request: Request) {
@@ -7,6 +8,7 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search") || "";
     const status = searchParams.get("status") || "";
+    const orderType = searchParams.get("orderType") || "";
 
     const where: any = {};
     if (search) {
@@ -17,6 +19,9 @@ export async function GET(request: Request) {
     }
     if (status && status !== "All") {
       where.status = status;
+    }
+    if (orderType && orderType !== "All") {
+      where.orderType = orderType;
     }
 
     const orders = await prisma.salesOrder.findMany({
@@ -56,28 +61,26 @@ export async function POST(request: Request) {
       if (!items[i].uomId) return NextResponse.json({ error: `Item ${i + 1}: UOM is required` }, { status: 400 });
     }
 
-    // Generate Order No
-    const currentYear = new Date().getFullYear();
-    const count = await prisma.salesOrder.count({
-      where: {
-        orderNo: { startsWith: `SO-${currentYear}-` },
-      },
-    });
-    const nextNumber = String(count + 1).padStart(4, "0");
-    const orderNo = `SO-${currentYear}-${nextNumber}`;
-
     // Clean up empty string IDs to null where applicable for relations
     const cleanId = (id: any) => (id === "" ? null : id);
 
     const status = orderData.status || "Draft";
 
-    const order = await prisma.salesOrder.create({
+    // The number is taken and the order written in one transaction: the
+    // counter's row lock only holds for as long as the transaction does.
+    const order = await prisma.$transaction(async (tx) => {
+    const orderNo = await nextDocumentNo(tx, "SALES_ORDER", {
+      isTaken: async (no) => (await tx.salesOrder.count({ where: { orderNo: no } })) > 0,
+    });
+
+    return tx.salesOrder.create({
       data: {
         ...orderData,
         orderNo,
         revision: 0,
         status: status,
         date: new Date(orderData.date),
+        orderType: orderData.orderType || "Direct",
         taxTypeId: cleanId(orderData.taxTypeId),
         contactPersonId: cleanId(orderData.contactPersonId),
         deliverToId: cleanId(orderData.deliverToId),
@@ -134,6 +137,7 @@ export async function POST(request: Request) {
         },
       },
       include: { items: true },
+    });
     });
 
     // Do not automatically create Work Orders here.

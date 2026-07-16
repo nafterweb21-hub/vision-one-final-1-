@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { nextDocumentNo } from "@/lib/document-numbering";
 
 export async function getGoodsReceiveFormData() {
   try {
@@ -27,41 +28,29 @@ export async function getGoodsReceiveFormData() {
 
 export async function createGoodsReceive(data: any) {
   try {
-    const date = new Date();
-    const yy = date.getFullYear().toString().slice(-2);
-    const prefix = `GR${yy}`;
-
-    const latestGR = await prisma.goodsReceive.findFirst({
-      where: { grNo: { startsWith: prefix } },
-      orderBy: { grNo: "desc" },
-    });
-
-    let nextNum = 1;
-    if (latestGR) {
-      const currentNumStr = latestGR.grNo.replace(prefix, "");
-      const currentNum = parseInt(currentNumStr, 10);
-      if (!isNaN(currentNum)) {
-        nextNum = currentNum + 1;
-      }
-    }
-
-    const runningDigits = nextNum.toString().padStart(5, "0");
-    const grNo = `${prefix}${runningDigits}`;
-
     const { items, ...grData } = data;
 
-    const newGr = await prisma.goodsReceive.create({
-      data: {
-        ...grData,
-        grNo,
-        status: "Draft",
-        items: {
-          create: items.map((item: any) => ({
-            purchaseOrderItemId: item.purchaseOrderItemId,
-            receiveQty: item.receiveQty,
-          })),
+    // The number is taken and the GR written in one transaction: the counter's
+    // row lock only holds for as long as the transaction does.
+    const newGr = await prisma.$transaction(async (tx) => {
+      const grNo = await nextDocumentNo(tx, "GOODS_RECEIVE", {
+        companyId: grData.companyId,
+        isTaken: async (no) => (await tx.goodsReceive.count({ where: { grNo: no } })) > 0,
+      });
+
+      return tx.goodsReceive.create({
+        data: {
+          ...grData,
+          grNo,
+          status: "Draft",
+          items: {
+            create: items.map((item: any) => ({
+              purchaseOrderItemId: item.purchaseOrderItemId,
+              receiveQty: item.receiveQty,
+            })),
+          },
         },
-      },
+      });
     });
 
     revalidatePath("/dashboard/purchasing/goods-receive");

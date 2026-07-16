@@ -117,6 +117,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       data: {
         ...orderData,
         date: new Date(orderData.date),
+        orderType: orderData.orderType || "Direct",
         status,
         revision: nextRevision,
         taxTypeId: cleanId(orderData.taxTypeId),

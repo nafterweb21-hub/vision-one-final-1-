@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { nextDocumentNo } from "@/lib/document-numbering";
 
 export async function getAwaitingInspection() {
   // Get recently completed production sessions that have Pending parameters
@@ -126,36 +127,42 @@ export async function submitWorkOrderQc(
     });
     
     if (!existingNcr) {
-      const count = await prisma.ncr.count();
-      const ncrNo = `NCR-${new Date().getFullYear()}-${String(count + 1).padStart(4, '0')}`;
-      await prisma.ncr.create({
-        data: {
-          ncrNo,
-          ncrDate: new Date(),
-          customerId: wo.customerId,
-          workOrderNo,
-          requestorId: employeeId,
-          descriptionOfNonConformance: remark || "Rejected by QC",
-          ncrQuantity: rejectedQty || 1,
-        }
+      await prisma.$transaction(async (tx) => {
+        const ncrNo = await nextDocumentNo(tx, "NCR", {
+          isTaken: async (no) => (await tx.ncr.count({ where: { ncrNo: no } })) > 0,
+        });
+        await tx.ncr.create({
+          data: {
+            ncrNo,
+            ncrDate: new Date(),
+            customerId: wo.customerId,
+            workOrderNo,
+            requestorId: employeeId,
+            descriptionOfNonConformance: remark || "Rejected by QC",
+            ncrQuantity: rejectedQty || 1,
+          }
+        });
       });
     }
 
     // Create Rework Task
     if (rejectedQty && rejectedQty > 0) {
-      const reworkCount = await prisma.workOrderRework.count();
-      const reworkNo = `RWK-${new Date().getFullYear()}-${String(reworkCount + 1).padStart(4, '0')}`;
-      await prisma.workOrderRework.create({
-        data: {
-          reworkNo,
-          workOrderNo,
-          originalQty: wo.quantity || 0,
-          acceptedQty: acceptedQty || 0,
-          rejectedQty: rejectedQty,
-          rejectedById: employeeId,
-          rejectedAt: new Date(),
-          rejectionReason: remark || "Rejected by QC",
-        }
+      await prisma.$transaction(async (tx) => {
+        const reworkNo = await nextDocumentNo(tx, "REWORK", {
+          isTaken: async (no) => (await tx.workOrderRework.count({ where: { reworkNo: no } })) > 0,
+        });
+        await tx.workOrderRework.create({
+          data: {
+            reworkNo,
+            workOrderNo,
+            originalQty: wo.quantity || 0,
+            acceptedQty: acceptedQty || 0,
+            rejectedQty: rejectedQty,
+            rejectedById: employeeId,
+            rejectedAt: new Date(),
+            rejectionReason: remark || "Rejected by QC",
+          }
+        });
       });
     }
   }
@@ -303,9 +310,10 @@ export async function rejectRework(reworkId: string, employeeId: string, rejecte
     });
 
     // 2. Create a new Rework task for the newly rejected quantity
-    const reworkCount = await tx.workOrderRework.count();
-    const reworkNo = `RWK-${new Date().getFullYear()}-${String(reworkCount + 1).padStart(4, '0')}`;
-    
+    const reworkNo = await nextDocumentNo(tx, "REWORK", {
+      isTaken: async (no) => (await tx.workOrderRework.count({ where: { reworkNo: no } })) > 0,
+    });
+
     await tx.workOrderRework.create({
       data: {
         reworkNo,

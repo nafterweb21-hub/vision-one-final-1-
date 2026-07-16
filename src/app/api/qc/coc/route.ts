@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { nextDocumentNo } from "@/lib/document-numbering";
 
 export async function GET(req: NextRequest) {
   try {
@@ -40,27 +41,6 @@ export async function GET(req: NextRequest) {
   }
 }
 
-async function generateCocNo() {
-  const currentYear = new Date().getFullYear().toString().slice(-2);
-  const prefix = `COC${currentYear}`;
-
-  const lastCoc = await prisma.certificateOfConformity.findFirst({
-    where: { cocNo: { startsWith: prefix } },
-    orderBy: { cocNo: "desc" },
-  });
-
-  if (!lastCoc) {
-    return `${prefix}00001`;
-  }
-
-  const lastRunningNumStr = lastCoc.cocNo.slice(5);
-  const lastRunningNum = parseInt(lastRunningNumStr, 10);
-  const nextRunningNum = lastRunningNum + 1;
-  const nextRunningNumStr = nextRunningNum.toString().padStart(5, "0");
-
-  return `${prefix}${nextRunningNumStr}`;
-}
-
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -74,10 +54,7 @@ export async function POST(req: NextRequest) {
       paintThicknessSpecification, measuredTotalPaintThickness, paintBatchNo, inspectionEquipment,
     } = body;
 
-    // Generate unique COC number
-    const cocNo = await generateCocNo();
-
-    // The unique constraint checking will be handled implicitly by Prisma, 
+    // The unique constraint checking will be handled implicitly by Prisma,
     // or we can handle it directly to provide a better error message.
     const existing = await prisma.certificateOfConformity.findFirst({
       where: {
@@ -98,7 +75,15 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
 
-    const newCoc = await prisma.certificateOfConformity.create({
+    // The number is taken and the COC written in one transaction: the counter's
+    // row lock only holds for as long as the transaction does.
+    const newCoc = await prisma.$transaction(async (tx) => {
+      const cocNo = await nextDocumentNo(tx, "CERTIFICATE_OF_CONFORMITY", {
+        isTaken: async (no) =>
+          (await tx.certificateOfConformity.count({ where: { cocNo: no } })) > 0,
+      });
+
+      return tx.certificateOfConformity.create({
       data: {
         cocNo,
         date: new Date(date),
@@ -125,9 +110,10 @@ export async function POST(req: NextRequest) {
         inspectionEquipment: inspectionEquipment || null,
         status: "Draft",
       },
+      });
     });
 
-    return NextResponse.json({ success: true, id: newCoc.id, cocNo });
+    return NextResponse.json({ success: true, id: newCoc.id, cocNo: newCoc.cocNo });
   } catch (error: any) {
     console.error("Create COC Error:", error);
     // Return unique constraint error nicely

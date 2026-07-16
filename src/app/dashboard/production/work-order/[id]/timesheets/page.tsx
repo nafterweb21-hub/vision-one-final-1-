@@ -19,7 +19,7 @@ export default async function WorkOrderTimesheetsPage({
         orderBy: { sn: "asc" },
         include: {
           routingProcesses: {
-            orderBy: { sn: "asc" },
+            orderBy: { sequence: "asc" },
             include: {
               mainProcess: true,
               routingProcess: true,

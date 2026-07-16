@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { nextDocumentNo } from "@/lib/document-numbering";
 
 export async function GET(req: Request) {
   try {
@@ -64,24 +65,9 @@ export async function POST(req: Request) {
     const body = await req.json();
 
     return await prisma.$transaction(async (tx) => {
-      // Auto Generate SRFYYXXXXX
-      const year = new Date().getFullYear().toString().slice(2);
-      const prefix = `SRF${year}`;
-
-      const latest = await tx.subconRequestForm.findFirst({
-        where: { srfNo: { startsWith: prefix } },
-        orderBy: { srfNo: "desc" },
+      const srfNo = await nextDocumentNo(tx, "SUBCON_REQUEST_FORM", {
+        isTaken: async (no) => (await tx.subconRequestForm.count({ where: { srfNo: no } })) > 0,
       });
-
-      let nextRunning = 1;
-      if (latest) {
-        const match = latest.srfNo.match(/SRF\d{2}(\d{5})/);
-        if (match) {
-          nextRunning = parseInt(match[1], 10) + 1;
-        }
-      }
-
-      const srfNo = `${prefix}${nextRunning.toString().padStart(5, "0")}`;
 
       const form = await tx.subconRequestForm.create({
         data: {

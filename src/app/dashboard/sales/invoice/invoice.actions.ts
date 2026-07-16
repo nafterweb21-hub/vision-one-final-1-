@@ -2,36 +2,8 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
-
-// Format: INVYYXXXXX-RN (e.g. INV1700003-R0)
-async function generateInvoiceNo() {
-  const currentYear = new Date().getFullYear().toString().slice(-2);
-  const prefix = `INV${currentYear}`;
-  
-  // Find latest invoice with this prefix
-  const latestInvoice = await prisma.invoice.findFirst({
-    where: {
-      invoiceNo: {
-        startsWith: prefix,
-      },
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
-
-  let runningNumber = 1;
-  if (latestInvoice) {
-    // Extract the 5-digit number
-    const match = latestInvoice.invoiceNo.match(/INV\d{2}(\d{5})-R\d+/);
-    if (match && match[1]) {
-      runningNumber = parseInt(match[1], 10) + 1;
-    }
-  }
-
-  const paddedNumber = runningNumber.toString().padStart(5, "0");
-  return `${prefix}${paddedNumber}-R0`;
-}
+import { nextDocumentNo } from "@/lib/document-numbering";
+import { withRevision } from "@/lib/document-numbering.config";
 
 export async function getInvoices() {
   try {
@@ -198,68 +170,75 @@ export async function getDOItemsForInvoice(doIds: string[]) {
 
 export async function createInvoice(data: any) {
   try {
-    const invoiceNo = await generateInvoiceNo();
-    
     // Calculate Due Date based on Payment Term
     const paymentTerm = await prisma.paymentTermProfile.findUnique({
       where: { id: data.paymentTermId },
     });
-    
+
     const invoiceDate = new Date(data.invoiceDate);
     const dueDate = new Date(invoiceDate);
     if (paymentTerm) {
       dueDate.setDate(dueDate.getDate() + paymentTerm.days);
     }
 
-    const invoice = await prisma.invoice.create({
-      data: {
-        invoiceNo,
-        revision: 0,
-        invoiceDate,
+    // The number is taken and the invoice written in one transaction: the
+    // counter's row lock only holds for as long as the transaction does.
+    const invoice = await prisma.$transaction(async (tx) => {
+      const invoiceNo = await nextDocumentNo(tx, "INVOICE", {
         companyId: data.companyId,
-        invoiceType: data.invoiceType,
-        customerId: data.customerId,
-        contactPersonId: data.contactPersonId,
-        tel: data.tel,
-        fax: data.fax,
-        email: data.email,
-        billToId: data.billToId,
-        paymentTermId: data.paymentTermId,
-        dueDate,
-        currencyId: data.currencyId,
-        exchangeRate: data.exchangeRate,
-        amountBeforeTax: data.amountBeforeTax,
-        taxTypeId: data.taxTypeId,
-        taxRate: data.taxRate,
-        taxAmount: data.taxAmount,
-        amountAfterTax: data.amountAfterTax,
-        balanceDue: data.amountAfterTax,
-        bankDetails: data.bankDetails,
-        remark: data.remark,
-        preparedById: data.preparedById,
-        poNo: data.poNo,
-        vehicleNumber: data.vehicleNumber,
-        status: "Draft",
-        items: {
-          create: data.items.map((item: any) => ({
-            lineNo: item.lineNo,
-            workOrderNo: item.workOrderNo,
-            partId: item.partId,
-            description: item.description,
-            quantity: item.quantity,
-            uomId: item.uomId,
-            unitPrice: item.unitPrice,
-            amount: item.amount,
-            remark: item.remark,
-            hsnCode: item.hsnCode,
-          })),
+        isTaken: async (no) => (await tx.invoice.count({ where: { invoiceNo: no } })) > 0,
+      });
+
+      return tx.invoice.create({
+        data: {
+          invoiceNo,
+          revision: 0,
+          invoiceDate,
+          companyId: data.companyId,
+          invoiceType: data.invoiceType,
+          customerId: data.customerId,
+          contactPersonId: data.contactPersonId,
+          tel: data.tel,
+          fax: data.fax,
+          email: data.email,
+          billToId: data.billToId,
+          paymentTermId: data.paymentTermId,
+          dueDate,
+          currencyId: data.currencyId,
+          exchangeRate: data.exchangeRate,
+          amountBeforeTax: data.amountBeforeTax,
+          taxTypeId: data.taxTypeId,
+          taxRate: data.taxRate,
+          taxAmount: data.taxAmount,
+          amountAfterTax: data.amountAfterTax,
+          balanceDue: data.amountAfterTax,
+          bankDetails: data.bankDetails,
+          remark: data.remark,
+          preparedById: data.preparedById,
+          poNo: data.poNo,
+          vehicleNumber: data.vehicleNumber,
+          status: "Draft",
+          items: {
+            create: data.items.map((item: any) => ({
+              lineNo: item.lineNo,
+              workOrderNo: item.workOrderNo,
+              partId: item.partId,
+              description: item.description,
+              quantity: item.quantity,
+              uomId: item.uomId,
+              unitPrice: item.unitPrice,
+              amount: item.amount,
+              remark: item.remark,
+              hsnCode: item.hsnCode,
+            })),
+          },
+          deliveryOrders: {
+            create: data.doIds.map((doId: string) => ({
+              deliveryOrderId: doId,
+            })),
+          },
         },
-        deliveryOrders: {
-          create: data.doIds.map((doId: string) => ({
-            deliveryOrderId: doId,
-          })),
-        },
-      },
+      });
     });
 
     revalidatePath("/dashboard/sales/invoice");
@@ -382,9 +361,10 @@ export async function reviseInvoice(id: string, data: any) {
       data: { status: "Old Version" },
     });
 
+    // A revision keeps the original's number and only bumps the -R tail, so it
+    // does not consume a new sequence from the counter.
     const newRevision = oldInvoice.revision + 1;
-    // Format: INVYYXXXXX-R(newRevision)
-    const newInvoiceNo = oldInvoice.invoiceNo.replace(/-R\d+$/, `-R${newRevision}`);
+    const newInvoiceNo = withRevision(oldInvoice.invoiceNo, newRevision);
 
     const paymentTerm = await prisma.paymentTermProfile.findUnique({
       where: { id: data.paymentTermId },

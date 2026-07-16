@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { nextDocumentNo } from "@/lib/document-numbering";
 
 export async function GET(req: Request) {
   try {
@@ -50,47 +51,33 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    // Generate RTN No: RTN + last-2-digits-of-year + 5-digit sequence
-    const date = new Date();
-    const yy = date.getFullYear().toString().slice(-2);
-    const prefix = `RTN${yy}`;
-
-    if (!prisma.goodsReturn) {
-      throw new Error("GoodsReturn model is not defined in Prisma schema.");
-    }
-
-    const latestRtn = await prisma.goodsReturn.findFirst({
-      where: { rtnNo: { startsWith: prefix } },
-      orderBy: { rtnNo: "desc" },
-    });
-
-    let nextNum = 1;
-    if (latestRtn) {
-      const currentNumStr = latestRtn.rtnNo.replace(prefix, "");
-      const currentNum = parseInt(currentNumStr, 10);
-      if (!isNaN(currentNum)) nextNum = currentNum + 1;
-    }
-
-    const rtnNo = `${prefix}${nextNum.toString().padStart(5, "0")}`;
-
     const { items, ...rtnData } = body;
 
-    const newRtn = await prisma.goodsReturn.create({
-      data: {
-        ...rtnData,
-        rtnNo,
-        rtnDate: new Date(rtnData.rtnDate),
-        status: "Draft",
-        items: {
-          create: (items || []).map((item: any) => ({
-            goodsReceiveItemId: item.goodsReceiveItemId,
-            returnQty: Number(item.returnQty),
-            amount: Number(item.amount),
-            internalQty: Number(item.internalQty),
-            remark: item.remark || null,
-          })),
+    // The number is taken and the return written in one transaction: the
+    // counter's row lock only holds for as long as the transaction does.
+    const newRtn = await prisma.$transaction(async (tx) => {
+      const rtnNo = await nextDocumentNo(tx, "GOODS_RETURN", {
+        companyId: rtnData.companyId,
+        isTaken: async (no) => (await tx.goodsReturn.count({ where: { rtnNo: no } })) > 0,
+      });
+
+      return tx.goodsReturn.create({
+        data: {
+          ...rtnData,
+          rtnNo,
+          rtnDate: new Date(rtnData.rtnDate),
+          status: "Draft",
+          items: {
+            create: (items || []).map((item: any) => ({
+              goodsReceiveItemId: item.goodsReceiveItemId,
+              returnQty: Number(item.returnQty),
+              amount: Number(item.amount),
+              internalQty: Number(item.internalQty),
+              remark: item.remark || null,
+            })),
+          },
         },
-      },
+      });
     });
 
     return NextResponse.json({ success: true, id: newRtn.id }, { status: 201 });

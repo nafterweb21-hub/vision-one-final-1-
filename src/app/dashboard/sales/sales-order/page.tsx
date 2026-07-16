@@ -8,13 +8,14 @@ export default function SalesOrderListPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
+  const [orderTypeFilter, setOrderTypeFilter] = useState("All");
   const [errorMsg, setErrorMsg] = useState("");
 
   const fetchOrders = async () => {
     setLoading(true);
     setErrorMsg("");
     try {
-      const res = await fetch(`/api/sales/sales-order?search=${encodeURIComponent(search)}&status=${statusFilter}`);
+      const res = await fetch(`/api/sales/sales-order?search=${encodeURIComponent(search)}&status=${statusFilter}&orderType=${encodeURIComponent(orderTypeFilter)}`);
       if (!res.ok) throw new Error("Failed to fetch sales orders");
       setOrders(await res.json());
     } catch (err: any) {
@@ -26,7 +27,7 @@ export default function SalesOrderListPage() {
 
   useEffect(() => {
     fetchOrders();
-  }, [search, statusFilter]);
+  }, [search, statusFilter, orderTypeFilter]);
 
   return (
     <div className="p-6 lg:p-8 space-y-6">
@@ -89,6 +90,22 @@ export default function SalesOrderListPage() {
             </button>
           ))}
         </div>
+
+        <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-blue-100">
+          {["All", "Direct", "Sub-contract"].map((type) => (
+            <button
+              key={type}
+              onClick={() => setOrderTypeFilter(type)}
+              className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-200 ${
+                orderTypeFilter === type
+                  ? "bg-violet-600 text-white shadow-md shadow-violet-500/20 scale-105"
+                  : "bg-blue-50/50 text-blue-600 hover:bg-blue-100 border border-blue-200"
+              }`}
+            >
+              {type === "All" ? "All Types" : type}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Table Area */}
@@ -120,6 +137,7 @@ export default function SalesOrderListPage() {
                 <tr>
                   <th className="px-6 py-4">Order No</th>
                   <th className="px-6 py-4">Date</th>
+                  <th className="px-6 py-4">Type</th>
                   <th className="px-6 py-4">Customer</th>
                   <th className="px-6 py-4">Salesperson</th>
                   <th className="px-6 py-4 text-right">Amount</th>
@@ -138,6 +156,15 @@ export default function SalesOrderListPage() {
                     </td>
                     <td className="px-6 py-4 text-blue-700 ">
                       {new Date(order.date).toLocaleDateString()}
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold border ${
+                        order.orderType === "Sub-contract"
+                          ? "bg-violet-50 text-violet-700 border-violet-200/60"
+                          : "bg-slate-50 text-slate-700 border-slate-200"
+                      }`}>
+                        {order.orderType || "Direct"}
+                      </span>
                     </td>
                     <td className="px-6 py-4 font-medium text-blue-700 ">
                       {order.customer?.customerName || "—"}

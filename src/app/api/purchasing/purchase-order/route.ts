@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { nextDocumentNo } from "@/lib/document-numbering";
 
 export async function GET(req: Request) {
   try {
@@ -49,23 +50,11 @@ export async function POST(req: Request) {
     const body = await req.json();
 
     return await prisma.$transaction(async (tx) => {
-      const year = new Date().getFullYear().toString().slice(2);
-      const prefix = `PO${year}`;
-
-      const latest = await tx.purchaseOrder.findFirst({
-        where: { poNo: { startsWith: prefix } },
-        orderBy: { poNo: "desc" },
+      // A PO number is shared across revisions, so only revision 0 takes one.
+      const poNo = await nextDocumentNo(tx, "PURCHASE_ORDER", {
+        companyId: body.companyId,
+        isTaken: async (no) => (await tx.purchaseOrder.count({ where: { poNo: no } })) > 0,
       });
-
-      let nextRunning = 1;
-      if (latest) {
-        const match = latest.poNo.match(/PO\d{2}(\d{5})/);
-        if (match) {
-          nextRunning = parseInt(match[1], 10) + 1;
-        }
-      }
-
-      const poNo = `${prefix}${nextRunning.toString().padStart(5, "0")}`;
 
       const po = await tx.purchaseOrder.create({
         data: {

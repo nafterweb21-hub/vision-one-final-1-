@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/generated/prisma";
+import { nextDocumentNo } from "@/lib/document-numbering";
 
 const Prisma_Decimal = Prisma.Decimal;
 
@@ -12,21 +13,10 @@ export type QuotationStatus =
   | "Void"
   | "Converted";
 
-export async function nextQuotationNo(): Promise<string> {
-  // Quotation No is shared across revisions; revision 0 is the originating row.
-  const latest = await prisma.quotation.findFirst({
-    where: { revision: 0 },
-    orderBy: { quotationNo: "desc" },
-    select: { quotationNo: true },
-  });
-
-  let next = 1;
-  if (latest?.quotationNo) {
-    const n = parseInt(latest.quotationNo.replace(/^Q/, ""), 10);
-    if (!isNaN(n)) next = n + 1;
-  }
-  return `Q${String(next).padStart(5, "0")}`;
-}
+/** A quotation number is shared across revisions, so a revision must not take a
+ *  new one — only a revision-0 row consumes a number. */
+const quotationNoTaken = (tx: Prisma.TransactionClient) => async (no: string) =>
+  (await tx.quotation.count({ where: { quotationNo: no } })) > 0;
 
 export type ItemInput = {
   unitPrice: number | string;
@@ -101,9 +91,14 @@ export async function createQuotation(input: QuotationInput) {
     taxRate: tax?.taxRate ?? 0,
   });
 
-  const quotationNo = await nextQuotationNo();
+  // The number is taken and the quotation written in one transaction: the
+  // counter's row lock only holds for as long as the transaction does.
+  return prisma.$transaction(async (tx) => {
+    const quotationNo = await nextDocumentNo(tx, "QUOTATION", {
+      isTaken: quotationNoTaken(tx),
+    });
 
-  return prisma.quotation.create({
+    return tx.quotation.create({
     data: {
       quotationNo,
       revision: 0,
@@ -144,6 +139,7 @@ export async function createQuotation(input: QuotationInput) {
       },
     },
     include: { items: true },
+    });
   });
 }
 
@@ -307,11 +303,9 @@ export async function transitionQuotation(
       }
 
       return prisma.$transaction(async (tx) => {
-        const currentYear = new Date().getFullYear();
-        const count = await tx.salesOrder.count({
-          where: { orderNo: { startsWith: `SO-${currentYear}-` } },
+        const orderNo = await nextDocumentNo(tx, "SALES_ORDER", {
+          isTaken: async (no) => (await tx.salesOrder.count({ where: { orderNo: no } })) > 0,
         });
-        const orderNo = `SO-${currentYear}-${String(count + 1).padStart(4, "0")}`;
 
         const internalQuotationNo = `${q.quotationNo}-R${q.revision}`;
 
@@ -361,26 +355,15 @@ export async function transitionQuotation(
       if (q.invoiceId) throw new Error("Already converted to Invoice");
 
       return prisma.$transaction(async (tx) => {
-        const currentYear = new Date().getFullYear().toString().slice(-2);
-        const prefix = `INV${currentYear}`;
-        
-        const latestInvoice = await tx.invoice.findFirst({
-          where: { invoiceNo: { startsWith: prefix } },
-          orderBy: { createdAt: "desc" },
-        });
-
-        let runningNumber = 1;
-        if (latestInvoice) {
-          const match = latestInvoice.invoiceNo.match(/INV\d{2}(\d{5})-R\d+/);
-          if (match && match[1]) {
-            runningNumber = parseInt(match[1], 10) + 1;
-          }
-        }
-        
-        const invoiceNo = `${prefix}${String(runningNumber).padStart(5, "0")}-R0`;
-
         const company = await tx.companyProfile.findFirst({ where: { status: "Active" } });
         if (!company) throw new Error("No active company found");
+
+        // Numbering is per company and configurable — see
+        // src/lib/document-numbering.config.ts.
+        const invoiceNo = await nextDocumentNo(tx, "INVOICE", {
+          companyId: company.id,
+          isTaken: async (no) => (await tx.invoice.count({ where: { invoiceNo: no } })) > 0,
+        });
 
         const paymentTermId = q.paymentTermId ?? (await firstPaymentTermId(tx));
         const paymentTerm = await tx.paymentTermProfile.findUnique({ where: { id: paymentTermId } });

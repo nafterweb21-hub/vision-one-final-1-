@@ -308,6 +308,29 @@ export async function addRoutingProcess(data: {
       return { success: false, error: `Cannot edit routing on ${ip.workOrder.status} work order` };
     }
 
+    const target = new Date(data.targetCompletionDate);
+    if (Number.isNaN(target.getTime())) {
+      return { success: false, error: "Invalid target completion date" };
+    }
+    if (target > ip.targetCompletionDate) {
+      return {
+        success: false,
+        error: `Target completion date cannot be later than the in-process target (${ip.targetCompletionDate.toLocaleDateString()})`,
+      };
+    }
+
+    const duplicate = ip.routingProcesses.some(
+      (r: any) =>
+        r.mainProcessId === data.mainProcessId &&
+        r.routingProcessId === data.routingProcessId,
+    );
+    if (duplicate) {
+      return {
+        success: false,
+        error: "This main process and routing process combination already exists in this in-process",
+      };
+    }
+
     // Spec: new routing process can only be appended after existing Completed / WIP rows.
     // SN is auto-assigned as max(numericSn) + 1.
     const numericSns = ip.routingProcesses
@@ -315,13 +338,21 @@ export async function addRoutingProcess(data: {
       .filter((n: number) => Number.isFinite(n));
     const nextSn = (numericSns.length ? Math.max(...numericSns) : 0) + 1;
 
+    // Sequence drives display order and drag-and-drop reordering. A new row is
+    // appended at the end: max(sequence) + 1.
+    const sequences = ip.routingProcesses
+      .map((r: any) => r.sequence)
+      .filter((n: number) => Number.isFinite(n));
+    const nextSequence = (sequences.length ? Math.max(...sequences) : 0) + 1;
+
     const created = await prisma.routingProcess.create({
       data: {
         inProcessId: data.inProcessId,
         sn: String(nextSn),
+        sequence: nextSequence,
         mainProcessId: data.mainProcessId,
         routingProcessId: data.routingProcessId,
-        targetCompletionDate: new Date(data.targetCompletionDate),
+        targetCompletionDate: target,
         remark: data.remark || null,
         uploadUrl: data.uploadUrl || null,
         status: "New",
@@ -338,10 +369,27 @@ export async function addRoutingProcess(data: {
 
 export async function updateRoutingProcessTarget(id: string, targetCompletionDate: string, remark?: string | null) {
   try {
+    const existing = await prisma.routingProcess.findUnique({
+      where: { id },
+      include: { inProcess: true },
+    });
+    if (!existing) return { success: false, error: "Routing process not found" };
+
+    const target = new Date(targetCompletionDate);
+    if (Number.isNaN(target.getTime())) {
+      return { success: false, error: "Invalid target completion date" };
+    }
+    if (target > existing.inProcess.targetCompletionDate) {
+      return {
+        success: false,
+        error: `Target completion date cannot be later than the in-process target (${existing.inProcess.targetCompletionDate.toLocaleDateString()})`,
+      };
+    }
+
     const rp = await prisma.routingProcess.update({
       where: { id },
       data: {
-        targetCompletionDate: new Date(targetCompletionDate),
+        targetCompletionDate: target,
         ...(remark !== undefined ? { remark: remark || null } : {}),
       },
       include: { inProcess: true },
@@ -357,21 +405,21 @@ export async function markRoutingProcessStatus(id: string, status: "New" | "WIP"
   try {
     const rp = await prisma.routingProcess.findUnique({
       where: { id },
-      include: { inProcess: { include: { workOrder: true, routingProcesses: { orderBy: { sn: "asc" } } } } },
+      include: { inProcess: { include: { workOrder: true, routingProcesses: { orderBy: { sequence: "asc" } } } } },
     });
     if (!rp) return { success: false, error: "Routing process not found" };
 
-    // Within an in-process, processes must run in sequence.
+    // Within an in-process, processes must run in sequence order.
     if (status !== "New") {
       const all = rp.inProcess.routingProcesses.sort(
-        (a: any, b: any) => parseInt(a.sn, 10) - parseInt(b.sn, 10),
+        (a: any, b: any) => a.sequence - b.sequence,
       );
       const myIdx = all.findIndex((r: any) => r.id === id);
       const priorIncomplete = all.slice(0, myIdx).find((r: any) => r.status !== "Completed");
       if (priorIncomplete) {
         return {
           success: false,
-          error: `Previous step (SN ${priorIncomplete.sn}) must complete first`,
+          error: `Previous step (Sequence ${priorIncomplete.sequence}) must complete first`,
         };
       }
     }
@@ -406,6 +454,60 @@ export async function markRoutingProcessStatus(id: string, status: "New" | "WIP"
     return { success: true };
   } catch (err: any) {
     return { success: false, error: err.message || "Failed to update status" };
+  }
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Routing Process reordering (drag-and-drop sequence)
+// ──────────────────────────────────────────────────────────────────────────────
+export async function reorderRoutingProcesses(inProcessId: string, orderedIds: string[]) {
+  try {
+    const ip = await prisma.workOrderInProcess.findUnique({
+      where: { id: inProcessId },
+      include: { routingProcesses: true, workOrder: true },
+    });
+    if (!ip) return { success: false, error: "In-process not found" };
+    if (["Completed", "Void", "Cancelled"].includes(ip.workOrder.status)) {
+      return { success: false, error: `Cannot reorder routing on ${ip.workOrder.status} work order` };
+    }
+
+    // The submitted order must be a permutation of exactly this in-process's rows.
+    const existingIds = ip.routingProcesses.map((r: any) => r.id);
+    const sameSet =
+      orderedIds.length === existingIds.length &&
+      orderedIds.every((rid) => existingIds.includes(rid)) &&
+      new Set(orderedIds).size === orderedIds.length;
+    if (!sameSet) {
+      return { success: false, error: "Reorder request does not match this in-process" };
+    }
+
+    // Completed rows must remain a contiguous prefix — a Completed step can never
+    // sit after a not-yet-completed one, or the sequential-run rule would break.
+    const statusById = new Map(ip.routingProcesses.map((r: any) => [r.id, r.status]));
+    let seenIncomplete = false;
+    for (const rid of orderedIds) {
+      const isCompleted = statusById.get(rid) === "Completed";
+      if (isCompleted && seenIncomplete) {
+        return { success: false, error: "Completed processes cannot be moved after pending ones" };
+      }
+      if (!isCompleted) seenIncomplete = true;
+    }
+
+    // Reindex sequence 1..n in the requested order.
+    await prisma.$transaction(
+      orderedIds.map((rid, idx) =>
+        prisma.routingProcess.update({
+          where: { id: rid },
+          data: { sequence: idx + 1 },
+        }),
+      ),
+    );
+
+    revalidatePath(`/dashboard/production/work-order/${ip.workOrderNo}/routing`);
+    return { success: true };
+  } catch (err: any) {
+    console.error("reorderRoutingProcesses:", err);
+    return { success: false, error: err.message || "Failed to reorder routing processes" };
   }
 }
 

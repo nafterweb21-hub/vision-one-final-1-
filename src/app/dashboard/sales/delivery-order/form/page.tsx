@@ -70,8 +70,9 @@ export default function DeliveryOrderFormPage() {
   };
 
   const handleSave = async () => {
-    if (!formData.doNo || !formData.customerId || !formData.salesOrderId) {
-      setErrorMsg("Please fill in DO No, Customer, and Sales Order.");
+    // doNo is assigned by the server on create, so it is not asked for here.
+    if (!formData.customerId || !formData.salesOrderId) {
+      setErrorMsg("Please fill in Customer and Sales Order.");
       return;
     }
     if (formData.items.length === 0) {
@@ -235,14 +236,14 @@ export default function DeliveryOrderFormPage() {
       <div className="bg-white rounded-xl shadow-sm border border-blue-200 p-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-1">
-            <label className="text-sm font-semibold text-blue-900">Delivery Order No <span className="text-rose-500">*</span></label>
+            <label className="text-sm font-semibold text-blue-900">Delivery Order No</label>
+            {/* Assigned on save from the configured format — see Admin → Document Numbering. */}
             <input
               type="text"
-              value={formData.doNo}
-              onChange={(e) => setFormData({ ...formData, doNo: e.target.value })}
-              disabled={!isDraft}
-              className="w-full px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-60"
-              placeholder="E.g., DO-2023-001"
+              value={isEdit ? formData.doNo : "Auto-generated on save"}
+              readOnly
+              disabled
+              className="w-full px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg text-blue-900/70 disabled:opacity-60"
             />
           </div>
           

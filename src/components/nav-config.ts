@@ -25,6 +25,7 @@ import {
   Gauge,
   Globe,
   Handshake,
+  Hash,
   Hexagon,
   Key,
   Landmark,
@@ -40,6 +41,7 @@ import {
   Scale,
   ShoppingCart,
   SquareSplitHorizontal,
+  Target,
   TrendingUp,
   User,
   Users,
@@ -94,8 +96,10 @@ export const NAV_SECTIONS: NavSection[] = [
   {
     title: 'ADMINISTRATOR',
     items: [
+      { href: '/dashboard/admin/kpi', label: 'KPI & KRA Scorecard', icon: Target, iconClass: 'text-indigo-500' },
       { href: '/dashboard/admin/users', label: 'Users', icon: Users, iconClass: 'text-blue-500' },
       { href: '/dashboard/admin/roles', label: 'Roles', icon: Key, iconClass: 'text-yellow-500' },
+      { href: '/dashboard/admin/document-numbering', label: 'Document Numbering', icon: Hash, iconClass: 'text-slate-500' },
     ],
   },
   {
@@ -170,6 +174,7 @@ export const NAV_SECTIONS: NavSection[] = [
       { href: '/dashboard/master-profile/material', label: 'Material Profile', icon: Box, iconClass: 'text-blue-500' },
       { href: '/dashboard/master-profile/process-profile', label: 'Process Profile', icon: RefreshCw, iconClass: 'text-cyan-500' },
       { href: '/dashboard/master-profile/main-process', label: 'Main Process Profile', icon: ListTree, iconClass: 'text-indigo-500' },
+      { href: '/dashboard/master-profile/process-role-mapping', label: 'Process Role Mapping', icon: Users, iconClass: 'text-indigo-500' },
       { href: '/dashboard/profiles/incoterm', label: 'Incoterm Profile', icon: Globe, iconClass: 'text-blue-500' },
       { href: '/dashboard/master-profile/material-type', label: 'Material Type Profile', icon: Package, iconClass: 'text-cyan-600' },
       { href: '/dashboard/admin/master-profile/finished-good', label: 'Finished Goods Profile (Admin)', icon: Package, iconClass: 'text-green-600' },

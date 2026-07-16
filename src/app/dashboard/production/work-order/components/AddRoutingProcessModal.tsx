@@ -15,10 +15,14 @@ type ProcessProfile = {
   machining: boolean;
 };
 
+type Pair = { mainProcessId: string; routingProcessId: string };
+
 type Props = {
   inProcessId: string;
+  inProcessTargetDate: string; // YYYY-MM-DD — routing target may not exceed this
   mainProcesses: MainProcess[];
   processProfiles: ProcessProfile[];
+  existingPairs?: Pair[]; // already-added main+routing combos in this in-process
   disabled?: boolean;
 };
 
@@ -31,8 +35,10 @@ type FormValues = {
 
 export default function AddRoutingProcessModal({
   inProcessId,
+  inProcessTargetDate,
   mainProcesses,
   processProfiles,
+  existingPairs = [],
   disabled,
 }: Props) {
   const [isOpen, setOpen] = useState(false);
@@ -50,9 +56,21 @@ export default function AddRoutingProcessModal({
   });
 
   const selectedMain = watch("mainProcessId");
+  const usedRoutingIds = useMemo(
+    () =>
+      new Set(
+        existingPairs
+          .filter((p) => p.mainProcessId === selectedMain)
+          .map((p) => p.routingProcessId),
+      ),
+    [existingPairs, selectedMain],
+  );
   const filteredRouting = useMemo(
-    () => processProfiles.filter((p) => p.mainProcessId === selectedMain),
-    [processProfiles, selectedMain],
+    () =>
+      processProfiles.filter(
+        (p) => p.mainProcessId === selectedMain && !usedRoutingIds.has(p.id),
+      ),
+    [processProfiles, selectedMain, usedRoutingIds],
   );
 
   function onSubmit(data: FormValues) {
@@ -144,8 +162,24 @@ export default function AddRoutingProcessModal({
                     <label className="text-sm font-medium text-slate-700">
                       Target Completion Date <span className="text-red-500">*</span>
                     </label>
-                    <input type="date" {...register("targetCompletionDate", { required: true })} className={inputCls} />
-                    {errors.targetCompletionDate && <p className="text-xs text-red-500">Required</p>}
+                    <input
+                      type="date"
+                      max={inProcessTargetDate}
+                      {...register("targetCompletionDate", {
+                        required: "Required",
+                        validate: (v) =>
+                          !v ||
+                          v <= inProcessTargetDate ||
+                          `Cannot be later than the in-process target (${fmtDate(inProcessTargetDate)})`,
+                      })}
+                      className={inputCls}
+                    />
+                    <p className="text-xs text-slate-500">
+                      Must be on or before the in-process target: {fmtDate(inProcessTargetDate)}
+                    </p>
+                    {errors.targetCompletionDate && (
+                      <p className="text-xs text-red-500">{errors.targetCompletionDate.message}</p>
+                    )}
                   </div>
                 </div>
 
@@ -169,6 +203,12 @@ export default function AddRoutingProcessModal({
       )}
     </>
   );
+}
+
+function fmtDate(d: string) {
+  if (!d) return "-";
+  const [y, m, day] = d.slice(0, 10).split("-");
+  return `${day}/${m}/${y}`;
 }
 
 const inputCls =

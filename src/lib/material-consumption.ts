@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { getStockAggregates, onHand } from "@/lib/stock-balance";
+import { nextDocumentNo } from "@/lib/document-numbering";
 
 /**
  * Material Consumption — the document that issues stock to a work order.
@@ -108,31 +109,6 @@ function toConsumption(row: any): Consumption {
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };
-}
-
-/**
- * `MC{yy}{00001}`, scoped to the calendar year. Called inside the create
- * transaction; the unique index on `mcNo` is what actually prevents a
- * duplicate if two storekeepers submit in the same millisecond.
- */
-async function nextMcNo(tx: any): Promise<string> {
-  const yy = String(new Date().getFullYear()).slice(-2);
-  const prefix = `MC${yy}`;
-
-  const latest = await tx.materialConsumption.findFirst({
-    where: { mcNo: { startsWith: prefix } },
-    orderBy: { mcNo: "desc" },
-    select: { mcNo: true },
-  });
-
-  let next = 1;
-  const match = latest?.mcNo?.match(/^MC\d{2}(\d{5})$/);
-  if (match) {
-    const num = parseInt(match[1], 10);
-    if (!isNaN(num)) next = num + 1;
-  }
-
-  return `${prefix}${String(next).padStart(5, "0")}`;
 }
 
 /** Trimmed, with the required fields proven present. Throws on the first gap. */
@@ -302,7 +278,10 @@ export async function createConsumption(data: ConsumptionInput, submit = false):
     const items = await withUnitCost(tx, clean.items);
     const doc = await tx.materialConsumption.create({
       data: {
-        mcNo: await nextMcNo(tx),
+        mcNo: await nextDocumentNo(tx, "MATERIAL_CONSUMPTION", {
+          isTaken: async (no) =>
+            (await tx.materialConsumption.count({ where: { mcNo: no } })) > 0,
+        }),
         date: clean.date,
         workOrderNo: clean.workOrderNo,
         issuedById: clean.issuedById,

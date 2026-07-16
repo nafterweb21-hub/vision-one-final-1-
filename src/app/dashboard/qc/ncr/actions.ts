@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { nextDocumentNo } from "@/lib/document-numbering";
 
 export async function getNcrFormData() {
   try {
@@ -92,52 +93,29 @@ export async function getNcr(id: string) {
 
 export async function createNcr(data: any) {
   try {
-    // Generate NCRYYYYMMXX
-    const date = new Date();
-    const yyyy = date.getFullYear().toString();
-    const mm = (date.getMonth() + 1).toString().padStart(2, '0');
-    const prefix = `NCR${yyyy}${mm}`;
-
-    const latestNcr = await prisma.ncr.findFirst({
-      where: {
-        ncrNo: {
-          startsWith: prefix,
-        },
-      },
-      orderBy: {
-        ncrNo: 'desc',
-      },
-    });
-
-    let nextNumber = 1;
-    if (latestNcr) {
-      // Extract XX
-      const currentNumberStr = latestNcr.ncrNo.replace(prefix, '');
-      const currentNumber = parseInt(currentNumberStr, 10);
-      if (!isNaN(currentNumber)) {
-        nextNumber = currentNumber + 1;
-      }
-    }
-
-    // Default to 2 digits as per requirements, but allow dynamically expanding if >= 100
-    const runningDigits = nextNumber.toString().padStart(2, '0');
-    const ncrNo = `${prefix}${runningDigits}`;
-
     const { failureModeIds, ...ncrData } = data;
 
-    const newNcr = await prisma.ncr.create({
-      data: {
-        ...ncrData,
-        id: crypto.randomUUID(), // Assuming cuid/uuid handled by client/DB, but let's provide explicit if @id doesn't default
-        ncrNo,
-        status: ncrData.status || "Draft",
-        NcrFailureMode: {
-          create: (failureModeIds || []).map((fmId: string) => ({
-            id: crypto.randomUUID(),
-            failureModeId: fmId
-          }))
-        }
-      },
+    // The number is taken and the NCR written in one transaction: the counter's
+    // row lock only holds for as long as the transaction does.
+    const newNcr = await prisma.$transaction(async (tx) => {
+      const ncrNo = await nextDocumentNo(tx, "NCR", {
+        isTaken: async (no) => (await tx.ncr.count({ where: { ncrNo: no } })) > 0,
+      });
+
+      return tx.ncr.create({
+        data: {
+          ...ncrData,
+          id: crypto.randomUUID(), // Assuming cuid/uuid handled by client/DB, but let's provide explicit if @id doesn't default
+          ncrNo,
+          status: ncrData.status || "Draft",
+          NcrFailureMode: {
+            create: (failureModeIds || []).map((fmId: string) => ({
+              id: crypto.randomUUID(),
+              failureModeId: fmId
+            }))
+          }
+        },
+      });
     });
 
     revalidatePath("/dashboard/qc/ncr");

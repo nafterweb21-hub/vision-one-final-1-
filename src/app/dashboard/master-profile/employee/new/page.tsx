@@ -6,6 +6,7 @@ import Link from "next/link";
 export default function NewEmployeePage() {
   const router = useRouter();
   const [designations, setDesignations] = useState<{ id: string; designation: string }[]>([]);
+  const [roles, setRoles] = useState<{ id: string; name: string }[]>([]);
 
   // Form fields
   const [formData, setFormData] = useState({
@@ -19,6 +20,7 @@ export default function NewEmployeePage() {
     contactNo: "",
     employmentType: "Citizen",
     status: "ACTIVE",
+    roleProfileId: "",
   });
 
   const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
@@ -49,6 +51,16 @@ export default function NewEmployeePage() {
       }
     };
     fetchDesignations();
+
+    const fetchRoles = async () => {
+      try {
+        const { getActiveRoleProfiles } = await import("@/lib/roles.actions");
+        setRoles(await getActiveRoleProfiles());
+      } catch (error) {
+        console.error("Failed to load roles", error);
+      }
+    };
+    fetchRoles();
   }, []);
 
   // Form validation
@@ -255,6 +267,30 @@ export default function NewEmployeePage() {
                   </option>
                 ))}
               </SearchableSelect>
+            </div>
+
+            {/* Role (drives production-terminal process access) */}
+            <div>
+              <label className="block text-xs font-bold text-blue-700 uppercase tracking-wide">
+                Role
+              </label>
+              <SearchableSelect
+                value={formData.roleProfileId}
+                onChange={(e) =>
+                  setFormData({ ...formData, roleProfileId: e.target.value })
+                }
+                className="mt-1.5 w-full px-3.5 py-2.5 rounded-xl border border-blue-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all text-blue-900 bg-blue-50/50 "
+              >
+                <option value="">-- No Role --</option>
+                {roles.map((r) => (
+                  <option key={r.id} value={r.id}>
+                    {r.name}
+                  </option>
+                ))}
+              </SearchableSelect>
+              <span className="text-[10px] text-blue-400 mt-1 block">
+                Controls which routing processes this operator can run in the terminal.
+              </span>
             </div>
 
             {/* Email */}

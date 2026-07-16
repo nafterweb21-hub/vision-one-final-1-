@@ -15,6 +15,7 @@ interface Employee {
   contactNo: string | null;
   employmentType: string | null;
   status: string;
+  roleProfileId: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -24,6 +25,7 @@ export default function EditEmployeePage() {
   const params = useParams();
   const id = params.id as string;
   const [designations, setDesignations] = useState<{ id: string; designation: string }[]>([]);
+  const [roles, setRoles] = useState<{ id: string; name: string }[]>([]);
 
   const [isLoading, setIsLoading] = useState(true);
   const [formData, setFormData] = useState({
@@ -37,6 +39,7 @@ export default function EditEmployeePage() {
     contactNo: "",
     employmentType: "Citizen",
     status: "ACTIVE",
+    roleProfileId: "",
   });
 
   const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
@@ -68,6 +71,16 @@ export default function EditEmployeePage() {
       }
     };
     fetchDesignations();
+
+    const fetchRoles = async () => {
+      try {
+        const { getActiveRoleProfiles } = await import("@/lib/roles.actions");
+        setRoles(await getActiveRoleProfiles());
+      } catch (error) {
+        console.error("Failed to load roles", error);
+      }
+    };
+    fetchRoles();
   }, []);
 
   // Fetch all employees and find by ID
@@ -92,6 +105,7 @@ export default function EditEmployeePage() {
               contactNo: emp.contactNo || "",
               employmentType: emp.employmentType || "Citizen",
               status: emp.status,
+              roleProfileId: emp.roleProfileId || "",
             });
           } else {
             showToast("error", "Employee profile not found.");
@@ -315,6 +329,30 @@ export default function EditEmployeePage() {
                     </option>
                   ))}
                 </SearchableSelect>
+              </div>
+
+              {/* Role (drives production-terminal process access) */}
+              <div>
+                <label className="block text-xs font-bold text-blue-700 uppercase tracking-wide">
+                  Role
+                </label>
+                <SearchableSelect
+                  value={formData.roleProfileId}
+                  onChange={(e) =>
+                    setFormData({ ...formData, roleProfileId: e.target.value })
+                  }
+                  className="mt-1.5 w-full px-3.5 py-2.5 rounded-xl border border-blue-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all text-blue-900 bg-blue-50/50 "
+                >
+                  <option value="">-- No Role --</option>
+                  {roles.map((r) => (
+                    <option key={r.id} value={r.id}>
+                      {r.name}
+                    </option>
+                  ))}
+                </SearchableSelect>
+                <span className="text-[10px] text-blue-400 mt-1 block">
+                  Controls which routing processes this operator can run in the terminal.
+                </span>
               </div>
 
               {/* Email */}
