@@ -6,7 +6,7 @@ import { useState } from "react";
 import { signOut } from "next-auth/react";
 import { type PermissionsMap } from "@/lib/access";
 import { NavTree, isActivePath, visibleSections } from "./NavLink";
-import { ChevronDown, LayoutDashboard, LogOut, Menu, X } from "lucide-react";
+import { ChevronDown, LayoutDashboard, LogOut, Menu, X, Search } from "lucide-react";
 
 interface SidebarProps {
   userEmail?: string | null;
@@ -18,8 +18,28 @@ export default function Sidebar({ userEmail, userRole, userPermissions }: Sideba
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [isReportsOpen, setIsReportsOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const sections = visibleSections(userPermissions, userRole);
+
+  const filteredSections = sections.map(section => {
+    if (!searchQuery.trim()) return section;
+    const lowerQuery = searchQuery.trim().toLowerCase();
+    
+    const searchNode = (node: any): any => {
+      const matchesSelf = node.label.toLowerCase().includes(lowerQuery);
+      const children = (node.children ?? [])
+        .map((child: any) => searchNode(child))
+        .filter(Boolean);
+      if (!matchesSelf && children.length === 0) return null;
+      return { ...node, children: children.length > 0 ? children : undefined };
+    };
+
+    const items = section.items.map(searchNode).filter(Boolean);
+    if (items.length === 0 && !section.title.toLowerCase().includes(lowerQuery)) return null;
+    return { ...section, items: items.length > 0 ? items : section.items };
+  }).filter(Boolean) as typeof sections;
+
   const close = () => setIsOpen(false);
 
   const linkClass = (href: string) => {
@@ -66,12 +86,26 @@ export default function Sidebar({ userEmail, userRole, userPermissions }: Sideba
         </div>
 
         <div className="scrollbar-thin scrollbar-thumb-slate-200 flex-1 space-y-2 overflow-y-auto px-4 py-4">
+          {/* Search Bar */}
+          <div className="relative mb-4 px-1">
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+              <Search className="h-4 w-4 text-slate-400" />
+            </div>
+            <input
+              type="text"
+              className="block w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-10 pr-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-colors"
+              placeholder="Search menu..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+
           <Link href="/dashboard" onClick={close} className={linkClass("/dashboard")}>
             <LayoutDashboard size={18} />
             <span>Dashboard</span>
           </Link>
 
-          {sections.map((section) =>
+          {filteredSections.map((section) =>
             section.collapsible ? (
               <div key={section.title} className="pt-4">
                 <button

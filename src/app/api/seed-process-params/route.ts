@@ -19,7 +19,7 @@ export async function GET() {
       create: {
         code: 'EMP-999',
         name: 'John Doe (Test)',
-        nricFin: 'T1234567A',
+        aadharNumber: '123456789012',
         email: 'test@example.com',
         designation: 'Operator',
         status: 'ACTIVE',

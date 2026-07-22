@@ -19,9 +19,9 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
 
     // Server-side validation
-    if (!body.code || !body.name || !body.nricFin || !body.email) {
+    if (!body.code || !body.name || !body.aadharNumber || !body.email) {
       return NextResponse.json(
-        { error: "Missing required fields (Employee Code, Employee Name, NRIC/FIN, Email)." },
+        { error: "Missing required fields (Employee Code, Employee Name, Aadhar Number, Email)." },
         { status: 400 }
       );
     }

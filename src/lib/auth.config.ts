@@ -20,18 +20,8 @@ export const authConfig = {
       console.error(error);
     },
   },
-  cookies: {
-    sessionToken: {
-      name: process.env.NODE_ENV === "production" ? "__Secure-vsone.session-token" : "vsone.session-token",
-      options: {
-        httpOnly: true,
-        sameSite: "lax",
-        path: "/",
-        secure: process.env.NODE_ENV === "production",
-      },
-    },
-  },
-  pages: { signIn: "/auth/signin" },
+
+  pages: { signIn: "/" },
   providers: [],
   callbacks: {
     async jwt({ token, user }) {

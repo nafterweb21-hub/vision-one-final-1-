@@ -31,12 +31,12 @@ export default function EditEmployeePage() {
   const [formData, setFormData] = useState({
     code: "",
     name: "",
-    nricFin: "",
+    aadharNumber: "",
     designation: "",
     email: "",
     mobileNo: "",
     gender: "Male",
-    contactNo: "",
+    dob: "",
     employmentType: "Citizen",
     status: "ACTIVE",
     roleProfileId: "",
@@ -97,12 +97,12 @@ export default function EditEmployeePage() {
             setFormData({
               code: emp.code,
               name: emp.name,
-              nricFin: emp.nricFin,
+              aadharNumber: emp.aadharNumber,
               designation: emp.designation || "",
               email: emp.email,
               mobileNo: emp.mobileNo || "",
               gender: emp.gender || "Male",
-              contactNo: emp.contactNo || "",
+              dob: emp.dob || "",
               employmentType: emp.employmentType || "Citizen",
               status: emp.status,
               roleProfileId: emp.roleProfileId || "",
@@ -131,10 +131,8 @@ export default function EditEmployeePage() {
     const errors: { [key: string]: string } = {};
     if (!formData.code.trim()) errors.code = "Employee Code is required.";
     
-    if (!formData.nricFin.trim()) {
-      errors.nricFin = "NRIC / FIN is required.";
-    } else if (!/^[STFG]\d{7}[A-Z]$/i.test(formData.nricFin.trim())) {
-      errors.nricFin = "Invalid NRIC / FIN format (e.g. S1234567A).";
+    if (!formData.aadharNumber.trim()) {
+      errors.aadharNumber = "Aadhar Number is required.";
     }
 
     if (!formData.email.trim()) {
@@ -282,30 +280,29 @@ export default function EditEmployeePage() {
                 </span>
               </div>
 
-              {/* NRIC/FIN */}
-              <div>
-                <label className="block text-xs font-bold text-blue-700 uppercase tracking-wide">
-                  NRIC / FIN <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={formData.nricFin}
-                  onChange={(e) =>
-                    setFormData({ ...formData, nricFin: e.target.value })
-                  }
-                  placeholder="e.g. S1234567A"
-                  className={`mt-1.5 w-full px-3.5 py-2.5 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all text-blue-900 bg-blue-50/50 ${
-                    formErrors.nricFin
-                      ? "border-rose-400 "
-                      : "border-blue-200 "
+              {/* Aadhar Number */}
+            <div className="group">
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-blue-800 mb-1 ml-1">
+                Aadhar Number <span className="text-rose-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={formData.aadharNumber}
+                onChange={(e) =>
+                  setFormData({ ...formData, aadharNumber: e.target.value })
+                }
+                className={`mt-1.5 w-full px-3.5 py-2.5 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all text-blue-900 bg-blue-50/50 ${formErrors.aadharNumber
+                    ? "border-rose-300 bg-rose-50/50"
+                    : "border-blue-100 hover:border-blue-200 hover:bg-blue-50"
                   }`}
-                />
-                {formErrors.nricFin && (
-                  <p className="text-xs text-rose-500 mt-1 font-semibold">
-                    {formErrors.nricFin}
-                  </p>
-                )}
-              </div>
+                placeholder="e.g. 123456789012"
+              />
+              {formErrors.aadharNumber && (
+                <p className="mt-1.5 ml-1 text-xs font-medium text-rose-500">
+                  {formErrors.aadharNumber}
+                </p>
+              )}
+            </div>
 
               {/* Designation */}
               <div>
@@ -422,24 +419,23 @@ export default function EditEmployeePage() {
                 />
               </div>
 
-              {/* Contact No */}
-              <div>
-                <label className="block text-xs font-bold text-blue-700 uppercase tracking-wide">
-                  Contact No
-                </label>
-                <input
-                  type="text"
-                  value={formData.contactNo}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      contactNo: e.target.value,
-                    })
-                  }
-                  placeholder="e.g. 61234567"
-                  className="mt-1.5 w-full px-3.5 py-2.5 rounded-xl border border-blue-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all text-blue-900 bg-blue-50/50 "
-                />
-              </div>
+              {/* DOB */}
+            <div className="group">
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-blue-800 mb-1 ml-1">
+                DOB
+              </label>
+              <input
+                type="date"
+                value={formData.dob}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    dob: e.target.value,
+                  })
+                }
+                className="mt-1.5 w-full px-3.5 py-2.5 rounded-xl border border-blue-100 bg-blue-50/50 text-sm text-blue-900 transition-all hover:bg-blue-50 hover:border-blue-200 focus:border-cyan-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
+              />
+            </div>
 
               {/* Gender */}
               <div>

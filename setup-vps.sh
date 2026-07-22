@@ -5,8 +5,8 @@
 
 set -e
 
-VPS_HOST="${1:-ubuntu@65.0.168.115}"
-SSH_KEY="${2:-$HOME/Downloads/vision.pem}"
+VPS_HOST="${1:-ubuntu@13.234.114.147}"
+SSH_KEY="${2:-/Users/imrankhann/Downloads/LightsailDefaultKey-ap-south-1.pem}"
 DEPLOY_PATH="${3:-/home/ubuntu/projects/vision_one}"
 DB_NAME="${4:-vision_one}"
 DB_USER="${5:-vision}"
@@ -49,7 +49,7 @@ echo "--> writing .env (edit DATABASE_URL / NEXTAUTH_SECRET afterwards)"
 if [ ! -f $DEPLOY_PATH/.env ]; then
   cat > $DEPLOY_PATH/.env <<ENV
 DATABASE_URL="postgresql://$DB_USER:$DB_PASS@localhost:5432/$DB_NAME"
-NEXTAUTH_URL="http://65.0.168.115"
+NEXTAUTH_URL="http://${VPS_HOST#*@}"
 NEXTAUTH_SECRET="$(openssl rand -hex 32)"
 NODE_ENV=production
 ENV

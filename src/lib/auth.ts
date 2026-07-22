@@ -66,7 +66,12 @@ export const auth = async (...args: any[]) => {
     // @ts-ignore - pass args down to NextAuth's auth
     return await nextAuth.auth(...args);
   } catch (error: any) {
-    if (error?.name === "JWTSessionError" || error?.message?.includes("JWTSessionError")) {
+    if (
+      error?.name === "JWTSessionError" || 
+      error?.type === "JWTSessionError" || 
+      String(error).includes("JWTSessionError") ||
+      String(error).includes("no matching decryption secret")
+    ) {
       console.warn("Caught JWTSessionError, returning null session.");
       return null;
     }

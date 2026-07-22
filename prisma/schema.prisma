@@ -120,12 +120,12 @@ model Employee {
   id                                            String                          @id @default(cuid())
   code                                          String                          @unique
   name                                          String
-  nricFin                                       String                          @unique
+  aadharNumber                                  String                          @unique
   designation                                   String?
   email                                         String
   mobileNo                                      String?
   gender                                        String?
-  contactNo                                     String?
+  dob                                           DateTime?
   employmentType                                String?
   status                                        String                          @default("ACTIVE")
   roleProfileId                                 String?

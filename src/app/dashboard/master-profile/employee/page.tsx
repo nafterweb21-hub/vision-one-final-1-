@@ -6,12 +6,12 @@ interface Employee {
   id: string;
   code: string;
   name: string;
-  nricFin: string;
+  aadharNumber: string;
   designation: string | null;
   email: string;
   mobileNo: string | null;
   gender: string | null;
-  contactNo: string | null;
+  dob: string | null;
   employmentType: string | null;
   status: string;
   createdAt: string;
@@ -34,7 +34,7 @@ export default function EmployeeProfilePage() {
   } | null>(null);
 
 
-  const [showNricMap, setShowNricMap] = useState<{ [key: string]: boolean }>({});
+  const [showAadharMap, setShowAadharMap] = useState<{ [key: string]: boolean }>({});
   const [employeeToDelete, setEmployeeToDelete] = useState<Employee | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -69,17 +69,18 @@ export default function EmployeeProfilePage() {
     });
   }, [fetchEmployees]);
 
-  // NRIC masker
-  const maskNric = (nric: string, reveal: boolean) => {
-    if (!nric) return "—";
-    if (reveal) return nric;
-    if (nric.length <= 4) return "****";
-    // standard masking e.g. S*****56A
-    return `${nric.charAt(0)}•••••${nric.substring(nric.length - 3)}`;
+  // Aadhar masker
+  const maskAadhar = (aadhar: string, reveal: boolean) => {
+    if (!aadhar) return "—";
+    if (reveal) return aadhar;
+    if (aadhar.length <= 4) return "****";
+    // Mask as XXXX-XXXX-1234
+    const last4 = aadhar.substring(aadhar.length - 4);
+    return `••••-••••-${last4}`;
   };
 
-  const toggleNricReveal = (id: string) => {
-    setShowNricMap((prev) => ({
+  const toggleAadharReveal = (id: string) => {
+    setShowAadharMap((prev) => ({
       ...prev,
       [id]: !prev[id],
     }));
@@ -150,7 +151,7 @@ export default function EmployeeProfilePage() {
         emp.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (emp.designation &&
           emp.designation.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        emp.nricFin.toLowerCase().includes(searchQuery.toLowerCase());
+        emp.aadharNumber.toLowerCase().includes(searchQuery.toLowerCase());
 
       const matchesStatus =
         statusFilter === "ALL" || emp.status === statusFilter;
@@ -230,7 +231,7 @@ export default function EmployeeProfilePage() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by name, employee code, NRIC, email..."
+            placeholder="Search by name, employee code, Aadhar Number, email..."
             className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-blue-50 border border-blue-200 text-sm focus:bg-white :bg-blue-900 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all duration-150 text-blue-900 placeholder-blue-400 "
           />
         </div>
@@ -312,7 +313,7 @@ export default function EmployeeProfilePage() {
                 <tr>
                   <th className="px-6 py-4 font-semibold">Code</th>
                   <th className="px-6 py-4 font-semibold">Employee Details</th>
-                  <th className="px-6 py-4 font-semibold">NRIC / FIN</th>
+                  <th className="px-6 py-4 font-semibold">Aadhar Number</th>
                   <th className="px-6 py-4 font-semibold">Contact Info</th>
                   <th className="px-6 py-4 font-semibold">Employment Type</th>
                   <th className="px-6 py-4 font-semibold text-center">Status</th>
@@ -340,16 +341,16 @@ export default function EmployeeProfilePage() {
                         </span>
                       </div>
                     </td>
-                    {/* NRIC FIN */}
+                    {/* Aadhar Number */}
                     <td className="px-6 py-4 font-mono text-blue-700 ">
                       <div className="flex items-center gap-2">
-                        <span>{maskNric(emp.nricFin, showNricMap[emp.id])}</span>
+                        <span>{maskAadhar(emp.aadharNumber, showAadharMap[emp.id])}</span>
                         <button
-                          onClick={() => toggleNricReveal(emp.id)}
+                          onClick={() => toggleAadharReveal(emp.id)}
                           className="text-blue-400 hover:text-blue-600 :text-blue-200 p-1 rounded-md transition-colors"
-                          title="Reveal / Mask NRIC"
+                          title="Reveal / Mask Aadhar"
                         >
-                          {showNricMap[emp.id] ? (
+                          {showAadharMap[emp.id] ? (
                             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
                             </svg>
@@ -371,9 +372,10 @@ export default function EmployeeProfilePage() {
                         >
                           {emp.email}
                         </a>
-                        <span className="text-blue-400 mt-1 font-mono">
-                          {emp.mobileNo || emp.contactNo || "—"}
-                        </span>
+                        <div className="text-blue-400 mt-1 font-mono flex flex-col">
+                          <span>{emp.mobileNo ? `Mobile: ${emp.mobileNo}` : "—"}</span>
+                          <span>{emp.dob ? `DOB: ${new Date(emp.dob).toLocaleDateString()}` : ""}</span>
+                        </div>
                       </div>
                     </td>
                     {/* Employment */}
