@@ -20,7 +20,7 @@ declare module "next-auth" {
   }
 }
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
+const nextAuth = NextAuth({
   ...authConfig,
   providers: [
     Credentials({
@@ -56,3 +56,20 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
 });
+
+export const handlers = nextAuth.handlers;
+export const signIn = nextAuth.signIn;
+export const signOut = nextAuth.signOut;
+
+export const auth = async (...args: any[]) => {
+  try {
+    // @ts-ignore - pass args down to NextAuth's auth
+    return await nextAuth.auth(...args);
+  } catch (error: any) {
+    if (error?.name === "JWTSessionError" || error?.message?.includes("JWTSessionError")) {
+      console.warn("Caught JWTSessionError, returning null session.");
+      return null;
+    }
+    throw error;
+  }
+};

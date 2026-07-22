@@ -11,6 +11,26 @@ import { getPermissionsForRole, getUserAuthState } from "@/lib/permissions";
 // effect immediately instead of on the user's next sign-in.
 export const authConfig = {
   session: { strategy: "jwt" },
+  logger: {
+    error(error) {
+      const msg = error?.message || String(error);
+      if (msg.includes("JWTSessionError") || msg.includes("decryption secret") || msg.includes("JWEInvalid")) {
+        return;
+      }
+      console.error(error);
+    },
+  },
+  cookies: {
+    sessionToken: {
+      name: process.env.NODE_ENV === "production" ? "__Secure-vsone.session-token" : "vsone.session-token",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      },
+    },
+  },
   pages: { signIn: "/auth/signin" },
   providers: [],
   callbacks: {
