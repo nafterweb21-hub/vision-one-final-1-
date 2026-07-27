@@ -1360,7 +1360,7 @@ model Invoice {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   poNo            String?
-  vehicleNumber   String?  @map("vehicle_number")
+  vehicleNumber   String?
 
   company       CompanyProfile        @relation(fields: [companyId], references: [id])
   customer      CustomerProfile       @relation(fields: [customerId], references: [id])
