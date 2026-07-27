@@ -8,8 +8,8 @@
 
 set -e
 
-VPS_HOST="${1:-ubuntu@13.234.114.147}"
-SSH_KEY="${2:-/Users/imrankhann/Downloads/LightsailDefaultKey-ap-south-1.pem}"
+VPS_HOST="${1:-ubuntu@65.0.168.115}"
+SSH_KEY="${2:-$HOME/Downloads/vision.pem}"
 DEPLOY_PATH="${3:-/home/ubuntu/projects/vision_one}"
 SSH_OPTS="-i $SSH_KEY -o StrictHostKeyChecking=no"
 NVM_INIT="export NVM_DIR=\$HOME/.nvm && source \$NVM_DIR/nvm.sh && export NODE_OPTIONS=--max-old-space-size=512"
