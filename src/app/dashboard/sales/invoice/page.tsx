@@ -254,6 +254,7 @@ export default function InvoiceListPage() {
                   <th className="px-3 py-3">Invoice No</th>
                   <th className="px-3 py-3">Date</th>
                   <th className="px-3 py-3">Customer</th>
+                  <th className="px-3 py-3">Vehicle Number</th>
                   <th className="px-3 py-3">Type</th>
                   <th className="px-3 py-3 text-right">Amount</th>
                 </tr>
@@ -292,6 +293,9 @@ export default function InvoiceListPage() {
                     </td>
                     <td className="px-3 py-3 font-medium text-blue-700">
                       {inv.customer?.customerName || "—"}
+                    </td>
+                    <td className="px-3 py-3 text-blue-700">
+                      {inv.vehicleNumber || "—"}
                     </td>
                     <td className="px-3 py-3 text-blue-700">
                       {inv.invoiceType}

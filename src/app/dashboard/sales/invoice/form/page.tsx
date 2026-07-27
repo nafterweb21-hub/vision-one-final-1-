@@ -281,7 +281,7 @@ Branch: ${bank.branchCode || ""}`;
   };
 
   const handleSave = async () => {
-    if (!formData.companyId || !formData.customerId || !formData.paymentTermId || !formData.currencyId || !formData.taxTypeId || !formData.preparedById) {
+    if (!formData.companyId || !formData.customerId || !formData.paymentTermId || !formData.currencyId || !formData.taxTypeId || !formData.preparedById || !formData.vehicleNumber) {
       setErrorMsg("Please fill in all mandatory fields.");
       return;
     }
@@ -505,7 +505,7 @@ Branch: ${bank.branchCode || ""}`;
             />
           </div>
           <div className="space-y-1">
-            <label className="text-sm font-semibold text-blue-900">Vehicle Number</label>
+            <label className="text-sm font-semibold text-blue-900">Vehicle Number <span className="text-rose-500">*</span></label>
             <input
               type="text"
               value={formData.vehicleNumber || ""}

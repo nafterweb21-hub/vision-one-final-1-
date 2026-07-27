@@ -12,9 +12,15 @@ import { getPermissionsForRole, getUserAuthState } from "@/lib/permissions";
 export const authConfig = {
   session: { strategy: "jwt" },
   logger: {
-    error(error) {
-      const msg = error?.message || String(error);
-      if (msg.includes("JWTSessionError") || msg.includes("decryption secret") || msg.includes("JWEInvalid")) {
+    error(error: any) {
+      const msg = error?.message || String(error) || "";
+      const name = error?.name || error?.type || "";
+      if (
+        name === "JWTSessionError" ||
+        msg.includes("JWTSessionError") ||
+        msg.includes("decryption secret") ||
+        msg.includes("JWEInvalid")
+      ) {
         return;
       }
       console.error(error);

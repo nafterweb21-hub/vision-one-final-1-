@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { authConfig } from "@/lib/auth.config";
 import type { PermissionsMap } from "@/lib/access";
+import { cookies } from "next/headers";
 
 declare module "next-auth" {
   interface Session {
@@ -66,15 +67,7 @@ export const auth = async (...args: any[]) => {
     // @ts-ignore - pass args down to NextAuth's auth
     return await nextAuth.auth(...args);
   } catch (error: any) {
-    if (
-      error?.name === "JWTSessionError" || 
-      error?.type === "JWTSessionError" || 
-      String(error).includes("JWTSessionError") ||
-      String(error).includes("no matching decryption secret")
-    ) {
-      console.warn("Caught JWTSessionError, returning null session.");
-      return null;
-    }
-    throw error;
+    console.warn("Caught error in auth(), returning null session:", error?.message || String(error));
+    return null;
   }
 };
