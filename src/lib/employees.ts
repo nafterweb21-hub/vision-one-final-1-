@@ -99,7 +99,7 @@ export async function updateEmployee(id: string, data: Partial<EmployeeInput>): 
     });
     if (dup) throw new Error(`Employee Code "${data.code}" already in use.`);
   }
-  if (data.aadharNumber !== undefined && data.aadharNumber.toLowerCase() !== existing.aadharNumber.toLowerCase()) {
+  if (data.aadharNumber !== undefined && data.aadharNumber?.toLowerCase() !== existing.aadharNumber?.toLowerCase()) {
     const dup = await prisma.employee.findFirst({
       where: { aadharNumber: data.aadharNumber, NOT: { id } },
     });
