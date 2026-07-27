@@ -7,11 +7,12 @@ interface Employee {
   id: string;
   code: string;
   name: string;
-  nricFin: string;
+  aadharNumber: string;
   designation: string | null;
   email: string;
   mobileNo: string | null;
   gender: string | null;
+  dob: string | null;
   contactNo: string | null;
   employmentType: string | null;
   status: string;

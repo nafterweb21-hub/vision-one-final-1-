@@ -10,6 +10,8 @@ export const metadata: Metadata = {
   description: "Enterprise Resource Planning System",
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function RootLayout({
   children,
 }: Readonly<{
