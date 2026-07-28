@@ -374,7 +374,7 @@ export default function EmployeeProfilePage() {
                         </a>
                         <div className="text-blue-400 mt-1 font-mono flex flex-col">
                           <span>{emp.mobileNo ? `Mobile: ${emp.mobileNo}` : "—"}</span>
-                          <span>{emp.dob ? `DOB: ${new Date(emp.dob).toLocaleDateString()}` : ""}</span>
+                          <span>{emp.dob ? `DOJ: ${new Date(emp.dob).toLocaleDateString()}` : ""}</span>
                         </div>
                       </div>
                     </td>

@@ -420,10 +420,10 @@ export default function EditEmployeePage() {
                 />
               </div>
 
-              {/* DOB */}
+              {/* DOJ */}
             <div className="group">
               <label className="block text-[10px] font-bold uppercase tracking-wider text-blue-800 mb-1 ml-1">
-                DOB
+                DOJ
               </label>
               <input
                 type="date"
