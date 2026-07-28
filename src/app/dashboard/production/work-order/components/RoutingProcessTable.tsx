@@ -13,6 +13,8 @@ type Props = {
   employees: any[];
   supportData: any;
   workOrderNo: string;
+  mainProcesses?: any[];
+  processProfiles?: any[];
 };
 
 export default function RoutingProcessTable({
@@ -22,6 +24,8 @@ export default function RoutingProcessTable({
   employees,
   supportData,
   workOrderNo,
+  mainProcesses = [],
+  processProfiles = [],
 }: Props) {
   const router = useRouter();
   const [rows, setRows] = useState(initialRows);
@@ -117,6 +121,9 @@ export default function RoutingProcessTable({
               employees={employees}
               supportData={supportData}
               workOrderNo={workOrderNo}
+              mainProcesses={mainProcesses}
+              processProfiles={processProfiles}
+              allRoutingProcesses={rows}
               dnd={
                 dndEnabled
                   ? {

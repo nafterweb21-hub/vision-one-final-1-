@@ -244,6 +244,8 @@ export default async function WorkOrderRoutingPage({
                     employees={employees}
                     supportData={supportData}
                     workOrderNo={id}
+                    mainProcesses={mainProcesses}
+                    processProfiles={processProfiles}
                   />
                 )}
               </div>

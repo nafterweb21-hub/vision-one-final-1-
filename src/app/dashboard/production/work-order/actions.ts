@@ -772,3 +772,65 @@ export async function updateProcessParameters(
     return { success: false, error: err.message || "Failed to update process parameters" };
   }
 }
+
+export async function editRoutingProcess(id: string, data: {
+  mainProcessId: string;
+  routingProcessId: string;
+  targetCompletionDate: string;
+  remark?: string;
+}) {
+  try {
+    const rp = await prisma.routingProcess.findUnique({
+      where: { id },
+      include: { inProcess: { include: { workOrder: true } } },
+    });
+    if (!rp) return { success: false, error: "Routing process not found" };
+
+    if (["Completed", "Void", "Cancelled"].includes(rp.inProcess.workOrder.status)) {
+      return { success: false, error: `Cannot edit routing on ${rp.inProcess.workOrder.status} work order` };
+    }
+    
+    if (rp.status === "Completed" || rp.status === "WIP") {
+      return { success: false, error: "Cannot edit routing process that has already started or completed" };
+    }
+
+    const target = new Date(data.targetCompletionDate);
+    if (Number.isNaN(target.getTime())) {
+      return { success: false, error: "Invalid target completion date" };
+    }
+
+    // Check duplicates only if changing mainProcessId or routingProcessId
+    if (rp.mainProcessId !== data.mainProcessId || rp.routingProcessId !== data.routingProcessId) {
+      const duplicate = await prisma.routingProcess.findFirst({
+        where: {
+          inProcessId: rp.inProcessId,
+          mainProcessId: data.mainProcessId,
+          routingProcessId: data.routingProcessId,
+          id: { not: id }
+        }
+      });
+      if (duplicate) {
+        return {
+          success: false,
+          error: "This main process and routing process combination already exists in this in-process",
+        };
+      }
+    }
+
+    await prisma.routingProcess.update({
+      where: { id },
+      data: {
+        mainProcessId: data.mainProcessId,
+        routingProcessId: data.routingProcessId,
+        targetCompletionDate: target,
+        remark: data.remark || null,
+      },
+    });
+
+    revalidatePath(`/dashboard/production/work-order/${rp.inProcess.workOrder.workOrderNo}/routing`);
+    return { success: true };
+  } catch (err: any) {
+    console.error("editRoutingProcess:", err);
+    return { success: false, error: err.message || "Failed to edit routing process" };
+  }
+}

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { GripVertical } from "lucide-react";
 import { markRoutingProcessStatus } from "../actions";
 import ParameterDetailDrawer from "./ParameterDetailDrawer";
+import EditRoutingProcessModal from "./EditRoutingProcessModal";
 
 type DndProps = {
   enabled: boolean;
@@ -24,6 +25,9 @@ type Props = {
   supportData?: any;
   workOrderNo?: string;
   dnd?: DndProps | null;
+  mainProcesses?: any[];
+  processProfiles?: any[];
+  allRoutingProcesses?: any[];
 };
 
 function fmtDate(d?: string | Date | null) {
@@ -46,12 +50,16 @@ export default function RoutingProcessRow({
   supportData = {},
   workOrderNo = "",
   dnd = null,
+  mainProcesses = [],
+  processProfiles = [],
+  allRoutingProcesses = [],
 }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState("");
 
   const editable = !["Void", "Cancelled", "Completed"].includes(woStatus);
+  const canEditDetails = editable && rp?.status === "New";
 
   function setStatus(next: "WIP" | "Completed") {
     setError("");
@@ -141,26 +149,39 @@ export default function RoutingProcessRow({
           {rp?.status}
         </span>
       </td>
-      <td className="px-3 py-2 text-right space-x-1.5">
-        {editable && rp?.status === "New" && (
-          <button
-            onClick={() => setStatus("WIP")}
-            disabled={isPending}
-            className="text-xs px-2 py-1 rounded bg-amber-100 text-amber-700 hover:bg-amber-200 disabled:opacity-50"
-          >
-            Start
-          </button>
-        )}
-        {editable && rp?.status === "WIP" && (
-          <button
-            onClick={() => setStatus("Completed")}
-            disabled={isPending}
-            className="text-xs px-2 py-1 rounded bg-emerald-100 text-emerald-700 hover:bg-emerald-200 disabled:opacity-50"
-          >
-            Complete
-          </button>
-        )}
-        {error && <span className="text-xs text-red-600">{error}</span>}
+      <td className="px-3 py-2 text-right">
+        <div className="flex items-center justify-end gap-1.5">
+          {canEditDetails && (
+            <EditRoutingProcessModal
+              routingProcess={rp}
+              mainProcesses={mainProcesses}
+              processProfiles={processProfiles}
+              existingPairs={allRoutingProcesses.map((r: any) => ({
+                mainProcessId: r.mainProcessId,
+                routingProcessId: r.routingProcessId,
+              }))}
+            />
+          )}
+          {editable && rp?.status === "New" && (
+            <button
+              onClick={() => setStatus("WIP")}
+              disabled={isPending}
+              className="text-xs px-2 py-1 rounded bg-amber-100 text-amber-700 hover:bg-amber-200 disabled:opacity-50"
+            >
+              Start
+            </button>
+          )}
+          {editable && rp?.status === "WIP" && (
+            <button
+              onClick={() => setStatus("Completed")}
+              disabled={isPending}
+              className="text-xs px-2 py-1 rounded bg-emerald-100 text-emerald-700 hover:bg-emerald-200 disabled:opacity-50"
+            >
+              Complete
+            </button>
+          )}
+          {error && <span className="text-xs text-red-600">{error}</span>}
+        </div>
       </td>
     </tr>
   );
