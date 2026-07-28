@@ -164,19 +164,12 @@ export default function AddRoutingProcessModal({
                     </label>
                     <input
                       type="date"
-                      max={inProcessTargetDate}
+                      max="2035-12-31"
                       {...register("targetCompletionDate", {
                         required: "Required",
-                        validate: (v) =>
-                          !v ||
-                          v <= inProcessTargetDate ||
-                          `Cannot be later than the in-process target (${fmtDate(inProcessTargetDate)})`,
                       })}
                       className={inputCls}
                     />
-                    <p className="text-xs text-slate-500">
-                      Must be on or before the in-process target: {fmtDate(inProcessTargetDate)}
-                    </p>
                     {errors.targetCompletionDate && (
                       <p className="text-xs text-red-500">{errors.targetCompletionDate.message}</p>
                     )}

@@ -1,0 +1,39 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: erp_user
+      POSTGRES_PASSWORD: my_secure_password # Change this in production
+      POSTGRES_DB: vision_one_erp
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - app_network
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgresql://erp_user:my_secure_password@db:5432/vision_one_erp?schema=public # Change this in production
+      - NEXTAUTH_URL=http://localhost:3000 # Change to your actual domain in production
+      - NEXTAUTH_SECRET=your_super_secret_key_here # Change in production
+      - NODE_ENV=production
+    depends_on:
+      - db
+    networks:
+      - app_network
+
+volumes:
+  db_data:
+
+networks:
+  app_network:
+    driver: bridge

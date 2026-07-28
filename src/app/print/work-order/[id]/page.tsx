@@ -23,6 +23,18 @@ export default async function PrintWorkOrderPage(
     where: { workOrderNo: id },
     include: {
       customer: true,
+      inProcesses: {
+        orderBy: { sn: "asc" },
+        include: {
+          routingProcesses: {
+            orderBy: { sequence: "asc" },
+            include: {
+              mainProcess: { select: { process: true } },
+              routingProcess: { select: { routingProcess: true } },
+            },
+          },
+        },
+      },
     },
   });
 
@@ -45,7 +57,7 @@ export default async function PrintWorkOrderPage(
         .title { text-align: center; font-size: 14pt; font-weight: bold; text-decoration: underline; margin: 20mm 0; }
         
         .table { width: 100%; border-collapse: collapse; }
-        .table td { border: 1px solid #000; padding: 8px 10px; vertical-align: top; }
+        .table td, .table th { border: 1px solid #000; padding: 8px 10px; vertical-align: top; }
         
         .label { font-weight: bold; color: #000; font-size: 10pt; display: block; margin-bottom: 2px; }
         .value { color: #2d89c9; font-size: 10pt; }
@@ -86,7 +98,7 @@ export default async function PrintWorkOrderPage(
 
         <div className="title">WORK ORDER SHEET</div>
 
-        <table className="table">
+        <table className="table" style={{ marginBottom: "20px" }}>
           <tbody>
             <tr>
               <td>
@@ -132,7 +144,53 @@ export default async function PrintWorkOrderPage(
             </tr>
           </tbody>
         </table>
+
+        {wo.inProcesses && wo.inProcesses.length > 0 && (
+          <div style={{ marginTop: "20px" }}>
+            <div style={{ fontSize: "12pt", fontWeight: "bold", marginBottom: "10px", color: "#2d89c9" }}>
+              Routing Processes
+            </div>
+            <table className="table">
+              <thead>
+                <tr style={{ backgroundColor: "#d8f1f8", fontSize: "10pt" }}>
+                  <th style={{ textAlign: "left", padding: "8px 10px", border: "1px solid #000" }}>S/N</th>
+                  <th style={{ textAlign: "left", padding: "8px 10px", border: "1px solid #000" }}>In-Process Description</th>
+                  <th style={{ textAlign: "left", padding: "8px 10px", border: "1px solid #000" }}>Main Process</th>
+                  <th style={{ textAlign: "left", padding: "8px 10px", border: "1px solid #000" }}>Routing Process</th>
+                  <th style={{ textAlign: "left", padding: "8px 10px", border: "1px solid #000" }}>Target Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {wo.inProcesses.map((ip) => {
+                  if (ip.routingProcesses.length === 0) {
+                    return (
+                      <tr key={ip.id}>
+                        <td style={{ border: "1px solid #000", padding: "8px 10px", verticalAlign: "top" }}>{ip.sn}</td>
+                        <td style={{ border: "1px solid #000", padding: "8px 10px", fontWeight: "bold", verticalAlign: "top" }}>{ip.description}</td>
+                        <td style={{ border: "1px solid #000", padding: "8px 10px", color: "#999", fontStyle: "italic", verticalAlign: "top" }} colSpan={3}>No routing processes added</td>
+                      </tr>
+                    );
+                  }
+                  return ip.routingProcesses.map((rp, idx) => (
+                    <tr key={rp.id}>
+                      {idx === 0 && (
+                        <>
+                          <td rowSpan={ip.routingProcesses.length} style={{ border: "1px solid #000", padding: "8px 10px", verticalAlign: "top" }}>{ip.sn}</td>
+                          <td rowSpan={ip.routingProcesses.length} style={{ border: "1px solid #000", padding: "8px 10px", fontWeight: "bold", verticalAlign: "top" }}>{ip.description}</td>
+                        </>
+                      )}
+                      <td style={{ border: "1px solid #000", padding: "8px 10px", verticalAlign: "top" }}>{rp.mainProcess?.process || "—"}</td>
+                      <td style={{ border: "1px solid #000", padding: "8px 10px", verticalAlign: "top" }}>{rp.routingProcess?.routingProcess || "—"}</td>
+                      <td style={{ border: "1px solid #000", padding: "8px 10px", verticalAlign: "top" }}>{fmtDate(rp.targetCompletionDate)}</td>
+                    </tr>
+                  ));
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </>
   );
 }
+

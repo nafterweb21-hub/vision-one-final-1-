@@ -312,12 +312,6 @@ export async function addRoutingProcess(data: {
     if (Number.isNaN(target.getTime())) {
       return { success: false, error: "Invalid target completion date" };
     }
-    if (target > ip.targetCompletionDate) {
-      return {
-        success: false,
-        error: `Target completion date cannot be later than the in-process target (${ip.targetCompletionDate.toLocaleDateString()})`,
-      };
-    }
 
     const duplicate = ip.routingProcesses.some(
       (r: any) =>
