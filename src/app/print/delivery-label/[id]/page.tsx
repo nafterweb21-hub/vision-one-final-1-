@@ -46,7 +46,7 @@ export default async function DeliveryLabelPrint({
         body {
           margin: 0;
           padding: 0;
-          font-family: Arial, sans-serif;
+          font-family: var(--print-font);
           background: #fff;
           width: 102mm;
           height: 51mm;

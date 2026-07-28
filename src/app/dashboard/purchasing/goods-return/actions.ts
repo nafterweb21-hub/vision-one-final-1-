@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 
+import { RecordStatus } from "@/lib/status";
 /**
  * Fetch all data needed to render the Goods Return form:
  * companies, suppliers, employees, currencies, taxes, and
@@ -14,7 +15,7 @@ export async function getGoodsReturnFormData() {
       await Promise.all([
         prisma.companyProfile.findMany({ where: { status: "Active" } }),
         prisma.supplierProfile.findMany({ where: { status: "Active" } }),
-        prisma.employee.findMany({ where: { status: "ACTIVE" } }),
+        prisma.employee.findMany({ where: { status: RecordStatus.Active } }),
         prisma.currency.findMany({ where: { status: "Active" } }),
         prisma.taxProfile.findMany({ where: { status: "Active" } }),
         prisma.goodsReceive.findMany({

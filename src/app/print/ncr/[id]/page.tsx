@@ -44,7 +44,7 @@ export default async function NcrPrintPage({ params }: { params: Promise<{ id: s
     <>
       <style dangerouslySetInnerHTML={{ __html: `
         @page { size: A4; margin: 10mm; }
-        body { font-family: 'Arial', sans-serif; font-size: 11px; margin: 0; background: #fff; }
+        body { font-family: var(--print-font); font-size: 11px; margin: 0; background: #fff; }
         .page { width: 100%; max-width: 190mm; margin: 0 auto; }
         
         /* Header */

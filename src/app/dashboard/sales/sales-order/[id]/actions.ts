@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { createWorkOrderFromBatch } from "@/app/dashboard/production/work-order/actions";
 
+import { RecordStatus } from "@/lib/status";
 export async function getFormData() {
   try {
     const [
@@ -14,7 +15,7 @@ export async function getFormData() {
       finishedGoods,
       uoms,
     ] = await Promise.all([
-      prisma.employee.findMany({ where: { status: "ACTIVE" }, select: { id: true, name: true, code: true } }),
+      prisma.employee.findMany({ where: { status: RecordStatus.Active }, select: { id: true, name: true, code: true } }),
       prisma.customerProfile.findMany({ where: { status: "Active" }, select: { id: true, customerName: true, customerCode: true, contactPersons: true, addresses: true } }),
       prisma.paymentTermProfile.findMany({ where: { status: "Active" }, select: { id: true, name: true, days: true } }),
       prisma.currency.findMany({ where: { status: "Active" }, select: { id: true, code: true, exchangeRate: true } }),

@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { nextDocumentNo } from "@/lib/document-numbering";
 
+import { RecordStatus } from "@/lib/status";
 export async function getGoodsReceiveFormData() {
   try {
     const [companies, suppliers, purchaseOrders, employees, currencies, taxes] = await Promise.all([
@@ -13,7 +14,7 @@ export async function getGoodsReceiveFormData() {
         where: { status: "Issued" },
         include: { items: true },
       }),
-      prisma.employee.findMany({ where: { status: "ACTIVE" } }),
+      prisma.employee.findMany({ where: { status: RecordStatus.Active } }),
       prisma.currency.findMany({ where: { status: "Active" } }),
       prisma.taxProfile.findMany({ where: { status: "Active" } }),
     ]);

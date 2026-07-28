@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { nextDocumentNo } from "@/lib/document-numbering";
 
+import { RecordStatus } from "@/lib/status";
 export async function getNcrFormData() {
   try {
     const [
@@ -15,7 +16,7 @@ export async function getNcrFormData() {
       departments,
     ] = await Promise.all([
       prisma.customerProfile.findMany({ where: { status: "Active" }, select: { id: true, customerName: true } }),
-      prisma.employee.findMany({ where: { status: "ACTIVE" }, select: { id: true, name: true, code: true } }),
+      prisma.employee.findMany({ where: { status: RecordStatus.Active }, select: { id: true, name: true, code: true } }),
       prisma.failureModeProfile.findMany({ where: { status: "Active", isDeleted: false }, select: { id: true, failureMode: true } }),
       prisma.mainProcess.findMany({ where: { status: "Active" }, select: { id: true, process: true } }),
       prisma.workOrder.findMany({ 

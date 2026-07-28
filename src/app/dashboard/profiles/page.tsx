@@ -493,7 +493,7 @@ const MASTER_CATEGORIES = [
         id: "employee",
         name: "Employee Profile",
         active: true,
-        href: "/dashboard/profiles/employee",
+        href: "/dashboard/master-profile/employee",
         desc: "Tracks staff members, designation, emails and NRICs for COCs.",
         rules: [
           "Employee name is immutable once saved.",
@@ -511,7 +511,7 @@ const MASTER_CATEGORIES = [
         id: "tax",
         name: "Tax Profile",
         active: true,
-        href: "/dashboard/profiles/tax",
+        href: "/dashboard/admin/master-profile/tax",
         desc: "Defines operational tax percentages such as GST rates.",
         rules: [
           "Tax Type is immutable once created (e.g. GST @ 7%).",
@@ -564,7 +564,7 @@ const MASTER_CATEGORIES = [
         id: "customer",
         name: "Customer Profile",
         active: true,
-        href: "/dashboard/profiles/customer",
+        href: "/dashboard/admin/master-profile/customer",
         desc: "Manages buyers, multiple contact persons, and delivery addresses.",
         rules: [
           "Customer must be created in this profile before use in Sales Orders.",
@@ -582,7 +582,7 @@ const MASTER_CATEGORIES = [
         id: "supplier",
         name: "Supplier Profile",
         active: true,
-        href: "/dashboard/profiles/supplier",
+        href: "/dashboard/admin/master-profile/supplier",
         desc: "Maintains vendor records for procurement and subcon orders.",
         rules: [
           "Supplier must exist before use in purchase orders.",
@@ -604,7 +604,7 @@ const MASTER_CATEGORIES = [
         id: "material",
         name: "Material Profile",
         active: true,
-        href: "/dashboard/profiles/material",
+        href: "/dashboard/master-profile/material",
         desc: "Stores internal item catalog, sizes, shapes, and category links.",
         rules: [
           "Must exist before use in purchase orders (unless free-text override is used).",
@@ -737,7 +737,7 @@ const MASTER_CATEGORIES = [
         id: "failure-mode",
         name: "Failure Mode Profile",
         active: true,
-        href: "/dashboard/profiles/failure-mode",
+        href: "/dashboard/master-profile/failure-mode",
         desc: "Catalogs failure reasons for Non-Conformance reporting (NCR).",
         rules: [
           "Allows inline creation directly from NCR module.",

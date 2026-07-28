@@ -17,8 +17,10 @@ import {
   Send,
   Ban,
   GitBranch,
+  QrCode,
+  XCircle,
 } from "lucide-react";
-import { getInvoices, getInvoice, voidInvoice, submitInvoice, createInvoice, reviseInvoice } from "./invoice.actions";
+import { getInvoices, getInvoice, voidInvoice, submitInvoice, createInvoice, reviseInvoice, generateEInvoice, cancelEInvoice } from "./invoice.actions";
 
 const STATUS_TABS = ["All", "Draft", "Submitted", "Old Version", "Void"] as const;
 
@@ -150,6 +152,43 @@ export default function InvoiceListPage() {
     window.open(`/print/invoice/${selected.id}`, "_blank");
   };
 
+  const onGenerateEInvoice = async () => {
+    if (!selected) return;
+    if (selected.status !== "Submitted") return hotToast.error("Submit the invoice before generating an e-invoice");
+    if (selected.einvoiceStatus === "Generated") return hotToast.error("This invoice already has an IRN");
+    if (!(await customConfirm(`Generate GST e-invoice (IRN) for ${selected.invoiceNo}?`))) return;
+    setActionLoading(true);
+    const t = hotToast.loading("Reporting to the IRP…");
+    const res = await generateEInvoice(selected.id);
+    hotToast.dismiss(t);
+    if (res.success) {
+      hotToast.success(`IRN generated${res.data?.irn ? `: ${String(res.data.irn).slice(0, 12)}…` : ""}`);
+      await fetchInvoicesList();
+    } else {
+      hotToast.error(res.error || "Failed to generate e-invoice", { duration: 8000 });
+    }
+    setActionLoading(false);
+  };
+
+  const onCancelEInvoice = async () => {
+    if (!selected) return;
+    if (selected.einvoiceStatus !== "Generated" || !selected.irn) return hotToast.error("No active IRN to cancel");
+    if (!(await customConfirm(`Cancel the IRN for ${selected.invoiceNo}? This is reported to the IRP and allowed only within 24 hours.`))) return;
+    const remark = (typeof window !== "undefined" ? window.prompt("Reason for cancellation:", "Data entry mistake") : "") || "";
+    if (!remark.trim()) return hotToast.error("A cancellation reason is required");
+    setActionLoading(true);
+    const t = hotToast.loading("Cancelling on the IRP…");
+    const res = await cancelEInvoice(selected.id, "2", remark.trim());
+    hotToast.dismiss(t);
+    if (res.success) {
+      hotToast.success("IRN cancelled");
+      await fetchInvoicesList();
+    } else {
+      hotToast.error(res.error || "Failed to cancel e-invoice", { duration: 8000 });
+    }
+    setActionLoading(false);
+  };
+
   return (
     <div className="p-6 lg:p-8 space-y-6">
       {/* Header Panel */}
@@ -189,6 +228,8 @@ export default function InvoiceListPage() {
         <ToolbarBtn icon={<GitBranch size={14} />} label="Revise" onClick={onRevise} disabled={!selected || actionLoading} />
         <ToolbarBtn icon={<Copy size={14} />} label="Copy" onClick={onCopy} disabled={!selected || actionLoading} />
         <ToolbarBtn icon={<Printer size={14} />} label="Print Invoice" onClick={onPrint} disabled={!selected || actionLoading} />
+        <ToolbarBtn icon={<QrCode size={14} />} label="Generate E-Invoice" onClick={onGenerateEInvoice} disabled={!selected || actionLoading} primary />
+        <ToolbarBtn icon={<XCircle size={14} />} label="Cancel E-Invoice" onClick={onCancelEInvoice} disabled={!selected || actionLoading} />
       </div>
 
       {/* Tabs */}
@@ -256,6 +297,7 @@ export default function InvoiceListPage() {
                   <th className="px-3 py-3">Customer</th>
                   <th className="px-3 py-3">Vehicle Number</th>
                   <th className="px-3 py-3">Type</th>
+                  <th className="px-3 py-3">E-Invoice</th>
                   <th className="px-3 py-3 text-right">Amount</th>
                 </tr>
               </thead>
@@ -300,6 +342,9 @@ export default function InvoiceListPage() {
                     <td className="px-3 py-3 text-blue-700">
                       {inv.invoiceType}
                     </td>
+                    <td className="px-3 py-3">
+                      <EInvoicePill status={inv.einvoiceStatus} irn={inv.irn} />
+                    </td>
                     <td className="px-3 py-3 text-blue-700 font-semibold text-right">
                       {inv.currency?.code} {Number(inv.amountAfterTax).toFixed(2)}
                     </td>
@@ -339,6 +384,29 @@ function ToolbarBtn({
     >
       {icon} {label}
     </button>
+  );
+}
+
+function EInvoicePill({ status, irn }: { status?: string; irn?: string | null }) {
+  const s = status || "Not Generated";
+  if (s === "Not Generated") {
+    return <span className="text-xs text-blue-300">—</span>;
+  }
+  const cls =
+    s === "Generated"
+      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+      : s === "Cancelled"
+      ? "bg-slate-100 text-slate-600 border-slate-200"
+      : s === "Failed"
+      ? "bg-rose-50 text-rose-700 border-rose-200"
+      : "bg-blue-50 text-blue-700 border-blue-200";
+  return (
+    <span
+      title={irn || undefined}
+      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold border ${cls}`}
+    >
+      {s === "Generated" ? "IRN ✓" : s}
+    </span>
   );
 }
 

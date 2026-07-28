@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
-import PrintButton from "./PrintButton";
+import PrintToolbar from "@/app/print/PrintToolbar";
 
 export const dynamic = "force-dynamic";
 
@@ -46,7 +46,7 @@ export default async function PrintQuotationPage(
     <>
       <style>{`
         @page { size: A4; margin: 0; }
-        body { margin: 0; padding: 0; background: #fff; color: #111; font-family: 'Helvetica Neue', Arial, sans-serif; }
+        body { margin: 0; padding: 0; background: #fff; color: #111; font-family: var(--print-font); }
         .page { width: 210mm; min-height: 297mm; padding: 18mm 16mm; box-sizing: border-box; position: relative; page-break-after: always; }
         .page:last-of-type { page-break-after: auto; }
         .row { display: flex; justify-content: space-between; align-items: flex-start; }
@@ -89,7 +89,7 @@ export default async function PrintQuotationPage(
         @media print { .print-actions { display: none; } }
       `}</style>
 
-      <PrintButton />
+      <PrintToolbar doc="quotation" id={id} label="Print Quotation" />
 
       {/* Cover */}
       <div className="page">

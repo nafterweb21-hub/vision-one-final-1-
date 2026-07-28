@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+import { RecordStatus } from "@/lib/status";
 export async function GET() {
   try {
     const [employees, machines, uoms, paintingMethods, customers] = await Promise.all([
       prisma.employee.findMany({
-        where: { status: "ACTIVE" },
+        where: { status: RecordStatus.Active },
         select: { id: true, name: true, code: true },
         orderBy: { name: "asc" },
       }),

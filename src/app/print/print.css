@@ -1,0 +1,45 @@
+/*
+ * Shared baseline for every `/print/*` view.
+ *
+ * The spec calls for A4, Calibri 10 and blue for dynamic (record-sourced)
+ * values. Each printout still owns its own layout and `@page` rule — this file
+ * only fixes the things that must be identical across all of them.
+ *
+ * Calibri ships with Windows/Office but not with most Linux images, so the
+ * stack falls back to Carlito, which is metric-compatible with Calibri. Install
+ * Carlito (`fonts-crosextra-carlito`) on any host that renders PDFs, otherwise
+ * Chromium substitutes a font with different metrics and pagination shifts.
+ */
+
+:root {
+  --print-font: Calibri, Carlito, "Segoe UI", Arial, sans-serif;
+  /* Spec: dynamic values print blue. Individual pages use their own shades of
+     blue historically; new markup should use this token. */
+  --print-dynamic: #3b82f6;
+}
+
+.print-root {
+  font-family: var(--print-font);
+  font-size: 10pt;
+  color: #111;
+}
+
+/* Every printout marks record-sourced text with one of these class names. */
+.dyn,
+.dynamic,
+.dynamic-text,
+.dynamic-blue {
+  color: var(--print-dynamic);
+}
+
+@media print {
+  /* The on-screen "Print" button must never reach paper or PDF. */
+  .print-actions,
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    background: #fff;
+  }
+}

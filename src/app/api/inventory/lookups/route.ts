@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/authz";
 
+import { RecordStatus } from "@/lib/status";
 /**
  * Picker options for the Raw Material / Consumable / Fixed Asset forms.
  *
@@ -57,7 +58,7 @@ export async function GET() {
       }),
       // Employee.status is upper-cased, unlike every other master table.
       prisma.employee.findMany({
-        where: { status: "ACTIVE" },
+        where: { status: RecordStatus.Active },
         select: { id: true, name: true, code: true },
         orderBy: { name: "asc" },
       }),

@@ -5,6 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import AddTimesheetModal from "../../components/AddTimesheetModal";
 import ParameterDetailDrawer from "../../components/ParameterDetailDrawer";
 
+import { RecordStatus } from "@/lib/status";
 export default async function WorkOrderTimesheetsPage({
   params,
 }: {
@@ -61,7 +62,7 @@ export default async function WorkOrderTimesheetsPage({
   if (!workOrder) notFound();
 
   const employees = await prisma.employee.findMany({
-    where: { status: "ACTIVE" },
+    where: { status: RecordStatus.Active },
     select: { id: true, name: true, code: true },
     orderBy: { name: "asc" },
   });

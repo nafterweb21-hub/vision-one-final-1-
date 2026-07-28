@@ -7,6 +7,7 @@ import AddRoutingProcessModal from "../../components/AddRoutingProcessModal";
 import RoutingProcessTable from "../../components/RoutingProcessTable";
 import { getRoutingDropdownData } from "../../actions";
 
+import { RecordStatus } from "@/lib/status";
 const IP_STATUS_BADGE: Record<string, string> = {
   New: "bg-slate-100 text-slate-700",
   WIP: "bg-amber-100 text-amber-700",
@@ -66,7 +67,7 @@ export default async function WorkOrderRoutingPage({
   });
 
   const employees = await prisma.employee.findMany({
-    where: { status: "ACTIVE" },
+    where: { status: RecordStatus.Active },
     select: { id: true, name: true, code: true },
     orderBy: { name: "asc" },
   });

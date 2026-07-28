@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
-import PrintButton from "./PrintButton";
+import PrintToolbar from "@/app/print/PrintToolbar";
+import EInvoiceQr from "./EInvoiceQr";
 
 export const dynamic = "force-dynamic";
 
@@ -104,11 +105,27 @@ export default async function PrintInvoicePage(
 
   const bankData = parseBankDetails(inv.bankDetails || "");
 
+  // GST breakup for the summary table. Prefer the stored CGST/SGST/IGST values;
+  // fall back to splitting the flat tax for invoices created before e-invoicing.
+  const taxRateNum = Number(inv.taxRate || 0);
+  const taxAmountNum = Number(inv.taxAmount || 0);
+  const storedCgst = Number(inv.cgstAmount || 0);
+  const storedSgst = Number(inv.sgstAmount || 0);
+  const storedIgst = Number(inv.igstAmount || 0);
+  const hasStoredBreakup = storedCgst > 0 || storedSgst > 0 || storedIgst > 0;
+  const isInterState = hasStoredBreakup
+    ? storedIgst > 0
+    : inv.supplyType === "inter";
+  const cgstAmt = hasStoredBreakup ? storedCgst : (isInterState ? 0 : taxAmountNum / 2);
+  const sgstAmt = hasStoredBreakup ? storedSgst : (isInterState ? 0 : taxAmountNum / 2);
+  const igstAmt = hasStoredBreakup ? storedIgst : (isInterState ? taxAmountNum : 0);
+  const hsnSummary = Array.from(new Set(inv.items.map((i) => i.hsnCode).filter(Boolean))).join(", ");
+
   return (
     <>
       <style>{`
         @page { size: A4; margin: 0; }
-        body { margin: 0; padding: 0; background: #fff; color: #111; font-family: Arial, sans-serif; }
+        body { margin: 0; padding: 0; background: #fff; color: #111; font-family: var(--print-font); }
         .page { width: 210mm; min-height: 297mm; padding: 12mm 12mm; box-sizing: border-box; position: relative; }
         .print-actions { position: fixed; top: 12px; right: 12px; z-index: 100; }
         @media screen {
@@ -163,7 +180,7 @@ export default async function PrintInvoicePage(
         .totals-row td { border-top: 1.5px solid #63a0d4; padding: 4px; font-weight: bold; background: #e6f2ff; }
       `}</style>
 
-      <PrintButton />
+      <PrintToolbar doc="invoice" id={id} label="Print Invoice" />
 
       <div className="page">
         <div className="header">
@@ -191,6 +208,37 @@ export default async function PrintInvoicePage(
             <div className="invoice-title">TAX INVOICE</div>
             <div className="original">ORIGINAL FOR RECIPIENT</div>
           </div>
+
+          {inv.einvoiceStatus === "Generated" && inv.irn && (
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                gap: "8px",
+                padding: "6px 8px",
+                borderBottom: "1.5px solid #63a0d4",
+                fontSize: "10px",
+              }}
+            >
+              <div style={{ lineHeight: 1.5 }}>
+                <div>
+                  <span style={{ fontWeight: "bold" }}>IRN:</span>{" "}
+                  <span style={{ wordBreak: "break-all", fontFamily: "monospace" }}>{inv.irn}</span>
+                </div>
+                <div>
+                  <span style={{ fontWeight: "bold" }}>Ack No.:</span> {inv.ackNo || "—"}
+                  <span style={{ marginLeft: "12px", fontWeight: "bold" }}>Ack Date:</span>{" "}
+                  {inv.ackDate ? fmtDate(inv.ackDate) : "—"}
+                </div>
+              </div>
+              {inv.signedQrCode && (
+                <div style={{ flexShrink: 0 }}>
+                  <EInvoiceQr value={inv.signedQrCode} size={96} />
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="info-grid">
             <div className="info-left">
@@ -325,65 +373,76 @@ export default async function PrintInvoicePage(
               <div className="font-bold text-[9px] pr-2 mt-2">(E &amp; O.E.)</div>
             </div>
 
-            <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "center", fontSize: "10px", borderBottom: "1.5px solid #63a0d4" }}>
-              <thead>
-                <tr>
-                  <th rowSpan={2} style={{width: '25%', borderRight: '1.5px solid #63a0d4', borderBottom: '1.5px solid #63a0d4', padding: '4px'}}>HSN / SAC</th>
-                  <th rowSpan={2} style={{width: '15%', borderRight: '1.5px solid #63a0d4', borderBottom: '1.5px solid #63a0d4', padding: '4px'}}>Taxable Value</th>
-                  <th colSpan={2} style={{width: '24%', borderRight: '1.5px solid #63a0d4', borderBottom: '1.5px solid #63a0d4', padding: '4px'}}>CGST</th>
-                  <th colSpan={2} style={{width: '24%', borderRight: '1.5px solid #63a0d4', borderBottom: '1.5px solid #63a0d4', padding: '4px'}}>SGST</th>
-                  <th rowSpan={2} style={{width: '12%', borderBottom: '1.5px solid #63a0d4', padding: '4px'}}>Total</th>
-                </tr>
-                <tr>
-                  <th style={{borderRight: '1.5px solid #63a0d4', borderBottom: '1.5px solid #63a0d4', padding: '4px'}}>%</th>
-                  <th style={{borderRight: '1.5px solid #63a0d4', borderBottom: '1.5px solid #63a0d4', padding: '4px'}}>Amount</th>
-                  <th style={{borderRight: '1.5px solid #63a0d4', borderBottom: '1.5px solid #63a0d4', padding: '4px'}}>%</th>
-                  <th style={{borderRight: '1.5px solid #63a0d4', borderBottom: '1.5px solid #63a0d4', padding: '4px'}}>Amount</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td style={{borderRight: '1.5px solid #63a0d4', borderBottom: '1.5px solid #63a0d4', padding: '4px'}}>
-                    {Array.from(new Set(inv.items.map(i => i.hsnCode).filter(Boolean))).join(", ")}
-                  </td>
-                  <td style={{borderRight: '1.5px solid #63a0d4', borderBottom: '1.5px solid #63a0d4', padding: '4px'}} className="text-right">
-                    {fmt(inv.amountBeforeTax)}
-                  </td>
-                  <td style={{borderRight: '1.5px solid #63a0d4', borderBottom: '1.5px solid #63a0d4', padding: '4px'}} className="text-right">
-                    {fmt(inv.taxType ? Number(inv.taxType.taxRate)/2 : 0)}
-                  </td>
-                  <td style={{borderRight: '1.5px solid #63a0d4', borderBottom: '1.5px solid #63a0d4', padding: '4px'}} className="text-right">
-                    {fmt(inv.taxAmount ? Number(inv.taxAmount)/2 : 0)}
-                  </td>
-                  <td style={{borderRight: '1.5px solid #63a0d4', borderBottom: '1.5px solid #63a0d4', padding: '4px'}} className="text-right">
-                    {fmt(inv.taxType ? Number(inv.taxType.taxRate)/2 : 0)}
-                  </td>
-                  <td style={{borderRight: '1.5px solid #63a0d4', borderBottom: '1.5px solid #63a0d4', padding: '4px'}} className="text-right">
-                    {fmt(inv.taxAmount ? Number(inv.taxAmount)/2 : 0)}
-                  </td>
-                  <td style={{borderBottom: '1.5px solid #63a0d4', padding: '4px'}} className="text-right">
-                    {fmt(inv.taxAmount)}
-                  </td>
-                </tr>
-                <tr>
-                  <td style={{borderRight: '1.5px solid #63a0d4', padding: '4px'}} className="text-right font-bold pr-4">Total</td>
-                  <td style={{borderRight: '1.5px solid #63a0d4', padding: '4px'}} className="text-right font-bold">
-                    {fmt(inv.amountBeforeTax)}
-                  </td>
-                  <td style={{borderRight: '1.5px solid #63a0d4', padding: '4px'}}></td>
-                  <td style={{borderRight: '1.5px solid #63a0d4', padding: '4px'}} className="text-right font-bold">
-                    {fmt(inv.taxAmount ? Number(inv.taxAmount)/2 : 0)}
-                  </td>
-                  <td style={{borderRight: '1.5px solid #63a0d4', padding: '4px'}}></td>
-                  <td style={{borderRight: '1.5px solid #63a0d4', padding: '4px'}} className="text-right font-bold">
-                    {fmt(inv.taxAmount ? Number(inv.taxAmount)/2 : 0)}
-                  </td>
-                  <td style={{padding: '4px'}} className="text-right font-bold">
-                    {fmt(inv.taxAmount)}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+            {isInterState ? (
+              <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "center", fontSize: "10px", borderBottom: "1.5px solid #63a0d4" }}>
+                <thead>
+                  <tr>
+                    <th rowSpan={2} style={{width: '34%', borderRight: '1.5px solid #63a0d4', borderBottom: '1.5px solid #63a0d4', padding: '4px'}}>HSN / SAC</th>
+                    <th rowSpan={2} style={{width: '24%', borderRight: '1.5px solid #63a0d4', borderBottom: '1.5px solid #63a0d4', padding: '4px'}}>Taxable Value</th>
+                    <th colSpan={2} style={{width: '30%', borderRight: '1.5px solid #63a0d4', borderBottom: '1.5px solid #63a0d4', padding: '4px'}}>IGST</th>
+                    <th rowSpan={2} style={{width: '12%', borderBottom: '1.5px solid #63a0d4', padding: '4px'}}>Total</th>
+                  </tr>
+                  <tr>
+                    <th style={{borderRight: '1.5px solid #63a0d4', borderBottom: '1.5px solid #63a0d4', padding: '4px'}}>%</th>
+                    <th style={{borderRight: '1.5px solid #63a0d4', borderBottom: '1.5px solid #63a0d4', padding: '4px'}}>Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td style={{borderRight: '1.5px solid #63a0d4', borderBottom: '1.5px solid #63a0d4', padding: '4px'}}>{hsnSummary}</td>
+                    <td style={{borderRight: '1.5px solid #63a0d4', borderBottom: '1.5px solid #63a0d4', padding: '4px'}} className="text-right">{fmt(inv.amountBeforeTax)}</td>
+                    <td style={{borderRight: '1.5px solid #63a0d4', borderBottom: '1.5px solid #63a0d4', padding: '4px'}} className="text-right">{fmt(taxRateNum)}</td>
+                    <td style={{borderRight: '1.5px solid #63a0d4', borderBottom: '1.5px solid #63a0d4', padding: '4px'}} className="text-right">{fmt(igstAmt)}</td>
+                    <td style={{borderBottom: '1.5px solid #63a0d4', padding: '4px'}} className="text-right">{fmt(igstAmt)}</td>
+                  </tr>
+                  <tr>
+                    <td style={{borderRight: '1.5px solid #63a0d4', padding: '4px'}} className="text-right font-bold pr-4">Total</td>
+                    <td style={{borderRight: '1.5px solid #63a0d4', padding: '4px'}} className="text-right font-bold">{fmt(inv.amountBeforeTax)}</td>
+                    <td style={{borderRight: '1.5px solid #63a0d4', padding: '4px'}}></td>
+                    <td style={{borderRight: '1.5px solid #63a0d4', padding: '4px'}} className="text-right font-bold">{fmt(igstAmt)}</td>
+                    <td style={{padding: '4px'}} className="text-right font-bold">{fmt(igstAmt)}</td>
+                  </tr>
+                </tbody>
+              </table>
+            ) : (
+              <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "center", fontSize: "10px", borderBottom: "1.5px solid #63a0d4" }}>
+                <thead>
+                  <tr>
+                    <th rowSpan={2} style={{width: '25%', borderRight: '1.5px solid #63a0d4', borderBottom: '1.5px solid #63a0d4', padding: '4px'}}>HSN / SAC</th>
+                    <th rowSpan={2} style={{width: '15%', borderRight: '1.5px solid #63a0d4', borderBottom: '1.5px solid #63a0d4', padding: '4px'}}>Taxable Value</th>
+                    <th colSpan={2} style={{width: '24%', borderRight: '1.5px solid #63a0d4', borderBottom: '1.5px solid #63a0d4', padding: '4px'}}>CGST</th>
+                    <th colSpan={2} style={{width: '24%', borderRight: '1.5px solid #63a0d4', borderBottom: '1.5px solid #63a0d4', padding: '4px'}}>SGST</th>
+                    <th rowSpan={2} style={{width: '12%', borderBottom: '1.5px solid #63a0d4', padding: '4px'}}>Total</th>
+                  </tr>
+                  <tr>
+                    <th style={{borderRight: '1.5px solid #63a0d4', borderBottom: '1.5px solid #63a0d4', padding: '4px'}}>%</th>
+                    <th style={{borderRight: '1.5px solid #63a0d4', borderBottom: '1.5px solid #63a0d4', padding: '4px'}}>Amount</th>
+                    <th style={{borderRight: '1.5px solid #63a0d4', borderBottom: '1.5px solid #63a0d4', padding: '4px'}}>%</th>
+                    <th style={{borderRight: '1.5px solid #63a0d4', borderBottom: '1.5px solid #63a0d4', padding: '4px'}}>Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td style={{borderRight: '1.5px solid #63a0d4', borderBottom: '1.5px solid #63a0d4', padding: '4px'}}>{hsnSummary}</td>
+                    <td style={{borderRight: '1.5px solid #63a0d4', borderBottom: '1.5px solid #63a0d4', padding: '4px'}} className="text-right">{fmt(inv.amountBeforeTax)}</td>
+                    <td style={{borderRight: '1.5px solid #63a0d4', borderBottom: '1.5px solid #63a0d4', padding: '4px'}} className="text-right">{fmt(taxRateNum / 2)}</td>
+                    <td style={{borderRight: '1.5px solid #63a0d4', borderBottom: '1.5px solid #63a0d4', padding: '4px'}} className="text-right">{fmt(cgstAmt)}</td>
+                    <td style={{borderRight: '1.5px solid #63a0d4', borderBottom: '1.5px solid #63a0d4', padding: '4px'}} className="text-right">{fmt(taxRateNum / 2)}</td>
+                    <td style={{borderRight: '1.5px solid #63a0d4', borderBottom: '1.5px solid #63a0d4', padding: '4px'}} className="text-right">{fmt(sgstAmt)}</td>
+                    <td style={{borderBottom: '1.5px solid #63a0d4', padding: '4px'}} className="text-right">{fmt(cgstAmt + sgstAmt)}</td>
+                  </tr>
+                  <tr>
+                    <td style={{borderRight: '1.5px solid #63a0d4', padding: '4px'}} className="text-right font-bold pr-4">Total</td>
+                    <td style={{borderRight: '1.5px solid #63a0d4', padding: '4px'}} className="text-right font-bold">{fmt(inv.amountBeforeTax)}</td>
+                    <td style={{borderRight: '1.5px solid #63a0d4', padding: '4px'}}></td>
+                    <td style={{borderRight: '1.5px solid #63a0d4', padding: '4px'}} className="text-right font-bold">{fmt(cgstAmt)}</td>
+                    <td style={{borderRight: '1.5px solid #63a0d4', padding: '4px'}}></td>
+                    <td style={{borderRight: '1.5px solid #63a0d4', padding: '4px'}} className="text-right font-bold">{fmt(sgstAmt)}</td>
+                    <td style={{padding: '4px'}} className="text-right font-bold">{fmt(cgstAmt + sgstAmt)}</td>
+                  </tr>
+                </tbody>
+              </table>
+            )}
 
             <div style={{ borderBottom: "1.5px solid #63a0d4", padding: "4px", fontSize: "10px", display: "flex" }}>
               <span style={{ marginRight: "4px" }}>Total Tax in words:</span>

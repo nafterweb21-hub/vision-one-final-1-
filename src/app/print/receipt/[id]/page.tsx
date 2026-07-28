@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
-import PrintButton from "./PrintButton";
+import PrintToolbar from "@/app/print/PrintToolbar";
 
 export const dynamic = "force-dynamic";
 
@@ -47,7 +47,7 @@ export default async function PrintReceiptPage(
     <>
       <style>{`
         @page { size: A4; margin: 0; }
-        body { margin: 0; padding: 0; background: #fff; color: #111; font-family: Arial, sans-serif; }
+        body { margin: 0; padding: 0; background: #fff; color: #111; font-family: var(--print-font); }
         .page { width: 210mm; min-height: 297mm; padding: 12mm 12mm; box-sizing: border-box; position: relative; }
         .print-actions { position: fixed; top: 12px; right: 12px; z-index: 100; }
         @media screen {
@@ -89,7 +89,7 @@ export default async function PrintReceiptPage(
         .signature-line { border-top: 1px solid #000; width: 150px; text-align: center; padding-top: 4px; }
       `}</style>
 
-      <PrintButton />
+      <PrintToolbar doc="receipt" id={id} label="Print Receipt" />
 
       <div className="page">
         <div className="header">

@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
 import { getStockAggregates, onHand } from "@/lib/stock-balance";
 
+import { RecordStatus } from "@/lib/status";
 /**
  * Picker options for the Material Consumption form.
  *
@@ -43,7 +44,7 @@ export async function GET() {
       }),
       // Employee.status is upper-cased, unlike every other master table.
       prisma.employee.findMany({
-        where: { status: "ACTIVE" },
+        where: { status: RecordStatus.Active },
         select: { id: true, name: true, code: true },
         orderBy: { name: "asc" },
       }),

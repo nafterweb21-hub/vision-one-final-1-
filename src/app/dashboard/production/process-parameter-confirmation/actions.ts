@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { checkAndCompleteRoutingProcess } from "@/app/terminal/actions";
 
+import { RecordStatus } from "@/lib/status";
 export async function getPendingParameters() {
   const commonWhere = {
     status: "Pending", // Fetch those created by scanOut
@@ -102,7 +103,7 @@ export async function getPendingParameters() {
 export async function getConfirmationOptions() {
   const [employees, elcometers] = await Promise.all([
     prisma.employee.findMany({
-      where: { status: "ACTIVE" },
+      where: { status: RecordStatus.Active },
       select: { id: true, name: true, code: true },
       orderBy: { name: "asc" },
     }),

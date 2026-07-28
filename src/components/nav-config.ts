@@ -10,6 +10,7 @@ import {
   Brush,
   Building2,
   Calendar,
+  CalendarClock,
   CheckSquare,
   Circle,
   CircleDot,
@@ -193,6 +194,7 @@ export const NAV_SECTIONS: NavSection[] = [
     items: [
       { href: '/dashboard/sales/sales-report', label: 'Sales Report', icon: BarChart, iconClass: 'text-blue-500', filled: true },
       { href: '/dashboard/production/work-order-costing-report', label: 'Work Order Costing Report', icon: TrendingUp, iconClass: 'text-red-500' },
+      { href: '/dashboard/production/monthly-schedule-report', label: 'Monthly Schedule Report', icon: CalendarClock, iconClass: 'text-amber-600' },
       { href: '/dashboard/qc/ncr-report', label: 'Non Conformance Report', icon: AlertTriangle, iconClass: 'text-slate-500' },
       { href: '/dashboard/purchasing/purchasing-report', label: 'Purchasing Report', icon: ShoppingCart, iconClass: 'text-slate-500' },
       { href: '/dashboard/purchasing/subcon-purchasing-report', label: 'Subcon Purchasing Report', icon: Factory, iconClass: 'text-red-800', filled: true },

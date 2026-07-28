@@ -46,6 +46,9 @@ export const PUBLIC_AUTHED_PATH_PREFIXES: string[] = ['/uploads'];
  */
 export const PUBLIC_AUTHED_API_PATHS: string[] = [
   '/api/inventory/lookups',
+  // The PDF handler picks its module from the document type in the path, so the
+  // proxy cannot resolve it statically — the handler calls `requirePermission`.
+  '/api/print',
   '/api/profiles/summary',
   '/api/upload',
   '/api/uploads',
@@ -250,6 +253,13 @@ export const APP_MODULES: AppModuleDef[] = [
     group: 'Production',
     pathPrefixes: ['/dashboard/production/work-order-costing-report'],
     apiPrefixes: ['/api/reports/work-order-costing-report'],
+  },
+  {
+    code: 'MONTHLY_SCHEDULE_REPORT',
+    name: 'Monthly Schedule Report',
+    group: 'Production',
+    pathPrefixes: ['/dashboard/production/monthly-schedule-report'],
+    apiPrefixes: ['/api/reports/monthly-schedule-report'],
   },
 
   // ── Shop Floor ───────────────────────────────────────────────────────────

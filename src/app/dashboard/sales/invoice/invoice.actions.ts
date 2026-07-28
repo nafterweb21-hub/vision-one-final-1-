@@ -4,6 +4,63 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { nextDocumentNo } from "@/lib/document-numbering";
 import { withRevision } from "@/lib/document-numbering.config";
+import { computeGstBreakup, resolvePosStateCode } from "@/lib/gst";
+import type { GstBreakup } from "@/lib/gst";
+import { RecordStatus } from "@/lib/status";
+import {
+  collectEInvoiceIssues,
+  prepareEInvoicePayload,
+  generateIrn,
+  cancelIrn,
+  IrpError,
+} from "@/lib/einvoice";
+
+/**
+ * Compute the CGST/SGST/IGST breakup for an invoice being saved, from its flat
+ * tax rate and the seller/buyer state codes. Fetches the company + customer so
+ * the supply type (intra vs inter) can be derived.
+ */
+async function computeBreakupForData(data: any): Promise<GstBreakup> {
+  const [company, customer] = await Promise.all([
+    prisma.companyProfile.findUnique({
+      where: { id: data.companyId },
+      select: { gstRegistrationNo: true },
+    }),
+    prisma.customerProfile.findUnique({
+      where: { id: data.customerId },
+      select: { gstin: true, placeOfSupply: true },
+    }),
+  ]);
+  const posStateCode = resolvePosStateCode(customer?.placeOfSupply, customer?.gstin);
+  return computeGstBreakup({
+    lines: (data.items || []).map((it: any) => ({ amount: Number(it.amount) || 0 })),
+    taxRatePercent: Number(data.taxRate) || 0,
+    sellerGstin: company?.gstRegistrationNo,
+    posStateCode,
+  });
+}
+
+/** Merge a computed line breakup into an invoice item's create payload. */
+function itemWithGst(item: any, line: { gstRate: number; cgstAmount: number; sgstAmount: number; igstAmount: number } | undefined) {
+  return {
+    lineNo: item.lineNo,
+    // Trim before the null-coalesce: a whitespace-only workOrderNo is not a
+    // real reference and would fail the foreign key.
+    workOrderNo: item.workOrderNo?.trim() || null,
+    partId: item.partId?.trim() || null,
+    description: item.description?.trim() || null,
+    quantity: item.quantity,
+    uomId: item.uomId?.trim() || null,
+    unitPrice: item.unitPrice,
+    amount: item.amount,
+    remark: item.remark?.trim() || null,
+    hsnCode: item.hsnCode?.trim() || null,
+    gstRate: line?.gstRate ?? 0,
+    cgstAmount: line?.cgstAmount ?? 0,
+    sgstAmount: line?.sgstAmount ?? 0,
+    igstAmount: line?.igstAmount ?? 0,
+  };
+}
 
 export async function getInvoices() {
   try {
@@ -56,7 +113,7 @@ export async function getInvoiceFormData() {
       prisma.paymentTermProfile.findMany({ where: { status: "Active" } }),
       prisma.currency.findMany({ where: { status: "Active" } }),
       prisma.taxProfile.findMany({ where: { status: "Active" } }),
-      prisma.employee.findMany({ where: { status: "ACTIVE" }, include: { user: true } }),
+      prisma.employee.findMany({ where: { status: RecordStatus.Active }, include: { user: true } }),
       prisma.uomProfile.findMany({ where: { status: "Active" } }),
       prisma.finishedGoodProfile.findMany({ where: { status: "Active" } }),
       prisma.bankProfile.findMany({ where: { status: "Active" } })
@@ -181,6 +238,8 @@ export async function createInvoice(data: any) {
       dueDate.setDate(dueDate.getDate() + paymentTerm.days);
     }
 
+    const breakup = await computeBreakupForData(data);
+
     // The number is taken and the invoice written in one transaction: the
     // counter's row lock only holds for as long as the transaction does.
     const invoice = await prisma.$transaction(async (tx) => {
@@ -218,19 +277,12 @@ export async function createInvoice(data: any) {
           poNo: data.poNo || null,
           vehicleNumber: data.vehicleNumber || null,
           status: "Draft",
+          supplyType: breakup.supplyType,
+          cgstAmount: breakup.totals.cgst,
+          sgstAmount: breakup.totals.sgst,
+          igstAmount: breakup.totals.igst,
           items: {
-            create: data.items.map((item: any) => ({
-              lineNo: item.lineNo,
-              workOrderNo: item.workOrderNo?.trim() || null,
-              partId: item.partId?.trim() || null,
-              description: item.description?.trim() || null,
-              quantity: item.quantity,
-              uomId: item.uomId?.trim() || null,
-              unitPrice: item.unitPrice,
-              amount: item.amount,
-              remark: item.remark?.trim() || null,
-              hsnCode: item.hsnCode?.trim() || null,
-            })),
+            create: data.items.map((item: any, i: number) => itemWithGst(item, breakup.lines[i])),
           },
           deliveryOrders: {
             create: data.doIds.map((doId: string) => ({
@@ -260,6 +312,8 @@ export async function updateInvoice(id: string, data: any) {
       dueDate.setDate(dueDate.getDate() + paymentTerm.days);
     }
 
+    const breakup = await computeBreakupForData(data);
+
     const invoice = await prisma.invoice.update({
       where: { id },
       data: {
@@ -287,20 +341,13 @@ export async function updateInvoice(id: string, data: any) {
         preparedById: data.preparedById,
         poNo: data.poNo || null,
         vehicleNumber: data.vehicleNumber || null,
+        supplyType: breakup.supplyType,
+        cgstAmount: breakup.totals.cgst,
+        sgstAmount: breakup.totals.sgst,
+        igstAmount: breakup.totals.igst,
         items: {
           deleteMany: {},
-          create: data.items.map((item: any) => ({
-            lineNo: item.lineNo,
-            workOrderNo: item.workOrderNo?.trim() || null,
-            partId: item.partId?.trim() || null,
-            description: item.description?.trim() || null,
-            quantity: item.quantity,
-            uomId: item.uomId?.trim() || null,
-            unitPrice: item.unitPrice,
-            amount: item.amount,
-            remark: item.remark?.trim() || null,
-            hsnCode: item.hsnCode?.trim() || null,
-          })),
+          create: data.items.map((item: any, i: number) => itemWithGst(item, breakup.lines[i])),
         },
         deliveryOrders: {
           deleteMany: {},
@@ -376,6 +423,8 @@ export async function reviseInvoice(id: string, data: any) {
       dueDate.setDate(dueDate.getDate() + paymentTerm.days);
     }
 
+    const breakup = await computeBreakupForData(data);
+
     const invoice = await prisma.invoice.create({
       data: {
         invoiceNo: newInvoiceNo,
@@ -405,19 +454,12 @@ export async function reviseInvoice(id: string, data: any) {
         poNo: data.poNo || null,
         vehicleNumber: data.vehicleNumber || null,
         status: "Draft",
+        supplyType: breakup.supplyType,
+        cgstAmount: breakup.totals.cgst,
+        sgstAmount: breakup.totals.sgst,
+        igstAmount: breakup.totals.igst,
         items: {
-          create: data.items.map((item: any) => ({
-            lineNo: item.lineNo,
-            workOrderNo: item.workOrderNo?.trim() || null,
-            partId: item.partId?.trim() || null,
-            description: item.description?.trim() || null,
-            quantity: item.quantity,
-            uomId: item.uomId?.trim() || null,
-            unitPrice: item.unitPrice,
-            amount: item.amount,
-            remark: item.remark?.trim() || null,
-            hsnCode: item.hsnCode?.trim() || null,
-          })),
+          create: data.items.map((item: any, i: number) => itemWithGst(item, breakup.lines[i])),
         },
         deliveryOrders: {
           create: oldInvoice.deliveryOrders.map((doLink) => ({
@@ -429,6 +471,123 @@ export async function reviseInvoice(id: string, data: any) {
 
     revalidatePath("/dashboard/sales/invoice");
     return { success: true, data: JSON.parse(JSON.stringify(invoice)) };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
+/** Parse an IRP ack date ("YYYY-MM-DD HH:mm:ss") into a Date, else null. */
+function parseAckDate(s: string | undefined): Date | null {
+  if (!s) return null;
+  const d = new Date(s.replace(" ", "T"));
+  return isNaN(d.getTime()) ? null : d;
+}
+
+/**
+ * Generate a GST e-invoice (IRN + signed QR) for a submitted invoice via the
+ * NIC IRP. Validates data completeness first and records the IRP response.
+ */
+export async function generateEInvoice(id: string) {
+  try {
+    const invoice = await prisma.invoice.findUnique({
+      where: { id },
+      include: {
+        company: true,
+        customer: { include: { addresses: true } },
+        billTo: true,
+        items: { orderBy: { lineNo: "asc" }, include: { uom: true, part: true } },
+      },
+    });
+    if (!invoice) return { success: false, error: "Invoice not found" };
+    if (invoice.status !== "Submitted") {
+      return { success: false, error: "Only Submitted invoices can be reported to the IRP." };
+    }
+    if (invoice.einvoiceStatus === "Generated" && invoice.irn) {
+      return { success: false, error: "An IRN already exists for this invoice." };
+    }
+
+    const issues = collectEInvoiceIssues({
+      invoice,
+      company: invoice.company,
+      customer: invoice.customer,
+      billToAddress: invoice.billTo,
+    });
+    if (issues.length) {
+      return { success: false, error: "Cannot generate e-invoice:\n- " + issues.join("\n- ") };
+    }
+
+    const { payload } = prepareEInvoicePayload({
+      invoice,
+      company: invoice.company,
+      customer: invoice.customer,
+      billToAddress: invoice.billTo,
+    });
+
+    let result;
+    try {
+      result = await generateIrn(payload);
+    } catch (e: any) {
+      const msg = e instanceof IrpError ? e.message : e?.message || String(e);
+      await prisma.invoice.update({
+        where: { id },
+        data: { einvoiceStatus: "Failed", einvoiceError: msg.slice(0, 1000) },
+      });
+      revalidatePath("/dashboard/sales/invoice");
+      return { success: false, error: `IRP rejected the invoice: ${msg}` };
+    }
+
+    const updated = await prisma.invoice.update({
+      where: { id },
+      data: {
+        einvoiceStatus: "Generated",
+        irn: result.irn,
+        ackNo: result.ackNo || null,
+        ackDate: parseAckDate(result.ackDate),
+        signedInvoice: result.signedInvoice || null,
+        signedQrCode: result.signedQrCode || null,
+        ewbNo: result.ewbNo || null,
+        einvoiceGeneratedAt: new Date(),
+        einvoiceError: null,
+      },
+    });
+
+    revalidatePath("/dashboard/sales/invoice");
+    return { success: true, data: JSON.parse(JSON.stringify(updated)) };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Cancel a previously generated IRN on the IRP. reasonCode: 1 Duplicate,
+ * 2 Data entry mistake, 3 Order cancelled, 4 Others.
+ */
+export async function cancelEInvoice(id: string, reasonCode: string, remark: string) {
+  try {
+    const invoice = await prisma.invoice.findUnique({ where: { id } });
+    if (!invoice) return { success: false, error: "Invoice not found" };
+    if (invoice.einvoiceStatus !== "Generated" || !invoice.irn) {
+      return { success: false, error: "This invoice has no active IRN to cancel." };
+    }
+
+    try {
+      await cancelIrn({ irn: invoice.irn, reasonCode: reasonCode || "4", remark: remark || "Cancelled" });
+    } catch (e: any) {
+      const msg = e instanceof IrpError ? e.message : e?.message || String(e);
+      return { success: false, error: `IRP cancel failed: ${msg}` };
+    }
+
+    const updated = await prisma.invoice.update({
+      where: { id },
+      data: {
+        einvoiceStatus: "Cancelled",
+        einvoiceCancelledAt: new Date(),
+        einvoiceCancelReason: remark || null,
+      },
+    });
+
+    revalidatePath("/dashboard/sales/invoice");
+    return { success: true, data: JSON.parse(JSON.stringify(updated)) };
   } catch (error: any) {
     return { success: false, error: error.message };
   }

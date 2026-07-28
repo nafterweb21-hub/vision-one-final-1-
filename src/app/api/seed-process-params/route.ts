@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/authz";
 import { SUPER_ROLE } from "@/lib/access";
 
+import { RecordStatus } from "@/lib/status";
 export async function GET() {
   // This endpoint writes despite being a GET, so the verb-based check in
   // access.ts would read it as a view. Restrict it explicitly.
@@ -22,7 +23,7 @@ export async function GET() {
         aadharNumber: '123456789012',
         email: 'test@example.com',
         designation: 'Operator',
-        status: 'ACTIVE',
+        status: RecordStatus.Active,
       }
     });
 
@@ -41,7 +42,7 @@ export async function GET() {
           create: {
             customerCode: 'CUST-001',
             customerName: 'Test Customer',
-            status: 'ACTIVE'
+            status: RecordStatus.Active
           }
         }
       }

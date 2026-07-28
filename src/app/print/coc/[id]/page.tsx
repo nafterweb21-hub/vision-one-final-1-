@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
-import PrintButton from "./PrintButton";
+import PrintToolbar from "@/app/print/PrintToolbar";
 
 export const dynamic = "force-dynamic";
 
@@ -51,7 +51,7 @@ export default async function PrintCocPage(
     <>
       <style>{`
         @page { size: A4 portrait; margin: 0; }
-        body { margin: 0; padding: 0; background: #fff; color: #111; font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 13px; }
+        body { margin: 0; padding: 0; background: #fff; color: #111; font-family: var(--print-font); font-size: 13px; }
         .page { width: 210mm; min-height: 297mm; padding: 15mm 20mm; box-sizing: border-box; position: relative; margin: 0 auto; }
         
         .doc-rev { text-align: right; font-size: 13px; margin-bottom: 10px; font-weight: normal; color: #000; }
@@ -94,7 +94,7 @@ export default async function PrintCocPage(
         @media print { .print-actions { display: none; } }
       `}</style>
 
-      <PrintButton />
+      <PrintToolbar doc="coc" id={id} label="Print COC" />
 
       <div className="page">
         <div className="doc-rev">V-QA-011 Rev B</div>

@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { computeGating, isRolePermitted, type GateRow } from "@/lib/routing-gating";
 
+import { RecordStatus } from "@/lib/status";
 // ──────────────────────────────────────────────────────────────────────────────
 // Lookup work order + active employees + machine lists
 // ──────────────────────────────────────────────────────────────────────────────
@@ -40,7 +41,7 @@ export async function getTerminalSupportData() {
     await Promise.all([
       prisma.employee.findMany({
         where: {
-          status: "ACTIVE"
+          status: RecordStatus.Active
         },
         select: { id: true, name: true, code: true, roleProfileId: true },
         orderBy: { name: "asc" },

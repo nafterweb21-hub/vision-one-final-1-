@@ -16,20 +16,6 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { PROFILE_REGISTRY } from "@/lib/profiles-schema";
-interface FieldConfig {
-  name: string;
-  label: string;
-  type: "text" | "number" | "checkbox";
-  placeholder?: string;
-  required?: boolean;
-}
-
-const CURRENCY_FIELDS: FieldConfig[] = [
-  { name: "code",         label: "Currency Code",  type: "text",     required: true,  placeholder: "e.g. USD" },
-  { name: "name",         label: "Currency Name",  type: "text",     required: true,  placeholder: "e.g. US Dollar" },
-  { name: "exchangeRate", label: "Exchange Rate",  type: "number",   required: true,  placeholder: "e.g. 83.250" },
-  { name: "isDefault",    label: "Default Currency?", type: "checkbox" },
-];
 
 type ViewMode = "list" | "add" | "edit";
 
@@ -42,7 +28,9 @@ export default function ProfilePage({
 }) {
   const { type } = use(params);
   const meta   = PROFILE_REGISTRY[type];
-  const fields = type === "currency" ? CURRENCY_FIELDS : [];
+  // Driven entirely by the registry — a newly registered profile type renders
+  // its form without touching this page.
+  const fields = meta?.fields ?? [];
 
   // ── List state ──
   const [items, setItems]       = useState<any[]>([]);

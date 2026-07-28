@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { createReceipt, updateReceipt, transitionReceipt, ReceiptInput, ReceiptAction } from "@/lib/receipts";
 
+import { RecordStatus } from "@/lib/status";
 export async function getReceipts() {
   try {
     const receipts = await prisma.receipt.findMany({
@@ -45,7 +46,7 @@ export async function getReceiptFormData() {
       prisma.companyProfile.findMany({ where: { status: "Active" } }),
       prisma.customerProfile.findMany({ where: { status: "Active" } }),
       prisma.currency.findMany({ where: { status: "Active" } }),
-      prisma.employee.findMany({ where: { status: "ACTIVE" }, include: { user: true } }),
+      prisma.employee.findMany({ where: { status: RecordStatus.Active }, include: { user: true } }),
       prisma.invoice.findMany({
         where: {
           status: { in: ["Submitted", "Partially Paid"] },

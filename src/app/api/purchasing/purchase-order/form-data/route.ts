@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+import { RecordStatus } from "@/lib/status";
 export async function GET() {
   try {
     const [
@@ -22,7 +23,7 @@ export async function GET() {
         orderBy: { companyName: "asc" },
       }),
       prisma.employee.findMany({
-        where: { status: "ACTIVE" },
+        where: { status: RecordStatus.Active },
         select: { id: true, name: true, email: true, code: true },
         orderBy: { name: "asc" },
       }),
