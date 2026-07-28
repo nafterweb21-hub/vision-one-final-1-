@@ -3,6 +3,7 @@ import { SearchableSelect } from "@/components/SearchableSelect";
 import React, { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
+import { RecordStatus, normalizeRecordStatus } from "@/lib/status";
 interface Employee {
   id: string;
   code: string;
@@ -12,8 +13,7 @@ interface Employee {
   email: string;
   mobileNo: string | null;
   gender: string | null;
-  dob: string | null;
-  contactNo: string | null;
+  doj: string | null;
   employmentType: string | null;
   status: string;
   roleProfileId: string | null;
@@ -37,9 +37,11 @@ export default function EditEmployeePage() {
     email: "",
     mobileNo: "",
     gender: "Male",
-    dob: "",
+    doj: "",
     employmentType: "Citizen",
-    status: "ACTIVE",
+    // Widened so the toggle can assign Inactive; without it TypeScript
+    // infers the literal "Active" from the initial value.
+    status: RecordStatus.Active as RecordStatus,
     roleProfileId: "",
   });
 
@@ -103,9 +105,11 @@ export default function EditEmployeePage() {
               email: emp.email,
               mobileNo: emp.mobileNo || "",
               gender: emp.gender || "Male",
-              dob: emp.dob || "",
+              doj: emp.doj || "",
               employmentType: emp.employmentType || "Citizen",
-              status: emp.status,
+              // The API returns a plain string; fall back to Active if the
+              // stored value is an unrecognised legacy spelling.
+              status: normalizeRecordStatus(emp.status) ?? RecordStatus.Active,
               roleProfileId: emp.roleProfileId || "",
             });
           } else {
@@ -427,11 +431,11 @@ export default function EditEmployeePage() {
               </label>
               <input
                 type="date"
-                value={formData.dob}
+                value={formData.doj}
                 onChange={(e) =>
                   setFormData({
                     ...formData,
-                    dob: e.target.value,
+                    doj: e.target.value,
                   })
                 }
                 className="mt-1.5 w-full px-3.5 py-2.5 rounded-xl border border-blue-100 bg-blue-50/50 text-sm text-blue-900 transition-all hover:bg-blue-50 hover:border-blue-200 focus:border-cyan-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
@@ -471,20 +475,20 @@ export default function EditEmployeePage() {
                     setFormData({
                       ...formData,
                       status:
-                        formData.status === "ACTIVE"
-                          ? "INACTIVE"
-                          : "ACTIVE",
+                        formData.status === RecordStatus.Active
+                          ? RecordStatus.Inactive
+                          : RecordStatus.Active,
                     })
                   }
                   className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                    formData.status === "ACTIVE"
+                    formData.status === RecordStatus.Active
                       ? "bg-emerald-500"
                       : "bg-blue-300 "
                   }`}
                 >
                   <span
                     className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                      formData.status === "ACTIVE"
+                      formData.status === RecordStatus.Active
                         ? "translate-x-5"
                         : "translate-x-0"
                     }`}

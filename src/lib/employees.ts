@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 
+import { RecordStatus } from "@/lib/status";
 export interface Employee {
   id: string;
   code: string;
@@ -9,7 +10,7 @@ export interface Employee {
   email: string;
   mobileNo: string | null;
   gender: string | null;
-  dob: string | null;
+  doj: string | null;
   employmentType: string | null;
   status: string;
   roleProfileId: string | null;
@@ -25,7 +26,7 @@ export interface EmployeeInput {
   email: string;
   mobileNo?: string;
   gender?: string;
-  dob?: string;
+  doj?: string;
   employmentType?: string;
   status?: string;
   roleProfileId?: string | null;
@@ -41,7 +42,7 @@ function toEmployee(emp: any): Employee {
     email: emp.email,
     mobileNo: emp.mobileNo,
     gender: emp.gender,
-    dob: emp.dob ? new Date(emp.dob).toISOString().split('T')[0] : null,
+    doj: emp.doj ? new Date(emp.doj).toISOString().split('T')[0] : null,
     employmentType: emp.employmentType,
     status: emp.status,
     roleProfileId: emp.roleProfileId ?? null,
@@ -76,9 +77,9 @@ export async function createEmployee(data: EmployeeInput): Promise<Employee> {
       email: data.email,
       mobileNo: data.mobileNo || null,
       gender: data.gender || null,
-      dob: data.dob ? new Date(data.dob) : null,
+      doj: data.doj ? new Date(data.doj) : null,
       employmentType: data.employmentType || null,
-      status: data.status || "ACTIVE",
+      status: data.status || RecordStatus.Active,
       roleProfileId: data.roleProfileId || null,
     },
   });
@@ -115,7 +116,7 @@ export async function updateEmployee(id: string, data: Partial<EmployeeInput>): 
       email: data.email,
       mobileNo: data.mobileNo,
       gender: data.gender,
-      ...(data.dob !== undefined ? { dob: data.dob ? new Date(data.dob) : null } : {}),
+      ...(data.doj !== undefined ? { doj: data.doj ? new Date(data.doj) : null } : {}),
       employmentType: data.employmentType,
       status: data.status,
       ...(data.roleProfileId !== undefined ? { roleProfileId: data.roleProfileId || null } : {}),
@@ -127,7 +128,7 @@ export async function updateEmployee(id: string, data: Partial<EmployeeInput>): 
 export async function deleteEmployee(id: string): Promise<Employee> {
   const emp = await prisma.employee.update({
     where: { id },
-    data: { status: "INACTIVE" },
+    data: { status: RecordStatus.Inactive },
   });
   return toEmployee(emp);
 }

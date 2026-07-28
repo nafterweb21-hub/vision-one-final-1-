@@ -3,6 +3,7 @@ import { SearchableSelect } from "@/components/SearchableSelect";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { RecordStatus } from "@/lib/status";
 export default function NewEmployeePage() {
   const router = useRouter();
   const [designations, setDesignations] = useState<{ id: string; designation: string }[]>([]);
@@ -17,9 +18,11 @@ export default function NewEmployeePage() {
     email: "",
     mobileNo: "",
     gender: "Male",
-    dob: "",
+    doj: "",
     employmentType: "Citizen",
-    status: "ACTIVE",
+    // Widened so the toggle can assign Inactive; without it TypeScript
+    // infers the literal "Active" from the initial value.
+    status: RecordStatus.Active as RecordStatus,
     roleProfileId: "",
   });
 
@@ -366,11 +369,11 @@ export default function NewEmployeePage() {
               </label>
               <input
                 type="date"
-                value={formData.dob}
+                value={formData.doj}
                 onChange={(e) =>
                   setFormData({
                     ...formData,
-                    dob: e.target.value,
+                    doj: e.target.value,
                   })
                 }
                 className="mt-1.5 w-full px-3.5 py-2.5 rounded-xl border border-blue-100 bg-blue-50/50 text-sm text-blue-900 transition-all hover:bg-blue-50 hover:border-blue-200 focus:border-cyan-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
@@ -410,18 +413,18 @@ export default function NewEmployeePage() {
                   setFormData({
                     ...formData,
                     status:
-                      formData.status === "ACTIVE"
-                        ? "INACTIVE"
-                        : "ACTIVE",
+                      formData.status === RecordStatus.Active
+                        ? RecordStatus.Inactive
+                        : RecordStatus.Active,
                   })
                 }
-                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${formData.status === "ACTIVE"
+                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${formData.status === RecordStatus.Active
                     ? "bg-emerald-500"
                     : "bg-blue-300 "
                   }`}
               >
                 <span
-                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${formData.status === "ACTIVE"
+                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${formData.status === RecordStatus.Active
                       ? "translate-x-5"
                       : "translate-x-0"
                     }`}

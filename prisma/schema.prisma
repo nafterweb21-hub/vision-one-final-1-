@@ -125,9 +125,9 @@ model Employee {
   email                                         String
   mobileNo                                      String?
   gender                                        String?
-  dob                                           DateTime?
+  doj                                           DateTime?
   employmentType                                String?
-  status                                        String                          @default("ACTIVE")
+  status                                        String                          @default("Active")
   roleProfileId                                 String?
   createdAt                                     DateTime                        @default(now())
   updatedAt                                     DateTime                        @updatedAt
@@ -1362,6 +1362,25 @@ model Invoice {
   poNo            String?
   vehicleNumber   String?
 
+  // GST tax breakup (derived from taxRate + place of supply). "intra" => CGST+SGST, "inter" => IGST.
+  supplyType      String?  // intra | inter
+  cgstAmount      Decimal  @default(0)
+  sgstAmount      Decimal  @default(0)
+  igstAmount      Decimal  @default(0)
+
+  // GST e-invoicing (IRP / IRN). See src/lib/einvoice.
+  einvoiceStatus       String    @default("Not Generated") // Not Generated | Generated | Cancelled | Failed
+  irn                  String?   @unique
+  ackNo                String?
+  ackDate              DateTime?
+  signedInvoice        String?   // signed invoice JWT returned by IRP
+  signedQrCode         String?   // signed QR JWT returned by IRP (rendered as QR image)
+  einvoiceGeneratedAt  DateTime?
+  einvoiceCancelledAt  DateTime?
+  einvoiceCancelReason String?
+  einvoiceError        String?   // last IRP error message, when status = Failed
+  ewbNo                String?   // e-way bill number, if generated alongside
+
   company       CompanyProfile        @relation(fields: [companyId], references: [id])
   customer      CustomerProfile       @relation(fields: [customerId], references: [id])
   contactPerson CustomerContactPerson @relation(fields: [contactPersonId], references: [id])
@@ -1390,6 +1409,11 @@ model InvoiceItem {
   amount      Decimal
   remark      String?
   hsnCode     String?
+  // Per-line GST breakup, computed from the invoice's tax rate + supply type.
+  gstRate     Decimal  @default(0) // total GST % applied to this line (e.g. 18)
+  cgstAmount  Decimal  @default(0)
+  sgstAmount  Decimal  @default(0)
+  igstAmount  Decimal  @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

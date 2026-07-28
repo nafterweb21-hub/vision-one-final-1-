@@ -4,6 +4,7 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 import bcrypt from "bcryptjs";
 
+import { RecordStatus } from "../src/lib/status";
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
@@ -178,10 +179,10 @@ async function main() {
       designation: "MANAGER",
       email: "christopher@visionone.com",
       mobileNo: "98765432",
-      dob: new Date("1990-01-01"),
+      doj: new Date("1990-01-01"),
       gender: "Male",
       employmentType: "Citizen",
-      status: "ACTIVE",
+      status: RecordStatus.Active,
     },
     {
       id: "emp-2",
@@ -191,10 +192,10 @@ async function main() {
       designation: "OPERATOR",
       email: "piglet@visionone.com",
       mobileNo: "81234567",
-      dob: null,
+      doj: null,
       gender: "Female",
       employmentType: "PR",
-      status: "ACTIVE",
+      status: RecordStatus.Active,
     },
     {
       id: "emp-3",
@@ -204,10 +205,10 @@ async function main() {
       designation: "Machinist Operator",
       email: "subra.r@visionone.com.sg",
       mobileNo: "82345678",
-      dob: new Date("1985-05-15"),
+      doj: new Date("1985-05-15"),
       gender: "Male",
       employmentType: "Employment Pass",
-      status: "INACTIVE",
+      status: RecordStatus.Inactive,
     },
   ];
   for (const e of employees) {
@@ -219,7 +220,7 @@ async function main() {
         designation: e.designation,
         email: e.email,
         mobileNo: e.mobileNo,
-        dob: e.dob,
+        doj: e.doj,
         gender: e.gender,
         employmentType: e.employmentType,
         status: e.status,

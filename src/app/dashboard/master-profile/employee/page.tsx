@@ -2,6 +2,7 @@
 import { SearchableSelect } from "@/components/SearchableSelect";
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import Link from "next/link";
+import { RecordStatus } from "@/lib/status";
 interface Employee {
   id: string;
   code: string;
@@ -11,7 +12,7 @@ interface Employee {
   email: string;
   mobileNo: string | null;
   gender: string | null;
-  dob: string | null;
+  doj: string | null;
   employmentType: string | null;
   status: string;
   createdAt: string;
@@ -90,7 +91,7 @@ export default function EmployeeProfilePage() {
 
   // Direct toggle status badge in table
   const handleToggleStatus = async (emp: Employee) => {
-    const newStatus = emp.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
+    const newStatus = emp.status === RecordStatus.Active ? RecordStatus.Inactive : RecordStatus.Active;
     try {
       const res = await fetch(`/api/employees/${emp.id}`, {
         method: "PUT",
@@ -244,8 +245,8 @@ export default function EmployeeProfilePage() {
             className="w-full px-3.5 py-2.5 rounded-xl bg-blue-50 border border-blue-200 text-sm focus:bg-white :bg-blue-900 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all duration-150 text-blue-700 "
           >
             <option value="ALL">All Statuses</option>
-            <option value="ACTIVE">Active Only</option>
-            <option value="INACTIVE">Inactive Only</option>
+            <option value={RecordStatus.Active}>Active Only</option>
+            <option value={RecordStatus.Inactive}>Inactive Only</option>
           </SearchableSelect>
         </div>
 
@@ -374,7 +375,7 @@ export default function EmployeeProfilePage() {
                         </a>
                         <div className="text-blue-400 mt-1 font-mono flex flex-col">
                           <span>{emp.mobileNo ? `Mobile: ${emp.mobileNo}` : "—"}</span>
-                          <span>{emp.dob ? `DOJ: ${new Date(emp.dob).toLocaleDateString()}` : ""}</span>
+                          <span>{emp.doj ? `DOJ: ${new Date(emp.doj).toLocaleDateString()}` : ""}</span>
                         </div>
                       </div>
                     </td>
@@ -389,12 +390,12 @@ export default function EmployeeProfilePage() {
                       <button
                         onClick={() => handleToggleStatus(emp)}
                         className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold transition-all hover:scale-[1.02] cursor-pointer ${
-                          emp.status === "ACTIVE"
+                          emp.status === RecordStatus.Active
                             ? "bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 border border-emerald-500/30"
                             : "bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 border border-blue-500/30"
                         }`}
                       >
-                        <span className={`mr-1.5 h-1.5 w-1.5 rounded-full ${emp.status === "ACTIVE" ? "bg-emerald-500 animate-pulse" : "bg-blue-400"}`} />
+                        <span className={`mr-1.5 h-1.5 w-1.5 rounded-full ${emp.status === RecordStatus.Active ? "bg-emerald-500 animate-pulse" : "bg-blue-400"}`} />
                         {emp.status}
                       </button>
                     </td>
