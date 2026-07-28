@@ -421,8 +421,8 @@ export default function EditEmployeePage() {
               </div>
 
               {/* DOJ */}
-            <div className="group">
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-blue-800 mb-1 ml-1">
+            <div>
+              <label className="block text-xs font-bold text-blue-700 uppercase tracking-wide">
                 DOJ
               </label>
               <input
