@@ -13,13 +13,7 @@ export default function EditMainProcessPage() {
   const [isPending, startTransition] = useTransition();
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [roles, setRoles] = useState<{ id: string; name: string }[]>([]);
-  const [allowedRoleIds, setAllowedRoleIds] = useState<string[]>([]);
 
-  const toggleRole = (rid: string) =>
-    setAllowedRoleIds((prev) =>
-      prev.includes(rid) ? prev.filter((r) => r !== rid) : [...prev, rid],
-    );
 
   const [formData, setFormData] = useState({
     process: "",
@@ -38,7 +32,6 @@ export default function EditMainProcessPage() {
             process: record.process,
             remark: record.remark || "",
           });
-          setAllowedRoleIds((record.allowedRoles ?? []).map((r: any) => r.id));
         } else {
           setErrorMsg("Record not found.");
         }
@@ -51,15 +44,6 @@ export default function EditMainProcessPage() {
     if (id) {
       fetchRecord();
     }
-
-    (async () => {
-      try {
-        const { getActiveRoleProfiles } = await import("@/lib/roles.actions");
-        setRoles(await getActiveRoleProfiles());
-      } catch (error) {
-        console.error("Failed to load roles", error);
-      }
-    })();
   }, [id]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -69,7 +53,6 @@ export default function EditMainProcessPage() {
     startTransition(async () => {
       const res = await updateMainProcessAction(id, {
         remark: formData.remark,
-        allowedRoleIds,
       });
 
       if (res.success) {
@@ -144,37 +127,7 @@ export default function EditMainProcessPage() {
               />
             </div>
 
-            <div className="space-y-1 md:col-span-2">
-              <label className="text-xs font-bold text-blue-900 uppercase tracking-wider">
-                Allowed Roles
-              </label>
-              <p className="text-[10px] text-blue-400 mb-2">
-                Only operators with a selected role may run this process in the terminal. Leave all unchecked to allow everyone.
-              </p>
-              {roles.length === 0 ? (
-                <p className="text-xs text-blue-400">No active roles found.</p>
-              ) : (
-                <div className="flex flex-wrap gap-2">
-                  {roles.map((r) => {
-                    const checked = allowedRoleIds.includes(r.id);
-                    return (
-                      <button
-                        type="button"
-                        key={r.id}
-                        onClick={() => toggleRole(r.id)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-colors ${
-                          checked
-                            ? "bg-cyan-600 text-white border-cyan-600"
-                            : "bg-white text-blue-700 border-blue-200 hover:bg-blue-50"
-                        }`}
-                      >
-                        {r.name}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
+
           </div>
 
           <div className="pt-6 border-t border-blue-100 flex items-center justify-end gap-3">

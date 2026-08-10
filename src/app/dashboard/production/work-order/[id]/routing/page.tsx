@@ -6,6 +6,7 @@ import AddInProcessModal from "../../components/AddInProcessModal";
 import AddRoutingProcessModal from "../../components/AddRoutingProcessModal";
 import RoutingProcessTable from "../../components/RoutingProcessTable";
 import { getRoutingDropdownData } from "../../actions";
+import { auth } from "@/lib/auth";
 
 import { RecordStatus } from "@/lib/status";
 const IP_STATUS_BADGE: Record<string, string> = {
@@ -21,6 +22,12 @@ export default async function WorkOrderRoutingPage({
 }) {
   const { id } = await params;
 
+  const session = await auth();
+  const userRole = session?.user?.role;
+  
+  const bypassRoles = ["Admin", "VIEWER", "Production Manager", "QC", "QC Manager"];
+  const shouldFilterByRole = userRole && !bypassRoles.some((r) => r.toLowerCase() === userRole.toLowerCase());
+
   const workOrder = await prisma.workOrder.findUnique({
     where: { workOrderNo: id },
     include: {
@@ -29,6 +36,11 @@ export default async function WorkOrderRoutingPage({
         include: {
           conditionalSn: { select: { sn: true, description: true } },
           routingProcesses: {
+            where: shouldFilterByRole ? {
+              routingProcess: {
+                allowedRoles: { some: { name: userRole } }
+              }
+            } : undefined,
             orderBy: { sequence: "asc" },
             include: {
               mainProcess: { select: { process: true } },
@@ -118,6 +130,12 @@ export default async function WorkOrderRoutingPage({
     sn: p?.sn,
     description: p?.description,
   }));
+
+  // If filtering by role, remove in-processes that have no routing processes
+  // so the welder only sees the sections they are working on
+  if (shouldFilterByRole && workOrder?.inProcesses) {
+    workOrder.inProcesses = workOrder.inProcesses.filter((ip: any) => ip.routingProcesses.length > 0);
+  }
 
   console.log("Rendering routing processes. In-processes count:", workOrder?.inProcesses?.length);
 
@@ -224,6 +242,7 @@ export default async function WorkOrderRoutingPage({
                       inProcessTargetDate={new Date(ip.targetCompletionDate).toISOString().slice(0, 10)}
                       mainProcesses={mainProcesses}
                       processProfiles={processProfiles}
+                      employees={employees}
                       existingPairs={(ip.routingProcesses || []).map((r: any) => ({
                         mainProcessId: r.mainProcessId,
                         routingProcessId: r.routingProcessId,

@@ -295,6 +295,7 @@ export async function addRoutingProcess(data: {
   mainProcessId: string;
   routingProcessId: string;
   targetCompletionDate: string;
+  assignedEmployeeId?: string;
   remark?: string;
   uploadUrl?: string;
 }) {
@@ -347,6 +348,7 @@ export async function addRoutingProcess(data: {
         mainProcessId: data.mainProcessId,
         routingProcessId: data.routingProcessId,
         targetCompletionDate: target,
+        assignedEmployeeId: data.assignedEmployeeId || null,
         remark: data.remark || null,
         uploadUrl: data.uploadUrl || null,
         status: "New",

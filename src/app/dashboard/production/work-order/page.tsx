@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import OutstandingWorkButton from "./components/OutstandingWorkButton";
+import { auth } from "@/lib/auth";
 
 const STATUS_STYLES: Record<string, string> = {
   Draft: "bg-slate-100 text-slate-700",
@@ -21,9 +22,31 @@ export default async function WorkOrdersPage() {
     let workOrders: any[] = [];
     let errorMsg = null;
 
+    const session = await auth();
+    const userRole = session?.user?.role;
+    
+    // Bypass role filtering for management/admin roles so they can see all work orders
+    const bypassRoles = ["Admin", "VIEWER", "Production Manager", "QC", "QC Manager"];
+    const shouldFilterByRole = userRole && !bypassRoles.some((r) => r.toLowerCase() === userRole.toLowerCase());
+
     try {
       workOrders = await prisma.workOrder.findMany({
-        where: { status: { notIn: ["Void", "Cancelled"] } },
+        where: { 
+          status: { notIn: ["Void", "Cancelled"] },
+          ...(shouldFilterByRole ? {
+            inProcesses: {
+              some: {
+                routingProcesses: {
+                  some: {
+                    routingProcess: {
+                      allowedRoles: { some: { name: userRole } }
+                    }
+                  }
+                }
+              }
+            }
+          } : {})
+        },
         orderBy: { createdAt: "desc" },
         take: 500, // Prevent OOM on large datasets
         include: { 

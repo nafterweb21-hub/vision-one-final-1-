@@ -19,8 +19,8 @@ export async function lookupWorkOrder(woNo: string) {
           routingProcesses: {
             orderBy: { sequence: "asc" },
             include: {
-              mainProcess: { include: { allowedRoles: { select: { id: true } } } },
-              routingProcess: true,
+              mainProcess: true,
+              routingProcess: { include: { allowedRoles: { select: { id: true } } } },
             },
           },
         },
@@ -158,7 +158,8 @@ export async function scanIn(input: { workOrderNo: string; inProcessId: string; 
         status: true,
         mainProcessId: true,
         inProcess: { select: { sn: true } },
-        mainProcess: { select: { allowedRoles: { select: { id: true } } } },
+        mainProcess: true,
+        routingProcess: { select: { allowedRoles: { select: { id: true } } } },
       },
     });
     const gateRows: GateRow[] = allRows.map((r: any) => ({
@@ -167,7 +168,7 @@ export async function scanIn(input: { workOrderNo: string; inProcessId: string; 
       sequence: r.sequence,
       status: r.status,
       mainProcessId: r.mainProcessId,
-      allowedRoleIds: (r.mainProcess?.allowedRoles ?? []).map((x: any) => x.id),
+      allowedRoleIds: (r.routingProcess?.allowedRoles ?? []).map((x: any) => x.id),
     }));
 
     const employee = await prisma.employee.findUnique({

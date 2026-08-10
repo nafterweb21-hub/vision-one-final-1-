@@ -22,7 +22,7 @@ export default auth((req) => {
     if (isApi) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    const signInUrl = new URL("/auth/signin", req.nextUrl);
+    const signInUrl = new URL("/", req.nextUrl);
     signInUrl.searchParams.set("callbackUrl", pathname + search);
     return NextResponse.redirect(signInUrl);
   }

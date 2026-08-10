@@ -6,7 +6,6 @@ export async function getMainProcessesAction() {
   try {
     const data = await prisma.mainProcess.findMany({
       orderBy: { process: "asc" },
-      include: { allowedRoles: { select: { id: true, name: true } } },
     });
     return { success: true, data };
   } catch (error: any) {
@@ -18,7 +17,6 @@ export async function getMainProcessesAction() {
 export async function createMainProcessAction(data: {
   process: string;
   remark: string | null;
-  allowedRoleIds?: string[];
 }) {
   try {
     if (!data.process || !data.process.trim()) {
@@ -37,9 +35,6 @@ export async function createMainProcessAction(data: {
       data: {
         process: data.process.trim(),
         remark: data.remark,
-        ...(data.allowedRoleIds && data.allowedRoleIds.length
-          ? { allowedRoles: { connect: data.allowedRoleIds.map((id) => ({ id })) } }
-          : {}),
       },
     });
 
@@ -54,7 +49,6 @@ export async function updateMainProcessAction(
   id: string,
   data: {
     remark: string | null;
-    allowedRoleIds?: string[];
   }
 ) {
   try {
@@ -63,9 +57,6 @@ export async function updateMainProcessAction(
       where: { id },
       data: {
         remark: data.remark,
-        ...(data.allowedRoleIds !== undefined
-          ? { allowedRoles: { set: data.allowedRoleIds.map((rid) => ({ id: rid })) } }
-          : {}),
       },
     });
 

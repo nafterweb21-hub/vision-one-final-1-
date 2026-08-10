@@ -159,7 +159,7 @@ export default function Sidebar({ userEmail, userRole, userPermissions }: Sideba
             </div>
           )}
           <button
-            onClick={() => signOut({ callbackUrl: "/auth/signin" })}
+            onClick={() => signOut({ callbackUrl: "/" })}
             className="flex w-full items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-indigo-700 hover:bg-slate-200"
           >
             <LogOut size={14} />

@@ -141,6 +141,7 @@ model Employee {
   Ncr_Ncr_responsiblePartyIdToEmployee          Ncr[]                           @relation("Ncr_responsiblePartyIdToEmployee")
   Ncr_Ncr_rootCauseResponsibleStaffIdToEmployee Ncr[]                           @relation("Ncr_rootCauseResponsibleStaffIdToEmployee")
   Ncr_Ncr_verifiedConfirmedByIdToEmployee       Ncr[]                           @relation("Ncr_verifiedConfirmedByIdToEmployee")
+  assignedRoutingProcesses                      RoutingProcess[]                @relation("RoutingProcessAssignedEmployee")
   machiningConfirmations                        ProcessParameterMachining[]     @relation("MachiningConfirmedBy")
   sprayConfirmations                            ProcessParameterSprayPainting[] @relation("SprayConfirmedBy")
   weldingConfirmations                          ProcessParameterWelding[]       @relation("WeldingConfirmedBy")
@@ -302,7 +303,6 @@ model MainProcess {
   processProfiles    ProcessProfile[]
   purchaseOrderItems PurchaseOrderItem[]
   routingProcesses   RoutingProcess[]
-  allowedRoles       RoleProfile[]       @relation("MainProcessRoles")
 }
 
 model ProcessProfile {
@@ -320,6 +320,7 @@ model ProcessProfile {
   mainProcess        MainProcess         @relation(fields: [mainProcessId], references: [id])
   purchaseOrderItems PurchaseOrderItem[]
   routingProcesses   RoutingProcess[]
+  allowedRoles       RoleProfile[]       @relation("ProcessProfileRoles")
 }
 
 model SupplierProfile {
@@ -640,8 +641,6 @@ model WorkOrderInProcess {
   conditionalSn        WorkOrderInProcess?  @relation("ConditionalSn", fields: [conditionalSnId], references: [id])
   dependentProcesses   WorkOrderInProcess[] @relation("ConditionalSn")
   workOrder            WorkOrder            @relation(fields: [workOrderNo], references: [workOrderNo], onDelete: Cascade)
-
-  @@unique([workOrderNo, description])
 }
 
 model RoutingProcess {
@@ -651,6 +650,7 @@ model RoutingProcess {
   sequence             Int                   @default(0)
   mainProcessId        String?
   routingProcessId     String?
+  assignedEmployeeId   String?
   targetCompletionDate DateTime
   fullyReceived        Boolean               @default(false)
   remark               String?
@@ -661,6 +661,7 @@ model RoutingProcess {
   Ncr                  Ncr[]
   productionTimesheets ProductionTimesheet[]
   purchaseOrderItems   PurchaseOrderItem[]
+  assignedEmployee     Employee?             @relation("RoutingProcessAssignedEmployee", fields: [assignedEmployeeId], references: [id])
   inProcess            WorkOrderInProcess    @relation(fields: [inProcessId], references: [id], onDelete: Cascade)
   mainProcess          MainProcess?          @relation(fields: [mainProcessId], references: [id])
   routingProcess       ProcessProfile?       @relation(fields: [routingProcessId], references: [id])
@@ -1470,7 +1471,7 @@ model RoleProfile {
   users                User[]
   rolePermissions      RolePermission[]
   employees            Employee[]       @relation("EmployeeRole")
-  allowedMainProcesses MainProcess[]    @relation("MainProcessRoles")
+  allowedSubProcesses  ProcessProfile[] @relation("ProcessProfileRoles")
 }
 
 model SubconRejectTracking {

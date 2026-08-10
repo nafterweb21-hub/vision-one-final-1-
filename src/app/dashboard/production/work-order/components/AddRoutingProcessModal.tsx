@@ -22,6 +22,7 @@ type Props = {
   inProcessTargetDate: string; // YYYY-MM-DD — routing target may not exceed this
   mainProcesses: MainProcess[];
   processProfiles: ProcessProfile[];
+  employees: { id: string; name: string; code: string }[];
   existingPairs?: Pair[]; // already-added main+routing combos in this in-process
   disabled?: boolean;
 };
@@ -29,6 +30,7 @@ type Props = {
 type FormValues = {
   mainProcessId: string;
   routingProcessId: string;
+  assignedEmployeeId: string;
   targetCompletionDate: string;
   remark: string;
 };
@@ -38,6 +40,7 @@ export default function AddRoutingProcessModal({
   inProcessTargetDate,
   mainProcesses,
   processProfiles,
+  employees,
   existingPairs = [],
   disabled,
 }: Props) {
@@ -50,6 +53,7 @@ export default function AddRoutingProcessModal({
     defaultValues: {
       mainProcessId: "",
       routingProcessId: "",
+      assignedEmployeeId: "",
       targetCompletionDate: "",
       remark: "",
     },
@@ -80,6 +84,7 @@ export default function AddRoutingProcessModal({
         inProcessId,
         mainProcessId: data.mainProcessId,
         routingProcessId: data.routingProcessId,
+        assignedEmployeeId: data.assignedEmployeeId,
         targetCompletionDate: data.targetCompletionDate,
         remark: data.remark,
       });
@@ -105,7 +110,7 @@ export default function AddRoutingProcessModal({
       </button>
 
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl flex flex-col max-h-[90vh]">
             <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
               <h3 className="text-lg font-semibold text-slate-800">Add Routing Process</h3>
@@ -156,6 +161,18 @@ export default function AddRoutingProcessModal({
                       ))}
                     </SearchableSelect>
                     {errors.routingProcessId && <p className="text-xs text-red-500">Required</p>}
+                  </div>
+
+                  <div className="space-y-1.5 md:col-span-2">
+                    <label className="text-sm font-medium text-slate-700">
+                      Assigned Welder
+                    </label>
+                    <SearchableSelect {...register("assignedEmployeeId")} className={inputCls}>
+                      <option value="">Select (Optional)</option>
+                      {employees.map((e) => (
+                        <option key={e.id} value={e.id}>{e.name}</option>
+                      ))}
+                    </SearchableSelect>
                   </div>
 
                   <div className="space-y-1.5 md:col-span-2">
