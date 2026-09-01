@@ -186,14 +186,21 @@ export default function SalesOrderFormPage() {
   const addBatch = (itemIndex: number) => {
     setItems((prev) => {
       const newItems = [...prev];
-      newItems[itemIndex].batches.push({
-        quantity: 1,
-        deliveryDate: new Date().toISOString().split("T")[0],
-        noRoutingProcess: false,
-        remark: "",
-        uploadUrl: "",
-      });
-      newItems[itemIndex].quantity = newItems[itemIndex].batches.reduce((sum: number, b: any) => sum + (Number(b.quantity) || 0), 0);
+      const newBatches = [
+        ...newItems[itemIndex].batches,
+        {
+          quantity: 1,
+          deliveryDate: new Date().toISOString().split("T")[0],
+          noRoutingProcess: false,
+          remark: "",
+          uploadUrl: "",
+        }
+      ];
+      newItems[itemIndex] = {
+        ...newItems[itemIndex],
+        batches: newBatches,
+        quantity: newBatches.reduce((sum: number, b: any) => sum + (Number(b.quantity) || 0), 0)
+      };
       return newItems;
     });
   };
@@ -201,8 +208,12 @@ export default function SalesOrderFormPage() {
   const removeBatch = (itemIndex: number, batchIndex: number) => {
     setItems((prev) => {
       const newItems = [...prev];
-      newItems[itemIndex].batches = newItems[itemIndex].batches.filter((_: any, i: number) => i !== batchIndex);
-      newItems[itemIndex].quantity = newItems[itemIndex].batches.reduce((sum: number, b: any) => sum + (Number(b.quantity) || 0), 0);
+      const newBatches = newItems[itemIndex].batches.filter((_: any, i: number) => i !== batchIndex);
+      newItems[itemIndex] = {
+        ...newItems[itemIndex],
+        batches: newBatches,
+        quantity: newBatches.reduce((sum: number, b: any) => sum + (Number(b.quantity) || 0), 0)
+      };
       return newItems;
     });
   };

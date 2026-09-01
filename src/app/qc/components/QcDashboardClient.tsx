@@ -506,7 +506,7 @@ export default function QcDashboardClient({ initialAwaiting, initialWorkOrders, 
           
           {/* Modal Panel (Matches Screenshot 2 layout but White/Blue Theme) */}
           {drawerType === "WORK_ORDER" && drawerData ? (
-            <div className="relative w-full max-w-lg bg-white/95 backdrop-blur-2xl border border-white shadow-2xl rounded-3xl flex flex-col animate-scale-up overflow-hidden m-4">
+            <div className="relative w-full max-w-lg bg-white/95 backdrop-blur-2xl border border-white shadow-2xl rounded-3xl flex flex-col animate-scale-up overflow-hidden m-4 max-h-[90vh]">
               <div className="p-6 border-b border-blue-100 flex items-center justify-between bg-blue-50/50">
                 <h3 className="text-xl font-black italic tracking-wide text-blue-950 uppercase flex items-center gap-2">
                   <Activity className="text-emerald-500" size={24} />
@@ -521,7 +521,7 @@ export default function QcDashboardClient({ initialAwaiting, initialWorkOrders, 
                 </button>
               </div>
 
-              <div className="p-6 space-y-6">
+              <div className="p-6 space-y-6 overflow-y-auto custom-scrollbar">
                 
                 {/* WORK ORDER FIELD */}
                 <div>
@@ -619,7 +619,7 @@ export default function QcDashboardClient({ initialAwaiting, initialWorkOrders, 
               </div>
             </div>
           ) : drawerType === "PROCESS" && drawerData ? (
-            <div className="relative w-full max-w-lg bg-white/95 backdrop-blur-2xl border border-white shadow-2xl rounded-3xl flex flex-col animate-scale-up overflow-hidden m-4">
+            <div className="relative w-full max-w-lg bg-white/95 backdrop-blur-2xl border border-white shadow-2xl rounded-3xl flex flex-col animate-scale-up overflow-hidden m-4 max-h-[90vh]">
               <div className="p-6 border-b border-blue-100 flex items-center justify-between bg-blue-50/50">
                 <h3 className="text-xl font-black italic tracking-wide text-blue-950 uppercase flex items-center gap-2">
                   <Activity className="text-emerald-500" size={24} />
@@ -634,7 +634,7 @@ export default function QcDashboardClient({ initialAwaiting, initialWorkOrders, 
                 </button>
               </div>
 
-              <div className="p-6 space-y-6">
+              <div className="p-6 space-y-6 overflow-y-auto custom-scrollbar">
                 {/* WORK ORDER / PROCESS FIELD */}
                 <div>
                   <label className="block text-[10px] font-bold text-blue-500 uppercase tracking-widest mb-2">Process Completed</label>
@@ -772,7 +772,7 @@ export default function QcDashboardClient({ initialAwaiting, initialWorkOrders, 
               </div>
             </div>
           ) : drawerType === "REWORK" && drawerData ? (
-            <div className="relative w-full max-w-lg bg-white/95 backdrop-blur-2xl border border-white shadow-2xl rounded-3xl flex flex-col animate-scale-up overflow-hidden m-4">
+            <div className="relative w-full max-w-lg bg-white/95 backdrop-blur-2xl border border-white shadow-2xl rounded-3xl flex flex-col animate-scale-up overflow-hidden m-4 max-h-[90vh]">
               <div className="p-6 border-b border-blue-100 flex items-center justify-between bg-blue-50/50">
                 <h3 className="text-xl font-black italic tracking-wide text-blue-950 uppercase flex items-center gap-2">
                   <Activity className="text-indigo-500" size={24} />
@@ -787,7 +787,7 @@ export default function QcDashboardClient({ initialAwaiting, initialWorkOrders, 
                 </button>
               </div>
 
-              <div className="p-6 space-y-6">
+              <div className="p-6 space-y-6 overflow-y-auto custom-scrollbar">
                 
                 {/* REWORK NO / WORK ORDER FIELD */}
                 <div>

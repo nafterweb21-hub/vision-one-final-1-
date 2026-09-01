@@ -2,7 +2,22 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
 export async function GET() {
-  const processes = await prisma.processProfile.findMany();
-  const mainProcesses = await prisma.mainProcess.findMany();
-  return NextResponse.json({ processes, mainProcesses });
+  const wo = await prisma.workOrder.findUnique({
+    where: { workOrderNo: 'WO-SO-2026-0005-001' },
+    include: {
+      inProcesses: {
+        include: {
+          routingProcesses: {
+            orderBy: { sn: 'asc' },
+            include: {
+              routingProcess: true,
+              productionTimesheets: true,
+              qualityControls: true,
+            }
+          }
+        }
+      }
+    }
+  });
+  return NextResponse.json({ wo });
 }
