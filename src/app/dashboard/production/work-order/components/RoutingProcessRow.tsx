@@ -117,6 +117,9 @@ export default function RoutingProcessRow({
       <td className="px-3 py-2 font-medium text-slate-800">
         {rp?.routingProcess?.routingProcess ?? "-"}
       </td>
+      <td className="px-3 py-2 text-slate-600">
+        {rp?.assignedEmployee?.name ?? "-"}
+      </td>
       <td className="px-3 py-2 text-slate-600">{fmtDate(rp?.targetCompletionDate)}</td>
       <td className="px-3 py-2 text-center">
         {rp?.fullyReceived ? (

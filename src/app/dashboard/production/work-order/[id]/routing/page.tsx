@@ -45,6 +45,7 @@ export default async function WorkOrderRoutingPage({
             include: {
               mainProcess: { select: { process: true } },
               routingProcess: { select: { routingProcess: true, welding: true, sprayPainting: true, machining: true } },
+              assignedEmployee: { select: { name: true } },
               productionTimesheets: {
                 include: {
                   weldingParameter: {

@@ -105,6 +105,7 @@ export default function RoutingProcessTable({
             <th className="px-3 py-2 font-semibold w-12">SN</th>
             <th className="px-3 py-2 font-semibold">Main Process</th>
             <th className="px-3 py-2 font-semibold">Routing Process</th>
+            <th className="px-3 py-2 font-semibold">Assigned Employee</th>
             <th className="px-3 py-2 font-semibold">Target Date</th>
             <th className="px-3 py-2 font-semibold text-center">Fully Recv?</th>
             <th className="px-3 py-2 font-semibold text-center">Process Parameter</th>
