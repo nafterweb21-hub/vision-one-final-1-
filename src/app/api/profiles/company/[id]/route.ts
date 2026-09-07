@@ -38,7 +38,7 @@ export async function PATCH(
     const fields = [
       "companyName", "address", "phoneNo", "faxNo", "email", 
       "rocNo", "gstRegistrationNo", "uploadUrl", 
-      "logoName", "footerName", "allowPoForWo", "as9100RequirementNote", "status"
+      "logoName", "footerName", "allowPoForWo", "as9100RequirementNote", "status", "sezTaxRate"
     ];
 
     for (const field of fields) {

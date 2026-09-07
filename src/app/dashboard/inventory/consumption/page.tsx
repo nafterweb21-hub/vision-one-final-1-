@@ -7,6 +7,7 @@ import { toast } from "react-hot-toast";
 import { AlertCircle, Ban, Check, Loader2, PackageMinus, Pencil, Plus, Search } from "lucide-react";
 import { canCreate, canEdit } from "@/lib/access";
 import { customConfirm } from "@/lib/customConfirm";
+import { SearchableSelect } from "@/components/SearchableSelect";
 
 const MODULE = "MATERIAL_CONSUMPTION";
 const API = "/api/inventory/consumption";
@@ -121,7 +122,7 @@ export default function MaterialConsumptionPage() {
             className="w-full pl-9 pr-3 py-2.5 text-sm bg-white border border-blue-200 rounded-lg focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 outline-none"
           />
         </div>
-        <select
+        <SearchableSelect
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
           className="px-3 py-2.5 text-sm bg-white border border-blue-200 rounded-lg focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 outline-none"
@@ -130,7 +131,7 @@ export default function MaterialConsumptionPage() {
           <option value="Draft">Draft</option>
           <option value="Submitted">Submitted</option>
           <option value="Void">Void</option>
-        </select>
+        </SearchableSelect>
       </div>
 
       {loading ? (

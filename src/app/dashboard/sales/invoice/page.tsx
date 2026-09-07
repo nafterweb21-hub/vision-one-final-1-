@@ -148,7 +148,7 @@ export default function InvoiceListPage() {
 
   const onPrint = () => {
     if (!selected) return;
-    if (selected.status !== "Submitted") return hotToast.error("Only Submitted invoices can be printed");
+    if (selected.status !== "Submitted" && selected.status !== "Draft") return hotToast.error("Only Submitted or Draft invoices can be printed");
     window.open(`/print/invoice/${selected.id}`, "_blank");
   };
 

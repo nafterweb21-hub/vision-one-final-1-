@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo, use } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { FileText, Save, CheckCircle2, ChevronDown, ChevronRight, Loader2, Factory, X, Plus, Trash2, ArrowLeft, AlertCircle } from "lucide-react";
+import { ProfileOrFreeText } from "@/components/ProfileOrFreeText";
 import { getFormData } from "./actions";
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -65,6 +66,7 @@ export default function SalesOrderFormPage() {
           setOrder({
             ...orderData,
             date: new Date(orderData.date).toISOString().split("T")[0],
+            customerId: orderData.customerId || "",
           });
           setItems(
             orderData.items.map((item: any) => ({
@@ -92,7 +94,7 @@ export default function SalesOrderFormPage() {
   }, [id, isNew]);
 
   // Derived state for dependent dropdowns
-  const selectedCustomer = formDataCache?.customers?.find((c: any) => c.id === order.customerId);
+  const selectedCustomer = formDataCache?.customers?.find((c: any) => c.id === (order.customerSelection?.profileId || order.customerId));
 
   // Handlers
   const handleOrderChange = (field: string, value: any) => {
@@ -106,15 +108,20 @@ export default function SalesOrderFormPage() {
       }
       if (field === "taxTypeId") {
         const tax = formDataCache?.taxes.find((t: any) => t.id === value);
-        next.taxRate = tax ? tax.taxRate : 0;
+        const isSez = selectedCustomer?.isSez;
+        if (!isSez) {
+          next.taxRate = tax ? tax.taxRate : 0;
+        }
       }
-      if (field === "customerId" && selectedCustomer?.id !== value) {
-        next.contactPersonId = "";
-        next.deliverToId = "";
-        next.billToId = "";
-        next.fax = "";
-        next.tel = "";
-        next.email = "";
+      if (field === "customerSelection") {
+        if (next.customerSelection.type === "freetext" || next.customerSelection.profileId !== prev.customerSelection?.profileId) {
+          next.contactPersonId = "";
+          next.deliverToId = "";
+          next.billToId = "";
+          next.fax = "";
+          next.tel = "";
+          next.email = "";
+        }
       }
       if (field === "contactPersonId") {
         const cp = selectedCustomer?.contactPersons.find((c: any) => c.id === value);
@@ -224,12 +231,22 @@ export default function SalesOrderFormPage() {
   }, [items]);
 
   const taxAmount = useMemo(() => {
-    return (Number(amountBeforeTax) * Number(order.taxRate)) / 100;
-  }, [amountBeforeTax, order.taxRate]);
+    const isSez = selectedCustomer?.isSez;
+    const company = formDataCache?.companies?.[0];
+    const effectiveTaxRate = isSez ? (Number(company?.sezTaxRate) || 0) : Number(order.taxRate);
+    return (Number(amountBeforeTax) * effectiveTaxRate) / 100;
+  }, [amountBeforeTax, order.taxRate, selectedCustomer, formDataCache?.companies]);
 
   const amountAfterTax = useMemo(() => {
-    return Number(amountBeforeTax) + taxAmount;
-  }, [amountBeforeTax, taxAmount]);
+    let finalTotal = Number(amountBeforeTax) + taxAmount;
+    const currency = formDataCache?.currencies?.find((c: any) => c.id === order.currencyId);
+    if (currency?.roundingMode === "UP") {
+      finalTotal = Math.ceil(finalTotal);
+    } else if (currency?.roundingMode === "DOWN") {
+      finalTotal = Math.floor(finalTotal);
+    }
+    return finalTotal;
+  }, [amountBeforeTax, taxAmount, order.currencyId, formDataCache?.currencies]);
 
   const handleSave = async (status: string) => {
     if (items.length === 0) {
@@ -240,9 +257,14 @@ export default function SalesOrderFormPage() {
     setSaving(true);
     setErrorMsg("");
     try {
+      const isSez = selectedCustomer?.isSez;
+      const company = formDataCache?.companies?.[0];
+      const effectiveTaxRate = isSez ? (Number(company?.sezTaxRate) || 0) : Number(order.taxRate);
+
       const payload = {
         ...order,
-        status,
+        taxTypeId: isSez ? null : (order.taxTypeId || null),
+        taxRate: effectiveTaxRate,
         amountBeforeTax: Number(amountBeforeTax),
         taxAmount: Number(taxAmount),
         amountAfterTax: Number(amountAfterTax),
@@ -430,14 +452,14 @@ export default function SalesOrderFormPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-blue-700 mb-1">Order Type <span className="text-red-500">*</span></label>
-                <select
+                <SearchableSelect
                   value={order.orderType || "Direct"}
                   onChange={(e) => handleOrderChange("orderType", e.target.value)}
                   className="w-full px-3 py-2 text-sm bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                 >
                   <option value="Direct">Direct</option>
                   <option value="Sub-contract">Sub-contract</option>
-                </select>
+                </SearchableSelect>
               </div>
               <div>
                 <label className="block text-sm font-medium text-blue-700 mb-1">Salesperson <span className="text-red-500">*</span></label>
@@ -452,18 +474,22 @@ export default function SalesOrderFormPage() {
                   ))}
                 </SearchableSelect>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-blue-700 mb-1">Customer <span className="text-red-500">*</span></label>
-                <SearchableSelect
-                  value={order.customerId}
-                  onChange={(e) => handleOrderChange("customerId", e.target.value)}
-                  className="w-full px-3 py-2 text-sm bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                >
-                  <option value="">Select Customer</option>
-                  {formDataCache?.customers?.map((cust: any) => (
-                    <option key={cust.id} value={cust.id}>{cust.customerName}</option>
-                  ))}
-                </SearchableSelect>
+              <div className="sm:col-span-2">
+                <ProfileOrFreeText
+                  label="Customer"
+                  required={true}
+                  options={(formDataCache?.customers || []).map((c: any) => ({ id: c.id, label: c.customerName }))}
+                  fields={[
+                    { name: "customerName", label: "Customer Name", required: true },
+                    { name: "gstin", label: "GSTIN", required: true },
+                    { name: "address", label: "Address" },
+                    { name: "contactPerson", label: "Contact Person" },
+                    { name: "email", label: "Email" },
+                    { name: "phone", label: "Phone" }
+                  ]}
+                  value={order.customerSelection}
+                  onChange={(val) => handleOrderChange("customerSelection", val)}
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium text-blue-700 mb-1">Customer PO Ref</label>
@@ -749,18 +775,25 @@ export default function SalesOrderFormPage() {
               </SearchableSelect>
             </div>
             
-            <div>
-              <label className="block text-sm font-medium text-blue-700 mb-1">Tax Profile</label>
-              <SearchableSelect
-                value={order.taxTypeId || ""}
-                onChange={(e) => handleOrderChange("taxTypeId", e.target.value)}
-                className="w-full px-3 py-2 text-sm bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-              >
-                <option value="">No Tax</option>
-                {formDataCache?.taxes?.map((t: any) => (
-                  <option key={t.id} value={t.id}>{t.taxType} ({t.taxRate}%)</option>
-                ))}
-              </SearchableSelect>
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-medium text-slate-700">Tax Type</label>
+              {selectedCustomer?.isSez ? (
+                <div className="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-lg text-slate-500 text-sm">
+                  SEZ Tax ({Number(formDataCache?.companies?.[0]?.sezTaxRate) || 0}%) Auto-applied
+                </div>
+              ) : (
+                <SearchableSelect
+                  value={order.taxTypeId || ""}
+                  onChange={(e) => handleOrderChange("taxTypeId", e.target.value)}
+                  disabled={order.status !== "Draft"}
+                  className="px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-100 disabled:text-slate-500"
+                >
+                  <option value="">— Select Tax Type —</option>
+                  {formDataCache?.taxes.map((t: any) => (
+                    <option key={t.id} value={t.id}>{t.taxType} ({t.taxRate}%)</option>
+                  ))}
+                </SearchableSelect>
+              )}
             </div>
 
             <div>
@@ -813,17 +846,26 @@ export default function SalesOrderFormPage() {
             
             <div>
               <label className="block text-sm font-medium text-blue-700 mb-1">Contact Person</label>
-              <SearchableSelect
-                value={order.contactPersonId || ""}
-                onChange={(e) => handleOrderChange("contactPersonId", e.target.value)}
-                disabled={!selectedCustomer}
-                className="w-full px-3 py-2 text-sm bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-50"
-              >
-                <option value="">Select Contact</option>
-                {selectedCustomer?.contactPersons?.map((cp: any) => (
-                  <option key={cp.id} value={cp.id}>{cp.contactPersonName}</option>
-                ))}
-              </SearchableSelect>
+              {order.customerSelection?.type === "freetext" ? (
+                <input
+                  type="text"
+                  readOnly
+                  value={order.customerSelection?.freeTextPayload?.contactPerson || ""}
+                  className="w-full px-3 py-2 text-sm bg-slate-100 border border-slate-200 rounded-lg cursor-not-allowed"
+                />
+              ) : (
+                <SearchableSelect
+                  value={order.contactPersonId || ""}
+                  onChange={(e) => handleOrderChange("contactPersonId", e.target.value)}
+                  disabled={!selectedCustomer}
+                  className="w-full px-3 py-2 text-sm bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-50"
+                >
+                  <option value="">Select Contact</option>
+                  {selectedCustomer?.contactPersons?.map((cp: any) => (
+                    <option key={cp.id} value={cp.id}>{cp.contactPersonName}</option>
+                  ))}
+                </SearchableSelect>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -832,7 +874,7 @@ export default function SalesOrderFormPage() {
                 <input
                   type="text"
                   readOnly
-                  value={selectedCustomer?.gstin || ""}
+                  value={order.customerSelection?.type === "freetext" ? (order.customerSelection?.freeTextPayload?.gstin || "") : (selectedCustomer?.gstin || "")}
                   className="w-full px-3 py-2 text-sm bg-slate-100 border border-slate-200 rounded-lg cursor-not-allowed"
                 />
               </div>
@@ -880,32 +922,50 @@ export default function SalesOrderFormPage() {
 
             <div>
               <label className="block text-sm font-medium text-blue-700 mb-1">Deliver To</label>
-              <SearchableSelect
-                value={order.deliverToId || ""}
-                onChange={(e) => handleOrderChange("deliverToId", e.target.value)}
-                disabled={!selectedCustomer}
-                className="w-full px-3 py-2 text-sm bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-50"
-              >
-                <option value="">Select Address</option>
-                {selectedCustomer?.addresses?.map((a: any) => (
-                  <option key={a.id} value={a.id}>{a.address}</option>
-                ))}
-              </SearchableSelect>
+              {order.customerSelection?.type === "freetext" ? (
+                <input
+                  type="text"
+                  readOnly
+                  value={order.customerSelection?.freeTextPayload?.address || ""}
+                  className="w-full px-3 py-2 text-sm bg-slate-100 border border-slate-200 rounded-lg cursor-not-allowed"
+                />
+              ) : (
+                <SearchableSelect
+                  value={order.deliverToId || ""}
+                  onChange={(e) => handleOrderChange("deliverToId", e.target.value)}
+                  disabled={!selectedCustomer}
+                  className="w-full px-3 py-2 text-sm bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-50"
+                >
+                  <option value="">Select Address</option>
+                  {selectedCustomer?.addresses?.map((a: any) => (
+                    <option key={a.id} value={a.id}>{a.address}</option>
+                  ))}
+                </SearchableSelect>
+              )}
             </div>
 
             <div>
               <label className="block text-sm font-medium text-blue-700 mb-1">Bill To</label>
-              <SearchableSelect
-                value={order.billToId || ""}
-                onChange={(e) => handleOrderChange("billToId", e.target.value)}
-                disabled={!selectedCustomer}
-                className="w-full px-3 py-2 text-sm bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-50"
-              >
-                <option value="">Select Address</option>
-                {selectedCustomer?.addresses?.map((a: any) => (
-                  <option key={a.id} value={a.id}>{a.address}</option>
-                ))}
-              </SearchableSelect>
+              {order.customerSelection?.type === "freetext" ? (
+                <input
+                  type="text"
+                  readOnly
+                  value={order.customerSelection?.freeTextPayload?.address || ""}
+                  className="w-full px-3 py-2 text-sm bg-slate-100 border border-slate-200 rounded-lg cursor-not-allowed"
+                />
+              ) : (
+                <SearchableSelect
+                  value={order.billToId || ""}
+                  onChange={(e) => handleOrderChange("billToId", e.target.value)}
+                  disabled={!selectedCustomer}
+                  className="w-full px-3 py-2 text-sm bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-50"
+                >
+                  <option value="">Select Address</option>
+                  {selectedCustomer?.addresses?.map((a: any) => (
+                    <option key={a.id} value={a.id}>{a.address}</option>
+                  ))}
+                </SearchableSelect>
+              )}
             </div>
             
           </div>

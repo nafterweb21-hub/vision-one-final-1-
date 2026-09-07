@@ -3,11 +3,14 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 
+import { nextDocumentNo, getPreviewNextDocumentNo } from "@/lib/document-numbering";
+
 export interface CustomerProfileInput {
-  customerCode: string;
+  customerCode?: string;
   customerName: string;
   remarks?: string;
   gstin?: string;
+  isSez?: boolean;
 }
 
 export interface ContactPersonInput {
@@ -30,6 +33,15 @@ const CUSTOMER_PATH = "/dashboard/admin/master-profile/customer";
 // ==========================================
 // 1. CUSTOMER PROFILE CRUD ACTIONS
 // ==========================================
+
+export async function getCustomerCodePreview() {
+  try {
+    return await getPreviewNextDocumentNo("CUSTOMER");
+  } catch (error) {
+    console.error("Failed to fetch customer code preview:", error);
+    return "";
+  }
+}
 
 export async function getCustomerProfiles() {
   try {
@@ -87,26 +99,14 @@ export async function getCustomerDetail(id: string) {
 
 export async function createCustomerProfile(data: CustomerProfileInput) {
   try {
-    const customerCode = data.customerCode.trim();
     const customerName = data.customerName.trim();
     const remarks = data.remarks?.trim() || "";
 
-    if (!customerCode) {
-      return { success: false, error: "Customer Code is required." };
-    }
     if (!customerName) {
       return { success: false, error: "Customer Name is required." };
     }
     if (!data.gstin || !data.gstin.trim()) {
       return { success: false, error: "GSTIN is required." };
-    }
-
-    // Check uniqueness of Customer Code
-    const existingCode = await prisma.customerProfile.findUnique({
-      where: { customerCode },
-    });
-    if (existingCode) {
-      return { success: false, error: `Customer Code "${customerCode}" already exists.` };
     }
 
     // Check uniqueness of Customer Name
@@ -117,14 +117,24 @@ export async function createCustomerProfile(data: CustomerProfileInput) {
       return { success: false, error: `Customer Name "${customerName}" already exists.` };
     }
 
-    const newCustomer = await prisma.customerProfile.create({
-      data: {
-        customerCode,
-        customerName,
-        remarks,
-        gstin: data.gstin?.trim() || null,
-        status: "Active",
-      },
+    const newCustomer = await prisma.$transaction(async (tx) => {
+      const isTaken = async (code: string) => {
+        const existing = await tx.customerProfile.findUnique({ where: { customerCode: code } });
+        return existing !== null;
+      };
+      
+      const generatedCode = await nextDocumentNo(tx, "CUSTOMER", { isTaken });
+
+      return await tx.customerProfile.create({
+        data: {
+          customerCode: generatedCode,
+          customerName,
+          remarks,
+          gstin: data.gstin?.trim() || null,
+          isSez: data.isSez || false,
+          status: "Active",
+        },
+      });
     });
 
     revalidatePath(CUSTOMER_PATH);
@@ -135,7 +145,7 @@ export async function createCustomerProfile(data: CustomerProfileInput) {
   }
 }
 
-export async function updateCustomerInfo(id: string, data: { remarks?: string; gstin?: string }) {
+export async function updateCustomerInfo(id: string, data: { remarks?: string; gstin?: string; isSez?: boolean }) {
   try {
     const existing = await prisma.customerProfile.findUnique({
       where: { id },
@@ -153,6 +163,7 @@ export async function updateCustomerInfo(id: string, data: { remarks?: string; g
       data: {
         remarks: data.remarks?.trim() || null,
         gstin: data.gstin?.trim() || null,
+        isSez: data.isSez !== undefined ? data.isSez : existing.isSez,
       },
     });
 

@@ -35,6 +35,10 @@ type Item = {
   internalQuantity: string;
   deliveryDate: string;
   remark: string;
+  hsnCode: string;
+  hsnDescription: string;
+  hsnCode: string;
+  hsnDescription: string;
 };
 
 export default function PurchaseOrderEditPage() {
@@ -88,7 +92,7 @@ export default function PurchaseOrderEditPage() {
           setDate(new Date(po.date).toISOString().slice(0, 10));
           setWorkOrderNo(po.workOrderNo || "");
           setPurchaseRequisitionId(po.purchaseRequisitionId || "");
-          setSupplierId(po.supplierId);
+          setSupplierId(po.supplierId || "");
           setContactPersonId(po.contactPersonId || "");
           setSupplierEmail(po.email || "");
           setSupplierTel(po.telNo || "");
@@ -125,6 +129,10 @@ export default function PurchaseOrderEditPage() {
               internalQuantity: Number(it.internalQuantity || 0).toFixed(2),
               deliveryDate: new Date(it.deliveryDate).toISOString().slice(0, 10),
               remark: it.remark || "",
+              hsnCode: it.hsnCode || "",
+              hsnDescription: it.hsnDescription || "",
+              hsnCode: it.hsnCode || "",
+              hsnDescription: it.hsnDescription || "",
             })),
           );
         } else {
@@ -149,6 +157,10 @@ export default function PurchaseOrderEditPage() {
             internalQuantity: "1.00",
             deliveryDate: new Date().toISOString().slice(0, 10),
             remark: "",
+            hsnCode: "",
+            hsnDescription: "",
+            hsnCode: "",
+            hsnDescription: "",
           }]);
         }
       } catch (e: any) {
@@ -167,6 +179,10 @@ export default function PurchaseOrderEditPage() {
   const contactPersons = useMemo(() => selectedSupplier?.contactPersons || [], [selectedSupplier]);
 
   useEffect(() => {
+    if (!supplierId) {
+      setContactPersonId("");
+      return;
+    }
     if (selectedSupplier && isNew) {
       const def = contactPersons.find(c => c.isDefault) || contactPersons[0];
       if (def) {
@@ -289,8 +305,17 @@ export default function PurchaseOrderEditPage() {
     setAmountBeforeTax(totalItems.toFixed(2));
     const taxAmt = totalItems * (Number(taxRate) / 100);
     setTaxAmount(taxAmt.toFixed(2));
-    setAmountAfterTax((totalItems + taxAmt).toFixed(2));
-  }, [items, taxRate]);
+    
+    let finalTotal = totalItems + taxAmt;
+    const currency = data?.currencies?.find((c: any) => c.id === currencyId);
+    if (currency?.roundingMode === "UP") {
+      finalTotal = Math.ceil(finalTotal);
+    } else if (currency?.roundingMode === "DOWN") {
+      finalTotal = Math.floor(finalTotal);
+    }
+    
+    setAmountAfterTax(finalTotal.toFixed(2));
+  }, [items, taxRate, currencyId, data]);
 
   function addItem() {
     setItems((cur) => [
@@ -324,7 +349,9 @@ export default function PurchaseOrderEditPage() {
     setError("");
 
     if (!companyId) return setError("Company is required");
-    if (!supplierId) return setError("Supplier is required");
+    if (!supplierId) {
+      return setError("Supplier is required");
+    }
     if (!purchaserId) return setError("Purchaser is required");
     if (!currencyId) return setError("Currency is required");
     if (!taxTypeId) return setError("Tax is required");
@@ -386,6 +413,10 @@ export default function PurchaseOrderEditPage() {
           internalQuantity: Number(it.internalQuantity),
           deliveryDate: it.deliveryDate,
           remark: it.remark || null,
+          hsnCode: it.hsnCode || null,
+          hsnDescription: it.hsnDescription || null,
+          hsnCode: it.hsnCode || null,
+          hsnDescription: it.hsnDescription || null,
         })),
       };
 
@@ -530,21 +561,23 @@ export default function PurchaseOrderEditPage() {
           </SearchableSelect>
         </Field>
 
-        <Field label="Supplier" required>
-          <SearchableSelect
-            value={supplierId}
-            disabled={readOnly || !isNew}
-            onChange={(e) => setSupplierId(e.target.value)}
-            className={inputCls}
-          >
-            <option value="">— Select Supplier —</option>
-            {data?.suppliers?.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.supplierName}
-              </option>
-            ))}
-          </SearchableSelect>
-        </Field>
+        <div className="md:col-span-2">
+          <Field label="Supplier" required>
+            <SearchableSelect
+              value={supplierId}
+              disabled={readOnly || !isNew}
+              onChange={(e) => setSupplierId(e.target.value)}
+              className={inputCls}
+            >
+              <option value="">— Select —</option>
+              {data?.suppliers?.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.supplierName}
+                </option>
+              ))}
+            </SearchableSelect>
+          </Field>
+        </div>
 
         <Field label="Supplier Contact Person">
           <SearchableSelect
@@ -692,6 +725,7 @@ export default function PurchaseOrderEditPage() {
                 <th className="px-3 py-2 text-left w-24">Type</th>
                 <th className="px-3 py-2 text-left w-48">Material Profile / Code</th>
                 <th className="px-3 py-2 text-left w-56">Description</th>
+                <th className="px-3 py-2 text-left w-32">HSN Code</th>
                 <th className="px-3 py-2 text-left w-40">Supplier Part No</th>
                 <th className="px-3 py-2 text-left w-32">Shape</th>
                 <th className="px-3 py-2 text-left w-32">Size</th>
@@ -758,6 +792,17 @@ export default function PurchaseOrderEditPage() {
                         onChange={(e) => updateItem(idx, { description: e.target.value })}
                         className={inputCls}
                         placeholder="Material description"
+                      />
+                    </td>
+
+                    <td className="px-3 py-2 align-top">
+                      <input
+                        type="text"
+                        value={it.hsnCode}
+                        disabled={readOnly}
+                        onChange={(e) => updateItem(idx, { hsnCode: e.target.value })}
+                        className={inputCls}
+                        placeholder="HSN Code"
                       />
                     </td>
 

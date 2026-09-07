@@ -1,5 +1,6 @@
 "use client";
 import { useParams } from "next/navigation";
+import { SearchableSelect } from "@/components/SearchableSelect";
 
 import React, { useState } from "react";
 import Link from "next/link";
@@ -178,7 +179,7 @@ export default function WorkOrderCostingReportPage() {
           </div>
           <div className="space-y-1">
             <label className="text-xs font-semibold text-blue-700">Status</label>
-            <select
+            <SearchableSelect
               value={status}
               onChange={(e) => setStatus(e.target.value)}
               className="w-full px-3 py-2 text-sm bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
@@ -188,7 +189,7 @@ export default function WorkOrderCostingReportPage() {
               <option value="Confirmed">Confirmed</option>
               <option value="Completed">Completed</option>
               <option value="Cancelled">Cancelled</option>
-            </select>
+            </SearchableSelect>
           </div>
         </div>
 

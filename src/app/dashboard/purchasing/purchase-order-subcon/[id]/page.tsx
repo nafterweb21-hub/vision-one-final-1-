@@ -242,8 +242,17 @@ export default function PurchaseOrderSubconEditPage() {
     setAmountBeforeTax(totalItems.toFixed(2));
     const taxAmt = totalItems * (Number(taxRate) / 100);
     setTaxAmount(taxAmt.toFixed(2));
-    setAmountAfterTax((totalItems + taxAmt).toFixed(2));
-  }, [items, taxRate]);
+    
+    let finalTotal = totalItems + taxAmt;
+    const currency = data?.currencies?.find((c: any) => c.id === currencyId);
+    if (currency?.roundingMode === "UP") {
+      finalTotal = Math.ceil(finalTotal);
+    } else if (currency?.roundingMode === "DOWN") {
+      finalTotal = Math.floor(finalTotal);
+    }
+    
+    setAmountAfterTax(finalTotal.toFixed(2));
+  }, [items, taxRate, currencyId, data]);
 
   function addItem() {
     setItems((cur) => [

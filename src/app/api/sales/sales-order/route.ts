@@ -1,7 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { nextDocumentNo } from "@/lib/document-numbering";
-import { createWorkOrderFromBatch } from "@/app/dashboard/production/work-order/actions";
 
 export async function GET(request: Request) {
   try {
@@ -44,11 +44,16 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { items, ...orderData } = body;
+    const { items, customerSelection, ...orderDataRest } = body;
+    const orderData = { ...orderDataRest };
 
     // Validation
+    const freeTextData = customerSelection?.freeTextPayload || customerSelection?.freeTextData;
+
     if (!orderData.salespersonId) return NextResponse.json({ error: "Salesperson is required" }, { status: 400 });
-    if (!orderData.customerId) return NextResponse.json({ error: "Customer is required" }, { status: 400 });
+    if (!customerSelection || (customerSelection.type === "profile" && !customerSelection.profileId) || (customerSelection.type === "freetext" && !freeTextData?.customerName)) {
+      return NextResponse.json({ error: "Customer is required" }, { status: 400 });
+    }
     if (!orderData.paymentTermId) return NextResponse.json({ error: "Payment Term is required" }, { status: 400 });
     if (!orderData.currencyId) return NextResponse.json({ error: "Currency is required" }, { status: 400 });
 
@@ -69,22 +74,80 @@ export async function POST(request: Request) {
     // The number is taken and the order written in one transaction: the
     // counter's row lock only holds for as long as the transaction does.
     const order = await prisma.$transaction(async (tx) => {
-    const orderNo = await nextDocumentNo(tx, "SALES_ORDER", {
+    const orderNo = await nextDocumentNo(tx as any, "SALES_ORDER", {
       isTaken: async (no) => (await tx.salesOrder.count({ where: { orderNo: no } })) > 0,
     });
+
+    let finalCustomerId = orderData.customerId;
+    let finalContactPersonId = cleanId(orderData.contactPersonId);
+    let finalDeliverToId = cleanId(orderData.deliverToId);
+    let finalBillToId = cleanId(orderData.billToId);
+
+    if (customerSelection) {
+      if (customerSelection.type === "profile") {
+        finalCustomerId = customerSelection.profileId;
+      } else if (customerSelection.type === "freetext") {
+        const freeTextData = customerSelection.freeTextPayload || customerSelection.freeTextData;
+        
+        // Find existing customer by name or create a new one
+        let customer = await tx.customerProfile.findUnique({
+          where: { customerName: freeTextData.customerName }
+        });
+        
+        if (!customer) {
+          const customerCode = await nextDocumentNo(tx as any, "CUSTOMER", {
+            isTaken: async (no) => (await tx.customerProfile.count({ where: { customerCode: no } })) > 0,
+          });
+          customer = await tx.customerProfile.create({
+            data: {
+              customerCode,
+              customerName: freeTextData.customerName,
+              gstin: freeTextData.gstin || null,
+            }
+          });
+        }
+        finalCustomerId = customer.id;
+
+        if (freeTextData.contactPerson) {
+          const cp = await tx.customerContactPerson.create({
+            data: {
+              customerId: customer.id,
+              contactPersonName: freeTextData.contactPerson,
+              email: freeTextData.email || null,
+              telNo: freeTextData.phone || null,
+              isDefault: true
+            }
+          });
+          finalContactPersonId = cp.id;
+        }
+
+        if (freeTextData.address) {
+          const addr = await tx.customerAddress.create({
+            data: {
+              customerId: customer.id,
+              address: freeTextData.address,
+              isDefault: true
+            }
+          });
+          finalDeliverToId = addr.id;
+          finalBillToId = addr.id;
+        }
+      }
+    }
 
     return tx.salesOrder.create({
       data: {
         ...orderData,
+        customerId: finalCustomerId!,
         orderNo,
         revision: 0,
         status: status,
         date: new Date(orderData.date),
         orderType: orderData.orderType || "Direct",
         taxTypeId: cleanId(orderData.taxTypeId),
-        contactPersonId: cleanId(orderData.contactPersonId),
-        deliverToId: cleanId(orderData.deliverToId),
-        billToId: cleanId(orderData.billToId),
+        contactPersonId: finalContactPersonId,
+        deliverToId: finalDeliverToId,
+        billToId: finalBillToId,
         customerPoRef: orderData.customerPoRef || null,
         projectCode: orderData.projectCode || null,
         otherPaymentDetail: orderData.otherPaymentDetail || null,

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { FileText, Download, Loader2, AlertCircle } from "lucide-react";
+import { FileText, Download, Loader2, AlertCircle, Search } from "lucide-react";
 import * as XLSX from "xlsx";
 
 export default function SalesReportPage() {
@@ -17,6 +17,7 @@ export default function SalesReportPage() {
 
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [reportData, setReportData] = useState<any[] | null>(null);
 
   const [customers, setCustomers] = useState<{ id: string; customerName: string }[]>([]);
   const [employees, setEmployees] = useState<{ id: string; name: string }[]>([]);
@@ -31,7 +32,62 @@ export default function SalesReportPage() {
         setFinishedGoods(data.finishedGoods || []);
       })
       .catch((err) => console.error("Failed to load dropdown data:", err));
+
+    const savedFilters = localStorage.getItem("salesReportFilters");
+    if (savedFilters) {
+      try {
+        const p = JSON.parse(savedFilters);
+        if (p.soNo) setSoNo(p.soNo);
+        if (p.soDateFrom) setSoDateFrom(p.soDateFrom);
+        if (p.soDateTo) setSoDateTo(p.soDateTo);
+        if (p.customer) setCustomer(p.customer);
+        if (p.salesperson) setSalesperson(p.salesperson);
+        if (p.partNo) setPartNo(p.partNo);
+        if (p.partDescription) setPartDescription(p.partDescription);
+        if (p.workOrderNo) setWorkOrderNo(p.workOrderNo);
+      } catch (e) {
+        console.error("Failed to parse saved filters:", e);
+      }
+    }
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem("salesReportFilters", JSON.stringify({
+      soNo, soDateFrom, soDateTo, customer, salesperson, partNo, partDescription, workOrderNo
+    }));
+  }, [soNo, soDateFrom, soDateTo, customer, salesperson, partNo, partDescription, workOrderNo]);
+
+  const handleSearch = async () => {
+    setLoading(true);
+    setErrorMsg("");
+    setReportData(null);
+    try {
+      const params = new URLSearchParams();
+      if (soNo) params.append("soNo", soNo);
+      if (soDateFrom) params.append("soDateFrom", soDateFrom);
+      if (soDateTo) params.append("soDateTo", soDateTo);
+      if (customer) params.append("customer", customer);
+      if (salesperson) params.append("salesperson", salesperson);
+      if (partNo) params.append("partNo", partNo);
+      if (partDescription) params.append("partDescription", partDescription);
+      if (workOrderNo) params.append("workOrderNo", workOrderNo);
+
+      const res = await fetch(`/api/reports/sales-report?${params.toString()}`);
+      if (!res.ok) throw new Error("Failed to fetch report data");
+      
+      const data = await res.json();
+      
+      if (data.length === 0) {
+        throw new Error("No records found for the given criteria.");
+      }
+
+      setReportData(data);
+    } catch (err: any) {
+      setErrorMsg(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleExport = async () => {
     setLoading(true);
@@ -292,7 +348,15 @@ export default function SalesReportPage() {
           </div>
         )}
 
-        <div className="mt-8 flex justify-end">
+        <div className="mt-8 flex justify-end gap-3">
+          <button
+            onClick={handleSearch}
+            disabled={loading}
+            className="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 hover:bg-indigo-100 rounded-lg shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? <Loader2 className="animate-spin" size={16} /> : <Search size={16} />}
+            Search
+          </button>
           <button
             onClick={handleExport}
             disabled={loading}
@@ -303,6 +367,51 @@ export default function SalesReportPage() {
           </button>
         </div>
       </div>
+
+      {reportData && reportData.length > 0 && (
+        <div className="bg-white border border-blue-200 rounded-xl shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm text-gray-600 whitespace-nowrap">
+              <thead className="bg-blue-50/50 text-blue-900 border-b border-blue-100 text-xs uppercase tracking-wider font-semibold">
+                <tr>
+                  <th className="px-4 py-3">SO No</th>
+                  <th className="px-4 py-3">SO Date</th>
+                  <th className="px-4 py-3">Customer</th>
+                  <th className="px-4 py-3">Salesperson</th>
+                  <th className="px-4 py-3">Customer PO Ref</th>
+                  <th className="px-4 py-3">Item Part No</th>
+                  <th className="px-4 py-3">Item Description</th>
+                  <th className="px-4 py-3 text-right">Qty</th>
+                  <th className="px-4 py-3 text-right">Unit Price</th>
+                  <th className="px-4 py-3 text-right">Amt</th>
+                  <th className="px-4 py-3">WO No</th>
+                  <th className="px-4 py-3">WO Status</th>
+                  <th className="px-4 py-3 text-right">Delivered Qty</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {reportData.map((row, i) => (
+                  <tr key={i} className="hover:bg-blue-50/30 transition-colors">
+                    <td className="px-4 py-3 font-medium text-blue-900">{row.soNo}</td>
+                    <td className="px-4 py-3">{row.soDate ? new Date(row.soDate).toLocaleDateString() : ""}</td>
+                    <td className="px-4 py-3">{row.customer}</td>
+                    <td className="px-4 py-3">{row.salesperson}</td>
+                    <td className="px-4 py-3">{row.customerPoRef}</td>
+                    <td className="px-4 py-3">{row.partNo}</td>
+                    <td className="px-4 py-3">{row.description}</td>
+                    <td className="px-4 py-3 text-right">{row.qty}</td>
+                    <td className="px-4 py-3 text-right">{row.unitPrice}</td>
+                    <td className="px-4 py-3 text-right">{row.amt}</td>
+                    <td className="px-4 py-3">{row.woNo}</td>
+                    <td className="px-4 py-3">{row.woStatus}</td>
+                    <td className="px-4 py-3 text-right">{row.qtyDelivered}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

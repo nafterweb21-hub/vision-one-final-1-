@@ -556,6 +556,12 @@ export const APP_MODULES: AppModuleDef[] = [
     group: 'Master Profile',
     pathPrefixes: ['/dashboard/master-profile/failure-mode'],
   },
+  {
+    code: 'TERMS_CONDITION_PROFILE',
+    name: 'Terms & Conditions Profile',
+    group: 'Master Profile',
+    pathPrefixes: ['/dashboard/master-profile/terms-condition'],
+  },
 ];
 
 /** Stable ordering for the role-permission grid. */

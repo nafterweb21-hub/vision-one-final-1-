@@ -165,7 +165,7 @@ export default function AddRoutingProcessModal({
 
                   <div className="space-y-1.5 md:col-span-2">
                     <label className="text-sm font-medium text-slate-700">
-                      Assigned Welder
+                      Assigned Employee
                     </label>
                     <SearchableSelect {...register("assignedEmployeeId")} className={inputCls}>
                       <option value="">Select (Optional)</option>

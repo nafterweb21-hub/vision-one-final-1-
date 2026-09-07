@@ -156,6 +156,20 @@ export const DOC_TYPES = [
     scope: 'GLOBAL',
     description: 'Material issued to a work order.',
   },
+  {
+    code: 'CUSTOMER',
+    label: 'Customer Profile',
+    group: 'Sales',
+    scope: 'GLOBAL',
+    description: 'Customer master records.',
+  },
+  {
+    code: 'SUPPLIER',
+    label: 'Supplier Profile',
+    group: 'Purchasing',
+    scope: 'GLOBAL',
+    description: 'Supplier master records.',
+  },
 ] as const satisfies readonly DocTypeDef[];
 
 export type DocType = (typeof DOC_TYPES)[number]['code'];
@@ -276,6 +290,24 @@ export const DEFAULT_FORMATS: Record<DocType, NumberFormat> = {
   },
   CERTIFICATE_OF_CONFORMITY: { prefix: 'COC', ...YEARLY_5 }, // COC2600001
   MATERIAL_CONSUMPTION: { prefix: 'MC', ...YEARLY_5 }, // MC2600001
+  CUSTOMER: {
+    prefix: 'CUST',
+    periodFormat: 'NONE',
+    separator: '',
+    sequenceLength: 3,
+    suffix: '',
+    includeRevision: false,
+    resetPeriod: 'NEVER',
+  },
+  SUPPLIER: {
+    prefix: 'SUP',
+    periodFormat: 'NONE',
+    separator: '',
+    sequenceLength: 3,
+    suffix: '',
+    includeRevision: false,
+    resetPeriod: 'NEVER',
+  },
 };
 
 export const MIN_SEQUENCE_LENGTH = 1;

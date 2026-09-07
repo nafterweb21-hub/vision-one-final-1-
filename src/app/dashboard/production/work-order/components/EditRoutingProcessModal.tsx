@@ -23,6 +23,7 @@ type Props = {
   mainProcesses: MainProcess[];
   processProfiles: ProcessProfile[];
   existingPairs?: Pair[];
+  employees?: any[];
   disabled?: boolean;
 };
 
@@ -31,6 +32,7 @@ type FormValues = {
   routingProcessId: string;
   targetCompletionDate: string;
   remark: string;
+  assignedEmployeeId: string;
 };
 
 export default function EditRoutingProcessModal({
@@ -38,6 +40,7 @@ export default function EditRoutingProcessModal({
   mainProcesses,
   processProfiles,
   existingPairs = [],
+  employees = [],
   disabled,
 }: Props) {
   const [isOpen, setOpen] = useState(false);
@@ -51,6 +54,7 @@ export default function EditRoutingProcessModal({
       routingProcessId: routingProcess?.routingProcessId || "",
       targetCompletionDate: routingProcess?.targetCompletionDate ? new Date(routingProcess.targetCompletionDate).toISOString().slice(0, 10) : "",
       remark: routingProcess?.remark || "",
+      assignedEmployeeId: routingProcess?.assignedEmployeeId || "",
     },
   });
 
@@ -61,6 +65,7 @@ export default function EditRoutingProcessModal({
       routingProcessId: routingProcess?.routingProcessId || "",
       targetCompletionDate: routingProcess?.targetCompletionDate ? new Date(routingProcess.targetCompletionDate).toISOString().slice(0, 10) : "",
       remark: routingProcess?.remark || "",
+      assignedEmployeeId: routingProcess?.assignedEmployeeId || "",
     });
   }, [routingProcess, reset]);
 
@@ -90,6 +95,7 @@ export default function EditRoutingProcessModal({
         routingProcessId: data.routingProcessId,
         targetCompletionDate: data.targetCompletionDate,
         remark: data.remark,
+        assignedEmployeeId: data.assignedEmployeeId,
       });
       if (!res.success) {
         setError(res.error || "An error occurred");
@@ -135,7 +141,11 @@ export default function EditRoutingProcessModal({
                     <label className="text-sm font-medium text-slate-700">
                       Main Process <span className="text-red-500">*</span>
                     </label>
-                    <SearchableSelect {...register("mainProcessId", { required: true })} className={inputCls}>
+                    <SearchableSelect 
+                      {...register("mainProcessId", { required: true })} 
+                      value={watch("mainProcessId")}
+                      className={inputCls}
+                    >
                       <option value="">Select</option>
                       {mainProcesses.map((m) => (
                         <option key={m.id} value={m.id}>{m.process}</option>
@@ -150,6 +160,7 @@ export default function EditRoutingProcessModal({
                     </label>
                     <SearchableSelect
                       {...register("routingProcessId", { required: true })}
+                      value={watch("routingProcessId")}
                       className={inputCls}
                       disabled={!selectedMain}
                     >
@@ -166,7 +177,7 @@ export default function EditRoutingProcessModal({
                     {errors.routingProcessId && <p className="text-xs text-red-500">Required</p>}
                   </div>
 
-                  <div className="space-y-1.5 md:col-span-2">
+                  <div className="space-y-1.5">
                     <label className="text-sm font-medium text-slate-700">
                       Target Completion Date <span className="text-red-500">*</span>
                     </label>
@@ -181,6 +192,24 @@ export default function EditRoutingProcessModal({
                     {errors.targetCompletionDate && (
                       <p className="text-xs text-red-500">{errors.targetCompletionDate.message}</p>
                     )}
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium text-slate-700">
+                      Assigned Employee
+                    </label>
+                    <SearchableSelect 
+                      {...register("assignedEmployeeId")} 
+                      value={watch("assignedEmployeeId")}
+                      className={inputCls}
+                    >
+                      <option value="">Select Employee</option>
+                      {employees.map((emp: any) => (
+                        <option key={emp.id} value={emp.id}>
+                          {emp.name}
+                        </option>
+                      ))}
+                    </SearchableSelect>
                   </div>
                 </div>
 

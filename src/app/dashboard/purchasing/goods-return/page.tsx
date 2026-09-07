@@ -149,7 +149,12 @@ export default function GoodsReturnListPage() {
 
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-2 bg-white border border-blue-200 p-3 rounded-xl shadow-sm">
-        <ToolbarBtn icon={<Edit2 size={14} />} label="View / Edit" onClick={onEdit} disabled={!selected} />
+        <ToolbarBtn 
+          icon={<Edit2 size={14} />} 
+          label={selected && selected.status !== "Draft" ? "View Only" : "View / Edit"} 
+          onClick={onEdit} 
+          disabled={!selected} 
+        />
         <ToolbarBtn icon={<Ban size={14} />} label="Void" onClick={onVoid} disabled={!selected || selected.status === "Void"} />
         <ToolbarBtn icon={<Send size={14} />} label="Submit" onClick={onSubmit} disabled={!selected || selected.status !== "Draft"} primary />
       </div>

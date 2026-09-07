@@ -780,6 +780,7 @@ export async function editRoutingProcess(id: string, data: {
   routingProcessId: string;
   targetCompletionDate: string;
   remark?: string;
+  assignedEmployeeId?: string;
 }) {
   try {
     const rp = await prisma.routingProcess.findUnique({
@@ -826,6 +827,7 @@ export async function editRoutingProcess(id: string, data: {
         routingProcessId: data.routingProcessId,
         targetCompletionDate: target,
         remark: data.remark || null,
+        assignedEmployeeId: data.assignedEmployeeId || null,
       },
     });
 

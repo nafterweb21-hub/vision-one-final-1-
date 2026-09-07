@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
@@ -52,12 +51,15 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 
       await tx.purchaseOrderItem.deleteMany({ where: { purchaseOrderId: exist.id } });
 
+      const finalSupplierId = body.supplierId;
+      const finalContactPersonId = body.contactPersonId || null;
+
       const updated = await tx.purchaseOrder.update({
         where: { id: exist.id },
         data: {
           date: new Date(body.date),
           companyId: body.companyId,
-          supplierId: body.supplierId,
+          supplierId: finalSupplierId!,
           workOrderNo: body.workOrderNo || null,
           purchaseRequisitionId: body.purchaseRequisitionId || null,
           currencyId: body.currencyId,
@@ -69,7 +71,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
           amountAfterTax: body.amountAfterTax || 0,
           millCertificate: body.millCertificate || false,
           certOfConformance: body.certOfConformance || false,
-          contactPersonId: body.contactPersonId,
+          contactPersonId: finalContactPersonId,
           telNo: body.telNo || "",
           faxNo: body.faxNo || "",
           mobileNo: body.mobileNo || "",

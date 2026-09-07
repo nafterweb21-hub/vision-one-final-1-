@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { createWorkOrderFromBatch } from "@/app/dashboard/production/work-order/actions";
-
+import { nextDocumentNo } from "@/lib/document-numbering";
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
@@ -26,11 +25,14 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   try {
     const { id } = await params;
     const body = await request.json();
-    const { items, status, ...orderData } = body;
+    const { items, status, customerSelection, ...orderDataRest } = body;
+    let orderData = { ...orderDataRest };
 
     // Validation
     if (!orderData.salespersonId) return NextResponse.json({ error: "Salesperson is required" }, { status: 400 });
-    if (!orderData.customerId) return NextResponse.json({ error: "Customer is required" }, { status: 400 });
+    if (!customerSelection || (customerSelection.type === "profile" && !customerSelection.profileId) || (customerSelection.type === "freetext" && !customerSelection.freeTextPayload?.customerName)) {
+      return NextResponse.json({ error: "Customer is required" }, { status: 400 });
+    }
     if (!orderData.paymentTermId) return NextResponse.json({ error: "Payment Term is required" }, { status: 400 });
     if (!orderData.currencyId) return NextResponse.json({ error: "Currency is required" }, { status: 400 });
 
@@ -112,18 +114,75 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       };
     });
 
+    let finalCustomerId = orderData.customerId;
+    let finalContactPersonId = cleanId(orderData.contactPersonId);
+    let finalDeliverToId = cleanId(orderData.deliverToId);
+    let finalBillToId = cleanId(orderData.billToId);
+
+    if (customerSelection) {
+      if (customerSelection.type === "profile") {
+        finalCustomerId = customerSelection.profileId;
+      } else if (customerSelection.type === "freetext") {
+        const freeTextData = customerSelection.freeTextPayload || customerSelection.freeTextData;
+        
+        let customer = await prisma.customerProfile.findUnique({
+          where: { customerName: freeTextData.customerName }
+        });
+        
+        if (!customer) {
+          const customerCode = await nextDocumentNo(prisma as any, "CUSTOMER", {
+            isTaken: async (no) => (await prisma.customerProfile.count({ where: { customerCode: no } })) > 0,
+          });
+          customer = await prisma.customerProfile.create({
+            data: {
+              customerCode,
+              customerName: freeTextData.customerName,
+              gstin: freeTextData.gstin || null,
+            }
+          });
+        }
+        finalCustomerId = customer.id;
+
+        if (freeTextData.contactPerson) {
+          const cp = await prisma.customerContactPerson.create({
+            data: {
+              customerId: customer.id,
+              contactPersonName: freeTextData.contactPerson,
+              email: freeTextData.email || null,
+              telNo: freeTextData.phone || null,
+              isDefault: true
+            }
+          });
+          finalContactPersonId = cp.id;
+        }
+
+        if (freeTextData.address) {
+          const addr = await prisma.customerAddress.create({
+            data: {
+              customerId: customer.id,
+              address: freeTextData.address,
+              isDefault: true
+            }
+          });
+          finalDeliverToId = addr.id;
+          finalBillToId = addr.id;
+        }
+      }
+    }
+
     const updatedOrder = await prisma.salesOrder.update({
       where: { id },
       data: {
         ...orderData,
+        customerId: finalCustomerId!,
         date: new Date(orderData.date),
         orderType: orderData.orderType || "Direct",
         status,
         revision: nextRevision,
         taxTypeId: cleanId(orderData.taxTypeId),
-        contactPersonId: cleanId(orderData.contactPersonId),
-        deliverToId: cleanId(orderData.deliverToId),
-        billToId: cleanId(orderData.billToId),
+        contactPersonId: finalContactPersonId,
+        deliverToId: finalDeliverToId,
+        billToId: finalBillToId,
         customerPoRef: orderData.customerPoRef || null,
         projectCode: orderData.projectCode || null,
         otherPaymentDetail: orderData.otherPaymentDetail || null,

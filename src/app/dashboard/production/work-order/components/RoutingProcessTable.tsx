@@ -35,7 +35,7 @@ export default function RoutingProcessTable({
 
   // Re-sync local state whenever the server sends a fresh order/status
   // (e.g. after a status change refresh).
-  const signature = initialRows.map((r) => `${r.id}:${r.sequence}:${r.status}`).join("|");
+  const signature = initialRows.map((r) => `${r.id}:${r.sequence}:${r.status}:${r.mainProcessId}:${r.routingProcessId}:${r.assignedEmployeeId}:${r.targetCompletionDate}:${r.remark}`).join("|");
   useEffect(() => {
     setRows(initialRows);
     // eslint-disable-next-line react-hooks/exhaustive-deps

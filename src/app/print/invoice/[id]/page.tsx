@@ -277,7 +277,7 @@ export default async function PrintInvoicePage(
                 <tbody>
                   <tr>
                     <td>Invoice No.</td>
-                    <td className="font-bold">{inv.invoiceNo}</td>
+                    <td className="font-bold">{inv.invoiceNo?.split("-R")[0]}</td>
                     <td>Invoice Date</td>
                     <td>{fmtDate(inv.invoiceDate)}</td>
                   </tr>
@@ -315,7 +315,7 @@ export default async function PrintInvoicePage(
                   <td>{idx + 1}</td>
                   <td className="text-left font-bold">
                     {it.part?.partNo ? `${it.part.partNo} ` : ""}
-                    {it.description}
+                    {it.description || it.part?.description}
                   </td>
                   <td>{it.hsnCode || ""}</td>
                   <td className="text-right">{fmt(it.quantity)} {it.uom?.uomName || ""}</td>

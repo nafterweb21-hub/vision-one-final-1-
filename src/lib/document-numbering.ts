@@ -110,6 +110,23 @@ export interface NextDocumentNoOptions {
 const MAX_SKIPS = 5000;
 
 /**
+ * Previews the next number for a document type without advancing the sequence.
+ */
+export async function getPreviewNextDocumentNo(docType: DocType, companyId?: string | null): Promise<string> {
+  const scopeKey = scopeKeyFor(docType, companyId);
+  const row = await prisma.documentNumberFormat.findUnique({
+    where: { docType_scopeKey: { docType, scopeKey } },
+  });
+
+  const format = row ? toNumberFormat(row as FormatRow, docType) : DEFAULT_FORMATS[docType];
+  const now = new Date();
+  const periodKey = periodKeyFor(format.resetPeriod, now);
+  const sequence = row?.periodKey === periodKey ? row.nextSequence : 1;
+  
+  return formatDocumentNo(format, sequence, 0, now);
+}
+
+/**
  * Takes the next number for `docType` and advances the counter.
  *
  * MUST be called inside a transaction that also writes the document: the row

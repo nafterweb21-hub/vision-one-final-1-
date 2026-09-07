@@ -18,6 +18,7 @@ type FormData = {
   taxes: { id: string; taxType: string; taxRate: number }[];
   finishedGoods: { id: string; partNo: string | null; description: string }[];
   uoms: { id: string; uomName: string }[];
+  termsAndConditionProfiles: { id: string; name: string; content: string }[];
 };
 
 type Item = {
@@ -57,6 +58,7 @@ export default function QuotationEditPage() {
   const [taxTypeId, setTaxTypeId] = useState("");
   const [lumpSumDisc, setLumpSumDisc] = useState("0.00");
   const [termsAndConditions, setTermsAndConditions] = useState("");
+  const [termsPresetId, setTermsPresetId] = useState("");
   const [remark, setRemark] = useState("");
   const [items, setItems] = useState<Item[]>([
     { partId: "", uomId: "", unitPrice: "0.00", quantity: "1", sortOrder: 0 },
@@ -75,7 +77,7 @@ export default function QuotationEditPage() {
           setReadOnly(q.status !== "Draft");
           setDate(new Date(q.date).toISOString().slice(0, 10));
           setSalespersonId(q.salespersonId);
-          setCustomerId(q.customerId);
+          setCustomerId(q.customerId || "");
           setContactPersonId(q.contactPersonId || "");
           setCustomerPoRef(q.customerPoRef || "");
           setRefNo(q.refNo || "");
@@ -151,10 +153,30 @@ export default function QuotationEditPage() {
     );
     const disc = Number(lumpSumDisc || 0);
     const afterDisc = Math.max(0, subTotal - disc);
-    const tax = data?.taxes.find((t) => t.id === taxTypeId);
-    const taxRate = tax?.taxRate ?? 0;
+    
+    const isSez = customer?.isSez;
+    const company = data?.companies?.[0]; // Default company if multiple exist
+    
+    let taxRate = 0;
+    if (isSez) {
+      taxRate = Number(company?.sezTaxRate) || 0;
+    } else {
+      const tax = data?.taxes.find((t) => t.id === taxTypeId);
+      taxRate = tax?.taxRate ?? 0;
+    }
+    
     const taxAmount = +(afterDisc * (taxRate / 100)).toFixed(2);
-    const total = +(afterDisc + taxAmount).toFixed(2);
+    
+    let total = afterDisc + taxAmount;
+    const currency = data?.currencies.find((c) => c.id === currencyId);
+    if (currency?.roundingMode === "UP") {
+      total = Math.ceil(total);
+    } else if (currency?.roundingMode === "DOWN") {
+      total = Math.floor(total);
+    } else {
+      total = +total.toFixed(2);
+    }
+
     return {
       subTotal: +subTotal.toFixed(2),
       afterDisc: +afterDisc.toFixed(2),
@@ -162,7 +184,7 @@ export default function QuotationEditPage() {
       taxAmount,
       total,
     };
-  }, [items, lumpSumDisc, taxTypeId, data]);
+  }, [items, lumpSumDisc, taxTypeId, data, currencyId]);
 
   function updateItem(idx: number, patch: Partial<Item>) {
     setItems((cur) => cur.map((it, i) => (i === idx ? { ...it, ...patch } : it)));
@@ -180,7 +202,9 @@ export default function QuotationEditPage() {
   async function onSave() {
     setError("");
     if (!salespersonId) return setError("Salesperson is required");
-    if (!customerId) return setError("Customer is required");
+    if (!customerSelection || (customerSelection.type === "profile" && !customerSelection.profileId) || (customerSelection.type === "freetext" && !customerSelection.freeTextPayload?.customerName)) {
+      return setError("Customer is required");
+    }
     if (!currencyId) return setError("Currency is required");
     if (!title.trim()) return setError("Title is required");
     if (!items.length || !items.some((it) => it.partId))
@@ -194,7 +218,7 @@ export default function QuotationEditPage() {
       const payload = {
         date,
         salespersonId,
-        customerId,
+        
         contactPersonId: contactPersonId || null,
         customerPoRef,
         refNo,
@@ -206,7 +230,7 @@ export default function QuotationEditPage() {
         currencyId,
         exchangeRate: Number(exchangeRate) || 1,
         lumpSumDisc: Number(lumpSumDisc) || 0,
-        taxTypeId: taxTypeId || null,
+        taxTypeId: customer?.isSez ? null : (taxTypeId || null),
         termsAndConditions,
         remark,
         items: items
@@ -567,16 +591,41 @@ export default function QuotationEditPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-white border border-blue-200 rounded-xl shadow-sm p-5 md:col-span-2 space-y-4">
           <Field label="Tax Type">
+            {customer?.isSez ? (
+              <div className="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-lg text-slate-500 text-sm">
+                SEZ Tax ({Number(data?.companies?.[0]?.sezTaxRate) || 0}%) Auto-applied
+              </div>
+            ) : (
+              <SearchableSelect
+                value={taxTypeId}
+                disabled={readOnly}
+                onChange={(e) => setTaxTypeId(e.target.value)}
+                className={inputCls}
+              >
+                <option value="">— None —</option>
+                {data?.taxes.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.taxType} ({t.taxRate}%)
+                  </option>
+                ))}
+              </SearchableSelect>
+            )}
+          </Field>
+          <Field label="Terms & Conditions Preset">
             <SearchableSelect
-              value={taxTypeId}
+              value={termsPresetId}
               disabled={readOnly}
-              onChange={(e) => setTaxTypeId(e.target.value)}
+              onChange={(e) => {
+                setTermsPresetId(e.target.value);
+                const p = data?.termsAndConditionProfiles?.find((x) => x.id === e.target.value);
+                if (p) setTermsAndConditions(p.content);
+              }}
               className={inputCls}
             >
-              <option value="">— None —</option>
-              {data?.taxes.map((t) => (
+              <option value="">— Select to Auto-Fill —</option>
+              {data?.termsAndConditionProfiles?.map((t) => (
                 <option key={t.id} value={t.id}>
-                  {t.taxType} ({t.taxRate}%)
+                  {t.name}
                 </option>
               ))}
             </SearchableSelect>
@@ -586,7 +635,10 @@ export default function QuotationEditPage() {
               rows={4}
               value={termsAndConditions}
               disabled={readOnly}
-              onChange={(e) => setTermsAndConditions(e.target.value)}
+              onChange={(e) => {
+                setTermsAndConditions(e.target.value);
+                setTermsPresetId(""); // Clear preset if manually edited
+              }}
               className={inputCls}
             />
           </Field>

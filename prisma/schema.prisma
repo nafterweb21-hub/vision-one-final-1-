@@ -104,6 +104,7 @@ model Currency {
   name           String          @unique
   exchangeRate   Decimal
   isDefault      Boolean         @default(false)
+  roundingMode   String          @default("EXACT")
   status         String          @default("Active")
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
@@ -195,6 +196,7 @@ model CustomerProfile {
   invoices       Invoice[]
   receipts       Receipt[]
   gstin          String?
+  isSez          Boolean                   @default(false)
   roNumber       String?
   pan            String?
   placeOfSupply  String?
@@ -820,6 +822,7 @@ model CompanyProfile {
   footerName            String
   allowPoForWo          Boolean                @default(false)
   as9100RequirementNote Boolean                @default(false)
+  sezTaxRate            Decimal                @default(0)
   status                String                 @default("Active")
   createdAt             DateTime               @default(now())
   updatedAt             DateTime               @updatedAt
@@ -1002,6 +1005,7 @@ model PurchaseOrder {
   purchaserId           String
   remark                String                 @default("")
   status                String                 @default("Draft")
+  approverName          String?
   createdAt             DateTime               @default(now())
   updatedAt             DateTime               @updatedAt
   type                  String                 @default("MATERIAL")
@@ -1040,6 +1044,8 @@ model PurchaseOrderItem {
   internalQuantity          Decimal                  @default(0)
   deliveryDate              DateTime                 @default(now())
   remark                    String                   @default("")
+    hsnCode                   String?
+    hsnDescription            String?
   materialProfileId         String?
   purchaseRequisitionItemId String?
   sortOrder                 Int                      @default(0)
@@ -1650,4 +1656,14 @@ model FixedAsset {
   updatedAt     DateTime           @updatedAt
   department    DepartmentProfile? @relation(fields: [departmentId], references: [id])
   assignedTo    Employee?          @relation("FixedAssetAssignee", fields: [assignedToId], references: [id])
+}
+
+model TermsAndConditionProfile {
+  id          String       @id @default(cuid())
+  name        String       @unique
+  content     String
+  remark      String?
+  status      String       @default("Active")
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 }

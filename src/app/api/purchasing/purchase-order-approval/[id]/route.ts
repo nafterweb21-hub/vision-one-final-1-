@@ -53,8 +53,17 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         `Your purchase order ${po.poNo} has been rejected.\nRemark: ${remark}\nPlease revise and amend.`
       );
     } else if (action === "approve") {
-
       newStatus = "Issued";
+      
+      let approverName = "System Admin"; // Fallback
+      if (currentUserId && currentUserId !== "mock-user-id") {
+        const user = await prisma.user.findUnique({ where: { id: currentUserId } });
+        if (user) {
+          approverName = user.name || user.email;
+        }
+      }
+      updateData.approverName = approverName;
+
       // Send email to supplier
       await sendEmailNotification(
         po.supplier?.supplierName || "supplier@example.com",

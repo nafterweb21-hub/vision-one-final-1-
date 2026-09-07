@@ -18,9 +18,10 @@
 export interface ProfileFieldConfig {
   name: string;
   label: string;
-  type: "text" | "number" | "checkbox";
+  type: "text" | "number" | "checkbox" | "select";
   placeholder?: string;
   required?: boolean;
+  options?: { label: string; value: string }[];
 }
 
 export interface ProfileMeta {
@@ -48,6 +49,17 @@ export const PROFILE_REGISTRY: Record<string, ProfileMeta> = {
       { name: "name", label: "Currency Name", type: "text", required: true, placeholder: "e.g. US Dollar" },
       { name: "exchangeRate", label: "Exchange Rate", type: "number", required: true, placeholder: "e.g. 83.250" },
       { name: "isDefault", label: "Default Currency?", type: "checkbox" },
+      { 
+        name: "roundingMode", 
+        label: "Rounding Mode", 
+        type: "select", 
+        options: [
+          { label: "Exact (No Rounding)", value: "EXACT" },
+          { label: "Round Up", value: "UP" },
+          { label: "Round Down", value: "DOWN" }
+        ],
+        required: true
+      },
     ],
   },
   uom: {

@@ -10,6 +10,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import * as XLSX from "xlsx";
+import { SearchableSelect } from "@/components/SearchableSelect";
 
 /**
  * Monthly Schedule Report — `docs/spec/reports.md`.
@@ -295,7 +296,7 @@ export default function MonthlyScheduleReportPage() {
           </div>
           <div className="space-y-1">
             <label className="text-xs font-semibold text-blue-700">Schedule State</label>
-            <select
+            <SearchableSelect
               value={state}
               onChange={(e) => setState(e.target.value)}
               className="w-full px-3 py-2 text-sm bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
@@ -305,7 +306,7 @@ export default function MonthlyScheduleReportPage() {
               <option value="Due Soon">Due Soon</option>
               <option value="On Track">On Track</option>
               <option value="Completed">Completed</option>
-            </select>
+            </SearchableSelect>
           </div>
         </div>
 

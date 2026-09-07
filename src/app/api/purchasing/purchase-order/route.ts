@@ -56,6 +56,9 @@ export async function POST(req: Request) {
         isTaken: async (no) => (await tx.purchaseOrder.count({ where: { poNo: no } })) > 0,
       });
 
+      const finalSupplierId = body.supplierId;
+      const finalContactPersonId = body.contactPersonId || null;
+
       const po = await tx.purchaseOrder.create({
         data: {
           poNo,
@@ -63,7 +66,7 @@ export async function POST(req: Request) {
           revision: 0,
           date: new Date(body.date),
           companyId: body.companyId,
-          supplierId: body.supplierId,
+          supplierId: finalSupplierId!,
           workOrderNo: body.workOrderNo || null,
           purchaseRequisitionId: body.purchaseRequisitionId || null,
           currencyId: body.currencyId,
@@ -75,7 +78,7 @@ export async function POST(req: Request) {
           amountAfterTax: body.amountAfterTax || 0,
           millCertificate: body.millCertificate || false,
           certOfConformance: body.certOfConformance || false,
-          contactPersonId: body.contactPersonId,
+          contactPersonId: finalContactPersonId,
           telNo: body.telNo || "",
           faxNo: body.faxNo || "",
           mobileNo: body.mobileNo || "",

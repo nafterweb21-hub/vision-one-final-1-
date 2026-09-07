@@ -16,6 +16,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { canCreate, canEdit } from "@/lib/access";
+import { SearchableSelect } from "@/components/SearchableSelect";
 
 const MODULE = "MATERIAL_CONSUMPTION";
 const API = "/api/inventory/consumption";
@@ -350,7 +351,7 @@ export default function ConsumptionFormPage() {
             />
           </Field>
           <Field label="Work Order" required>
-            <select
+            <SearchableSelect
               value={workOrderNo}
               onChange={(e) => setWorkOrderNo(e.target.value)}
               className={INPUT}
@@ -362,10 +363,10 @@ export default function ConsumptionFormPage() {
                   {w.customerName ? ` — ${w.customerName}` : ""}
                 </option>
               ))}
-            </select>
+            </SearchableSelect>
           </Field>
           <Field label="Issued By" required>
-            <select
+            <SearchableSelect
               value={issuedById}
               onChange={(e) => setIssuedById(e.target.value)}
               className={INPUT}
@@ -376,7 +377,7 @@ export default function ConsumptionFormPage() {
                   {e.label}
                 </option>
               ))}
-            </select>
+            </SearchableSelect>
           </Field>
         </div>
 
@@ -427,7 +428,7 @@ export default function ConsumptionFormPage() {
                   return (
                     <tr key={index} className="hover:bg-blue-50/20">
                       <td className="px-3 py-2">
-                        <select
+                        <SearchableSelect
                           value={line.stockItemId}
                           onChange={(e) => setLine(index, { stockItemId: e.target.value })}
                           className={INPUT}
@@ -438,7 +439,7 @@ export default function ConsumptionFormPage() {
                               {s.label}
                             </option>
                           ))}
-                        </select>
+                        </SearchableSelect>
                       </td>
                       <td
                         className={`px-3 py-2 text-right font-medium ${

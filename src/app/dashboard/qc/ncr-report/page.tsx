@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { FileText, Download, Loader2, AlertCircle } from "lucide-react";
 import * as XLSX from "xlsx";
+import { SearchableSelect } from "@/components/SearchableSelect";
 
 export default function NcrReportPage() {
   const [customer, setCustomer] = useState("");
@@ -173,7 +174,7 @@ export default function NcrReportPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
           <div className="space-y-1">
             <label className="text-xs font-semibold text-blue-700">Customer</label>
-            <select
+            <SearchableSelect
               value={customer}
               onChange={(e) => setCustomer(e.target.value)}
               className="w-full px-3 py-2 text-sm bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
@@ -182,7 +183,7 @@ export default function NcrReportPage() {
               {customers.map((c) => (
                 <option key={c.id} value={c.customerName}>{c.customerName}</option>
               ))}
-            </select>
+            </SearchableSelect>
           </div>
           <div className="space-y-1">
             <label className="text-xs font-semibold text-blue-700">Work Order</label>
@@ -216,7 +217,7 @@ export default function NcrReportPage() {
           </div>
           <div className="space-y-1">
             <label className="text-xs font-semibold text-blue-700">Main Process</label>
-            <select
+            <SearchableSelect
               value={mainProcess}
               onChange={(e) => setMainProcess(e.target.value)}
               className="w-full px-3 py-2 text-sm bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
@@ -225,11 +226,11 @@ export default function NcrReportPage() {
               {mainProcessesList.map((mp) => (
                 <option key={mp.id} value={mp.process}>{mp.process}</option>
               ))}
-            </select>
+            </SearchableSelect>
           </div>
           <div className="space-y-1">
             <label className="text-xs font-semibold text-blue-700">Routing Process</label>
-            <select
+            <SearchableSelect
               value={routingProcess}
               onChange={(e) => setRoutingProcess(e.target.value)}
               className="w-full px-3 py-2 text-sm bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
@@ -238,7 +239,7 @@ export default function NcrReportPage() {
               {routingProcessesList.map((rp) => (
                 <option key={rp.id} value={rp.routingProcess}>{rp.routingProcess}</option>
               ))}
-            </select>
+            </SearchableSelect>
           </div>
           <div className="space-y-1">
             <label className="text-xs font-semibold text-blue-700">Department</label>

@@ -3,17 +3,21 @@
 import React, { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { createSupplierProfileWithDetails } from "../actions";
+import { createSupplierProfileWithDetails, getSupplierCodePreview } from "../actions";
 
 export default function CreateSupplierPage() {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
   // Create form - Supplier Info
-  const [supplierCode, setSupplierCode] = useState("");
   const [supplierName, setSupplierName] = useState("");
   const [remarks, setRemarks] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
+  const [previewCode, setPreviewCode] = useState("Loading...");
+
+  React.useEffect(() => {
+    getSupplierCodePreview().then(code => setPreviewCode(code || "Auto-generated"));
+  }, []);
 
   // Create form - Contact Person section
   const [contactName, setContactName] = useState("");
@@ -30,13 +34,8 @@ export default function CreateSupplierPage() {
     e.preventDefault();
     setFormError(null);
 
-    const code = supplierCode.trim();
     const name = supplierName.trim();
 
-    if (!code) {
-      setFormError("Supplier Code is required.");
-      return;
-    }
     if (!name) {
       setFormError("Supplier Name is required.");
       return;
@@ -61,7 +60,7 @@ export default function CreateSupplierPage() {
 
     startTransition(async () => {
       const res = await createSupplierProfileWithDetails(
-        { supplierCode: code, supplierName: name, remarks: remarks.trim() || undefined },
+        { supplierName: name, remarks: remarks.trim() || undefined },
         contactData,
         addressData
       );
@@ -119,16 +118,13 @@ export default function CreateSupplierPage() {
 
               {/* Code */}
               <div className="flex flex-col gap-1">
-                <label className="text-sm font-bold text-blue-700">Supplier Code <span className="text-red-500">*</span></label>
+                <label className="text-sm font-bold text-blue-700">Supplier Code</label>
                 <input
                   type="text"
-                  required
-                  placeholder="e.g. SUP001"
-                  value={supplierCode}
-                  onChange={(e) => setSupplierCode(e.target.value)}
-                  className="rounded-lg glossy-input px-3 py-2 text-sm outline-hidden w-full focus:ring-2 focus:ring-blue-500/20"
+                  disabled
+                  value={previewCode}
+                  className="rounded-lg glossy-input px-3 py-2 text-sm outline-hidden w-full bg-slate-100 text-slate-500 cursor-not-allowed"
                 />
-                <p className="text-xs text-blue-500">Once saved, cannot be changed. Must be unique.</p>
               </div>
 
               {/* Name */}

@@ -18,6 +18,7 @@ interface CompanyProfile {
   footerName: string;
   allowPoForWo: boolean;
   as9100RequirementNote: boolean;
+  sezTaxRate: number;
   status: string;
 }
 
@@ -46,6 +47,7 @@ export default function CompanyProfileForm({ initialData }: CompanyProfileFormPr
       footerName: "",
       allowPoForWo: false,
       as9100RequirementNote: false,
+      sezTaxRate: 0,
       status: "Active",
     }
   );
@@ -364,8 +366,23 @@ export default function CompanyProfileForm({ initialData }: CompanyProfileFormPr
                 <p className="text-[10px] text-blue-500 leading-tight mt-0.5">Toggles AS9100 supplier notes blocks on PO printouts.</p>
               </div>
             </label>
-          </div>
 
+            <div className="pt-2">
+              <label className="text-xs font-semibold text-blue-700">SEZ Tax Rate (%)</label>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                max="100"
+                name="sezTaxRate"
+                value={formData.sezTaxRate}
+                onChange={handleChange}
+                className="w-full mt-1.5 rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm text-blue-900 placeholder:text-blue-300 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                placeholder="0.00"
+              />
+              <p className="text-[10px] text-blue-500 mt-1">Tax rate applied to customers marked as SEZ.</p>
+            </div>
+          </div>
         </div>
       </div>
 

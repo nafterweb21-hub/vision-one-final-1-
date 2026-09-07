@@ -132,28 +132,8 @@ export async function GET(req: NextRequest) {
         return true;
       });
 
-      for (const item of filteredItems) {
-        for (const batch of item.batches) {
-          if (workOrderNo && batch.workOrderNo && !batch.workOrderNo.toLowerCase().includes(workOrderNo.toLowerCase())) {
-            continue;
-          }
-
-          const wo = batch.workOrderNo ? woMap.get(batch.workOrderNo) : null;
-          
-          let qtyDelivered = 0;
-          if (wo && wo.deliveryOrderItems) {
-            // sum up quantities from posted delivery orders
-            // checking delivery order status might be needed, let's assume all linked DO items are delivered
-            for (const doItem of wo.deliveryOrderItems) {
-              // we only count if DO status is 'Posted' or 'Completed'? Usually DO is completed.
-              qtyDelivered += Number(doItem.quantity);
-            }
-          }
-          
-          const batchQty = Number(batch.quantity);
-          const qtyNotDelivered = Math.max(0, batchQty - qtyDelivered);
-          const unitPrice = Number(item.unitPrice || 0);
-          
+      if (filteredItems.length === 0) {
+        if (!filterByItems) {
           reportData.push({
             soNo: so.orderNo,
             soDate: so.date,
@@ -168,25 +148,118 @@ export async function GET(req: NextRequest) {
             beforeTax: Number(so.amountBeforeTax || 0),
             tax: Number(so.taxAmount || 0),
             aftTax: Number(so.amountAfterTax || 0),
-            partNo: item.part?.partNo || "",
-            description: item.part?.description || "",
-            qty: Number(item.quantity || 0),
-            uom: item.uom?.uomName || "",
-            unitPrice: unitPrice,
-            amt: Number(item.quantity || 0) * unitPrice,
-            internalQuoNo: item.internalQuotationNo || "",
-            vendorMaterialNo: item.vendorMaterialNo || "",
-            materialSpec: item.materialSpecification || "",
-            batchQty: batchQty,
-            deliveryDate: batch.deliveryDate,
-            woNo: batch.workOrderNo || "",
-            woStatus: wo ? wo.status : "",
-            qcAcceptance: wo ? wo.qcAcceptance : "",
-            qtyDelivered: qtyDelivered,
-            qtyNotDelivered: qtyNotDelivered,
-            amtDelivered: qtyDelivered * unitPrice,
-            amtNotDelivered: qtyNotDelivered * unitPrice,
+            partNo: "",
+            description: "",
+            qty: 0,
+            uom: "",
+            unitPrice: 0,
+            amt: 0,
+            internalQuoNo: "",
+            vendorMaterialNo: "",
+            materialSpec: "",
+            batchQty: 0,
+            deliveryDate: "",
+            woNo: "",
+            woStatus: "",
+            qcAcceptance: "",
+            qtyDelivered: 0,
+            qtyNotDelivered: 0,
+            amtDelivered: 0,
+            amtNotDelivered: 0,
           });
+        }
+      } else {
+        for (const item of filteredItems) {
+          if (item.batches && item.batches.length > 0) {
+            for (const batch of item.batches) {
+              if (workOrderNo && batch.workOrderNo && !batch.workOrderNo.toLowerCase().includes(workOrderNo.toLowerCase())) {
+                continue;
+              }
+
+              const wo = batch.workOrderNo ? woMap.get(batch.workOrderNo) : null;
+              
+              let qtyDelivered = 0;
+              if (wo && wo.deliveryOrderItems) {
+                for (const doItem of wo.deliveryOrderItems) {
+                  qtyDelivered += Number(doItem.quantity);
+                }
+              }
+              
+              const batchQty = Number(batch.quantity);
+              const qtyNotDelivered = Math.max(0, batchQty - qtyDelivered);
+              const unitPrice = Number(item.unitPrice || 0);
+              
+              reportData.push({
+                soNo: so.orderNo,
+                soDate: so.date,
+                salesperson: so.salesperson?.name || "",
+                customer: so.customer?.customerName || "",
+                customerPoRef: so.customerPoRef || "",
+                projectCode: so.projectCode || "",
+                curr: so.currency?.code || "",
+                exchRate: Number(so.exchangeRate || 1),
+                taxType: so.taxType?.taxType || "",
+                taxRate: Number(so.taxRate || 0),
+                beforeTax: Number(so.amountBeforeTax || 0),
+                tax: Number(so.taxAmount || 0),
+                aftTax: Number(so.amountAfterTax || 0),
+                partNo: item.part?.partNo || "",
+                description: item.part?.description || "",
+                qty: Number(item.quantity || 0),
+                uom: item.uom?.uomName || "",
+                unitPrice: unitPrice,
+                amt: Number(item.quantity || 0) * unitPrice,
+                internalQuoNo: item.internalQuotationNo || "",
+                vendorMaterialNo: item.vendorMaterialNo || "",
+                materialSpec: item.materialSpecification || "",
+                batchQty: batchQty,
+                deliveryDate: batch.deliveryDate,
+                woNo: batch.workOrderNo || "",
+                woStatus: wo ? wo.status : "",
+                qcAcceptance: wo ? wo.qcAcceptance : "",
+                qtyDelivered: qtyDelivered,
+                qtyNotDelivered: qtyNotDelivered,
+                amtDelivered: qtyDelivered * unitPrice,
+                amtNotDelivered: qtyNotDelivered * unitPrice,
+              });
+            }
+          } else {
+            const unitPrice = Number(item.unitPrice || 0);
+            const itemQty = Number(item.quantity || 0);
+            reportData.push({
+              soNo: so.orderNo,
+              soDate: so.date,
+              salesperson: so.salesperson?.name || "",
+              customer: so.customer?.customerName || "",
+              customerPoRef: so.customerPoRef || "",
+              projectCode: so.projectCode || "",
+              curr: so.currency?.code || "",
+              exchRate: Number(so.exchangeRate || 1),
+              taxType: so.taxType?.taxType || "",
+              taxRate: Number(so.taxRate || 0),
+              beforeTax: Number(so.amountBeforeTax || 0),
+              tax: Number(so.taxAmount || 0),
+              aftTax: Number(so.amountAfterTax || 0),
+              partNo: item.part?.partNo || "",
+              description: item.part?.description || "",
+              qty: itemQty,
+              uom: item.uom?.uomName || "",
+              unitPrice: unitPrice,
+              amt: itemQty * unitPrice,
+              internalQuoNo: item.internalQuotationNo || "",
+              vendorMaterialNo: item.vendorMaterialNo || "",
+              materialSpec: item.materialSpecification || "",
+              batchQty: 0,
+              deliveryDate: "",
+              woNo: "",
+              woStatus: "",
+              qcAcceptance: "",
+              qtyDelivered: 0,
+              qtyNotDelivered: itemQty,
+              amtDelivered: 0,
+              amtNotDelivered: itemQty * unitPrice,
+            });
+          }
         }
       }
     }

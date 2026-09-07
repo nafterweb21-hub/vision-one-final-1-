@@ -24,11 +24,11 @@ async function computeBreakupForData(data: any): Promise<GstBreakup> {
   const [company, customer] = await Promise.all([
     prisma.companyProfile.findUnique({
       where: { id: data.companyId },
-      select: { gstRegistrationNo: true },
+      select: { gstRegistrationNo: true, sezTaxRate: true },
     }),
     prisma.customerProfile.findUnique({
       where: { id: data.customerId },
-      select: { gstin: true, placeOfSupply: true },
+      select: { gstin: true, placeOfSupply: true, isSez: true },
     }),
   ]);
   const posStateCode = resolvePosStateCode(customer?.placeOfSupply, customer?.gstin);
@@ -37,6 +37,8 @@ async function computeBreakupForData(data: any): Promise<GstBreakup> {
     taxRatePercent: Number(data.taxRate) || 0,
     sellerGstin: company?.gstRegistrationNo,
     posStateCode,
+    isSez: customer?.isSez,
+    sezTaxRate: Number(company?.sezTaxRate) || 0,
   });
 }
 
@@ -65,6 +67,7 @@ function itemWithGst(item: any, line: { gstRate: number; cgstAmount: number; sgs
 export async function getInvoices() {
   try {
     const invoices = await prisma.invoice.findMany({
+      where: { invoiceType: "Customer Invoice" },
       orderBy: { createdAt: "desc" },
       include: {
         customer: { select: { customerName: true } },

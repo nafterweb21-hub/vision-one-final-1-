@@ -14,14 +14,16 @@ export async function getFormData() {
       taxes,
       finishedGoods,
       uoms,
+      companies,
     ] = await Promise.all([
       prisma.employee.findMany({ where: { status: RecordStatus.Active }, select: { id: true, name: true, code: true } }),
-      prisma.customerProfile.findMany({ where: { status: "Active" }, select: { id: true, customerName: true, customerCode: true, contactPersons: true, addresses: true } }),
+      prisma.customerProfile.findMany({ where: { status: "Active" }, select: { id: true, customerName: true, customerCode: true, contactPersons: true, addresses: true, isSez: true } }),
       prisma.paymentTermProfile.findMany({ where: { status: "Active" }, select: { id: true, name: true, days: true } }),
       prisma.currency.findMany({ where: { status: "Active" }, select: { id: true, code: true, exchangeRate: true } }),
       prisma.taxProfile.findMany({ where: { status: "Active" }, select: { id: true, taxType: true, taxRate: true } }),
       prisma.finishedGoodProfile.findMany({ where: { status: "Active" }, select: { id: true, partNo: true, description: true } }),
       prisma.uomProfile.findMany({ where: { status: "Active" }, select: { id: true, uomName: true } }),
+      prisma.companyProfile.findMany({ where: { status: "Active" }, select: { id: true, companyName: true, sezTaxRate: true } }),
     ]);
 
     return {
@@ -32,6 +34,7 @@ export async function getFormData() {
       taxes,
       finishedGoods,
       uoms,
+      companies: companies.map(c => ({ ...c, sezTaxRate: Number(c.sezTaxRate) })),
     };
   } catch (error) {
     console.error("Error fetching form data:", error);

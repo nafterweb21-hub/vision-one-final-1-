@@ -16,10 +16,10 @@ import {
   setContactPersonDefault,
   deleteContactPerson,
   addAddress,
-  updateAddress,
   toggleAddressStatus,
   setAddressDefault,
   deleteAddress,
+  getCustomerCodePreview,
 } from "./actions";
 
 interface CustomerSummary {
@@ -29,6 +29,8 @@ interface CustomerSummary {
   remarks: string | null;
   gstin?: string | null;
   status: string;
+  isSez: boolean;
+  isSez: boolean;
   createdAt: Date;
   updatedAt: Date;
   _count: {
@@ -65,6 +67,7 @@ interface CustomerFullDetail {
   remarks: string | null;
   gstin?: string | null;
   status: string;
+  isSez: boolean;
   contactPersons: ContactPerson[];
   addresses: CustomerAddress[];
 }
@@ -83,15 +86,17 @@ export default function CustomerProfilePage() {
   const [detailTab, setDetailTab] = useState<"general" | "contacts" | "addresses">("general");
 
   // Create Customer Form States
-  const [newCode, setNewCode] = useState("");
   const [newName, setNewName] = useState("");
   const [newGstin, setNewGstin] = useState("");
   const [newRemarks, setNewRemarks] = useState("");
+  const [newIsSez, setNewIsSez] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [previewCode, setPreviewCode] = useState("Auto-generated");
 
   // Manage Customer General Info Form States
   const [remarksEdit, setRemarksEdit] = useState("");
   const [gstinEdit, setGstinEdit] = useState("");
+  const [isSezEdit, setIsSezEdit] = useState(false);
   const [remarksSuccess, setRemarksSuccess] = useState(false);
 
   // Manage Contacts Sub-states
@@ -139,32 +144,32 @@ export default function CustomerProfilePage() {
       setCustomerDetail(res.data as CustomerFullDetail);
       setRemarksEdit(res.data.remarks || "");
       setGstinEdit((res.data as any).gstin || "");
+      setIsSezEdit((res.data as any).isSez || false);
     } else {
       hotToast.error(res.error || "Failed to load customer details.");
     }
   };
 
-  const handleOpenCreateModal = () => {
-    setNewCode("");
+  const handleOpenCreateModal = async () => {
     setNewName("");
     setNewGstin("");
     setNewRemarks("");
+    setNewIsSez(false);
     setFormError(null);
+    setPreviewCode("Loading...");
     setIsCreateModalOpen(true);
+    
+    const code = await getCustomerCodePreview();
+    setPreviewCode(code || "Auto-generated");
   };
 
   const handleCreateCustomer = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError(null);
 
-    const code = newCode.trim();
     const name = newName.trim();
     const gstin = newGstin.trim();
 
-    if (!code) {
-      setFormError("Customer Code is required.");
-      return;
-    }
     if (!name) {
       setFormError("Customer Name is required.");
       return;
@@ -176,10 +181,10 @@ export default function CustomerProfilePage() {
 
     startTransition(async () => {
       const res = await createCustomerProfile({
-        customerCode: code,
         customerName: name,
         remarks: newRemarks,
         gstin: newGstin,
+        isSez: newIsSez,
       });
 
       if (res.success) {
@@ -211,7 +216,7 @@ export default function CustomerProfilePage() {
     }
 
     startTransition(async () => {
-      const res = await updateCustomerInfo(selectedCustomerId, { remarks: remarksEdit, gstin: gstinEdit });
+      const res = await updateCustomerInfo(selectedCustomerId, { remarks: remarksEdit, gstin: gstinEdit, isSez: isSezEdit });
       if (res.success) {
         setRemarksSuccess(true);
         loadCustomers();
@@ -611,8 +616,8 @@ export default function CustomerProfilePage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-6">
           <div className="fixed inset-0 bg-blue-950/30 backdrop-blur-xs" onClick={() => setIsCreateModalOpen(false)} />
 
-          <div className="relative w-full max-w-lg transform overflow-hidden rounded-xl bg-white p-6 shadow-xl border border-blue-200 transition-all">
-            <div className="flex items-center justify-between border-b border-blue-200 pb-4">
+          <div className="relative w-full max-w-lg transform overflow-hidden rounded-xl bg-white shadow-xl border border-blue-200 transition-all flex flex-col max-h-[90vh]">
+            <div className="flex items-center justify-between border-b border-blue-200 p-6 shrink-0">
               <h2 className="text-xl font-bold text-black">
                 Create Customer Profile
               </h2>
@@ -626,85 +631,95 @@ export default function CustomerProfilePage() {
               </button>
             </div>
 
-            <form onSubmit={handleCreateCustomer} className="mt-6 space-y-5">
-              {formError && (
-                <div className="rounded-lg bg-red-50 border border-red-200 p-3.5 text-sm text-red-800">
-                  <div className="flex gap-2.5">
-                    <svg className="h-5 w-5 text-red-500 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-                    </svg>
-                    <span>{formError}</span>
+            <form onSubmit={handleCreateCustomer} className="flex flex-col overflow-hidden min-h-0">
+              <div className="flex-1 overflow-y-auto p-6 space-y-5">
+                {formError && (
+                  <div className="rounded-lg bg-red-50 border border-red-200 p-3.5 text-sm text-red-800">
+                    <div className="flex gap-2.5">
+                      <svg className="h-5 w-5 text-red-500 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                      </svg>
+                      <span>{formError}</span>
+                    </div>
                   </div>
+                )}
+
+                {/* Customer Code */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-bold text-blue-800">
+                    Customer Code
+                  </label>
+                  <input
+                    type="text"
+                    disabled
+                    value={previewCode}
+                    className="rounded-lg glossy-input px-3 py-2 text-base outline-hidden bg-slate-100 text-slate-500 cursor-not-allowed"
+                  />
                 </div>
-              )}
 
-              {/* Customer Code */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-bold text-blue-800">
-                  Customer Code <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. CUST001"
-                  value={newCode}
-                  onChange={(e) => setNewCode(e.target.value)}
-                  className="rounded-lg glossy-input px-3 py-2 text-base outline-hidden"
-                />
-                <p className="text-xs text-blue-500">
-                  Once saved, Customer Code cannot be changed. Must be unique.
-                </p>
-              </div>
+                {/* Customer Name */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-bold text-blue-800">
+                    Customer Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Acme Corporation"
+                    value={newName}
+                    onChange={(e) => setNewName(e.target.value)}
+                    className="rounded-lg glossy-input px-3 py-2 text-base outline-hidden"
+                  />
+                  <p className="text-xs text-blue-500">
+                    Once saved, Customer Name cannot be changed. Must be unique.
+                  </p>
+                </div>
 
-              {/* Customer Name */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-bold text-blue-800">
-                  Customer Name <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Acme Corporation"
-                  value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
-                  className="rounded-lg glossy-input px-3 py-2 text-base outline-hidden"
-                />
-                <p className="text-xs text-blue-500">
-                  Once saved, Customer Name cannot be changed. Must be unique.
-                </p>
-              </div>
+                {/* GSTIN */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-bold text-blue-800">
+                    GSTIN <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. 22AAAAA0000A1Z5"
+                    value={newGstin}
+                    onChange={(e) => setNewGstin(e.target.value)}
+                    className="rounded-lg glossy-input px-3 py-2 text-base outline-hidden"
+                  />
+                </div>
 
-              {/* GSTIN */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-bold text-blue-800">
-                  GSTIN <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. 22AAAAA0000A1Z5"
-                  value={newGstin}
-                  onChange={(e) => setNewGstin(e.target.value)}
-                  className="rounded-lg glossy-input px-3 py-2 text-base outline-hidden"
-                />
-              </div>
+                {/* Remarks */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-bold text-blue-800">
+                    Remarks
+                  </label>
+                  <textarea
+                    placeholder="Enter remarks..."
+                    rows={3}
+                    value={newRemarks}
+                    onChange={(e) => setNewRemarks(e.target.value)}
+                    className="rounded-lg glossy-input px-3 py-2 text-base outline-hidden resize-none"
+                  />
+                </div>
 
-              {/* Remarks */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-bold text-blue-800">
-                  Remarks
+                {/* Is SEZ */}
+                <label className="flex items-center gap-2 cursor-pointer mt-2 w-fit">
+                  <input
+                    type="checkbox"
+                    checked={newIsSez}
+                    onChange={(e) => setNewIsSez(e.target.checked)}
+                    className="h-4 w-4 rounded border-blue-300 text-blue-600 focus:ring-blue-600 cursor-pointer"
+                  />
+                  <span className="text-sm font-bold text-blue-800">
+                    Is Social Economic Zone (SEZ)
+                  </span>
                 </label>
-                <textarea
-                  placeholder="Enter remarks..."
-                  rows={3}
-                  value={newRemarks}
-                  onChange={(e) => setNewRemarks(e.target.value)}
-                  className="rounded-lg glossy-input px-3 py-2 text-base outline-hidden resize-none"
-                />
               </div>
 
               {/* Form Buttons */}
-              <div className="flex items-center justify-end gap-3 border-t border-blue-200 pt-5 mt-6">
+              <div className="flex items-center justify-end gap-3 border-t border-blue-200 p-6 bg-white shrink-0">
                 <button
                   type="button"
                   onClick={() => setIsCreateModalOpen(false)}
@@ -838,6 +853,19 @@ export default function CustomerProfilePage() {
                         />
                       </div>
 
+                      {/* Is SEZ */}
+                      <label className="flex items-center gap-2 cursor-pointer w-fit">
+                        <input
+                          type="checkbox"
+                          checked={isSezEdit}
+                          onChange={(e) => setIsSezEdit(e.target.checked)}
+                          className="h-4 w-4 rounded border-blue-300 text-blue-600 focus:ring-blue-600 cursor-pointer"
+                        />
+                        <span className="text-sm font-bold text-blue-800">
+                          Is Social Economic Zone (SEZ)
+                        </span>
+                      </label>
+
                       <div className="flex items-center gap-4">
                         <button
                           type="button"
@@ -845,7 +873,7 @@ export default function CustomerProfilePage() {
                           disabled={isPending}
                           className="rounded-lg glossy-button-blue px-5 py-2.5 text-base font-bold text-white shadow-md cursor-pointer"
                         >
-                          Save Remarks
+                          Save Changes
                         </button>
 
                         {remarksSuccess && (

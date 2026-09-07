@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { RecordStatus } from "@/lib/status";
 export async function GET() {
   try {
-    const [employees, customers, paymentTerms, currencies, taxes, finishedGoods, uoms] = await Promise.all([
+    const [employees, customers, paymentTerms, currencies, taxes, finishedGoods, uoms, termsAndConditionProfiles, companies] = await Promise.all([
       prisma.employee.findMany({
         where: { status: RecordStatus.Active },
         select: { id: true, name: true, email: true, code: true },
@@ -16,6 +16,7 @@ export async function GET() {
           id: true,
           customerName: true,
           customerCode: true,
+          isSez: true,
           contactPersons: {
             where: { status: "Active" },
             select: {
@@ -59,6 +60,16 @@ export async function GET() {
         select: { id: true, uomName: true },
         orderBy: { uomName: "asc" },
       }),
+      prisma.termsAndConditionProfile.findMany({
+        where: { status: "Active" },
+        select: { id: true, name: true, content: true },
+        orderBy: { name: "asc" },
+      }),
+      prisma.companyProfile.findMany({
+        where: { status: "Active" },
+        select: { id: true, companyName: true, sezTaxRate: true },
+        orderBy: { companyName: "asc" },
+      }),
     ]);
 
     return NextResponse.json({
@@ -69,6 +80,8 @@ export async function GET() {
       taxes,
       finishedGoods,
       uoms,
+      termsAndConditionProfiles,
+      companies,
     });
   } catch (e: any) {
     console.error("Quotation form-data:", e);

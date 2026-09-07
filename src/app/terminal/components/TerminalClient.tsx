@@ -1,14 +1,13 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import { SearchableSelect } from "@/components/SearchableSelect";
 import { toast as hotToast } from "react-hot-toast";
 
-import { useMemo, useState, useTransition, useEffect, useRef } from "react";
+import { useState, useTransition, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Monitor, Plus, ChevronRight, CheckCircle2, Info, AlertCircle, Minus, ChevronDown, Check, Zap, Clock, Box, LogOut, Keyboard } from "lucide-react";
 import ProductionIntake from "./ProductionIntake";
 import {
-  lookupWorkOrder,
-  getOpenScans,
   scanOut,
   togglePauseSession,
   type ScanOutPayload,
@@ -30,47 +29,50 @@ export default function TerminalClient({ support, loggedInEmployee, initialSessi
   const [activeSessions, setActiveSessions] = useState<any[]>(initialSessions);
   const [recentCompletes, setRecentCompletes] = useState<any[]>(initialRecentCompletes);
   
-  const displayEmployee = loggedInEmployee && loggedInEmployee.code !== "UNLINKED_USER" ? loggedInEmployee : null;
-  const [localEmployee, setLocalEmployee] = useState<any>(null);
-  
   const [now, setNow] = useState(new Date());
   useEffect(() => {
     const t = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(t);
   }, []);
 
-  const handleTogglePause = async () => {
+
+
+  const [actionConfirmEmployeeId, setActionConfirmEmployeeId] = useState("");
+  const [actionConfirmError, setActionConfirmError] = useState("");
+  const [pendingAction, setPendingAction] = useState<"pause" | "resume" | "complete" | null>(null);
+
+  const executeAction = () => {
     if (!selectedSession) return;
-    startTransition(async () => {
-      const res = await togglePauseSession(selectedSession.id);
-      if (res.success) {
-        hotToast.success(selectedSession.isPaused ? "Session Resumed" : "Session Paused");
-        router.refresh();
-      } else {
-        hotToast.error("Failed to pause/resume: " + res.error);
-      }
-    });
-  };
 
-  const activeEmployee = localEmployee || displayEmployee;
-  
-  const [loginCode, setLoginCode] = useState("");
-  const [loginError, setLoginError] = useState("");
-
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    const match = support.employees.find((emp) => emp.code.toLowerCase() === loginCode.toLowerCase());
-    if (match) {
-      setLocalEmployee(match);
-      setLoginError("");
-      setLoginCode("");
-    } else {
-      setLoginError("Invalid Employee ID.");
+    // If you prefer strict EMP-XXXX matching, we can do that, but comparing code/ID is best
+    const match = support.employees.find((emp) => emp.code.toLowerCase() === actionConfirmEmployeeId.toLowerCase());
+    
+    if (match?.id !== selectedSession.employeeId) {
+      setActionConfirmError("Invalid Employee ID for this session.");
+      return;
     }
+    
+    setActionConfirmError("");
+    setActionConfirmEmployeeId("");
+    
+    if (pendingAction === "pause" || pendingAction === "resume") {
+      startTransition(async () => {
+        const res = await togglePauseSession(selectedSession.id);
+        if (res.success) {
+          hotToast.success(selectedSession.isPaused ? "Session Resumed" : "Session Paused");
+          router.refresh();
+        } else {
+          hotToast.error("Failed to pause/resume: " + res.error);
+        }
+      });
+    } else if (pendingAction === "complete") {
+      doCompleteSession();
+    }
+    setPendingAction(null);
   };
 
   useEffect(() => {
-    const handlePopState = (e: PopStateEvent) => {
+    const handlePopState = () => {
       // If the back button is pressed and the modal is open, close it
       if (isScanInOpen) {
         setIsScanInOpen(false);
@@ -94,12 +96,18 @@ export default function TerminalClient({ support, loggedInEmployee, initialSessi
     }
   };
 
-  useEffect(() => {
-    if (activeEmployee) {
-      setActiveSessions(initialSessions.filter((s: any) => s.employeeId === activeEmployee.id));
-      setRecentCompletes(initialRecentCompletes);
-    }
-  }, [initialSessions, initialRecentCompletes, activeEmployee]);
+  const [prevInitialSessions, setPrevInitialSessions] = useState(initialSessions);
+  const [prevInitialCompletes, setPrevInitialCompletes] = useState(initialRecentCompletes);
+
+  if (initialSessions !== prevInitialSessions) {
+    setPrevInitialSessions(initialSessions);
+    setActiveSessions(initialSessions);
+  }
+  
+  if (initialRecentCompletes !== prevInitialCompletes) {
+    setPrevInitialCompletes(initialRecentCompletes);
+    setRecentCompletes(initialRecentCompletes);
+  }
   const [selectedSessionId, setSelectedSessionId] = useState<string>("");
 
   function handleIntakeScanOutRequest(routingProcessProfileId: string, employeeId: string, inProcessId: string, mainProcessId: string) {
@@ -135,10 +143,7 @@ export default function TerminalClient({ support, loggedInEmployee, initialSessi
 
   // loggedInEmployee is now provided directly by the server page
 
-  const selectedSession = useMemo(
-    () => activeSessions.find((s) => s.id === selectedSessionId),
-    [activeSessions, selectedSessionId]
-  );
+  const selectedSession = activeSessions.find((s) => s.id === selectedSessionId);
 
   const targetQty = selectedSession ? Number(selectedSession.routingProcess?.inProcess?.workOrder?.quantity || 0) : 0;
   const previouslyCompleted = selectedSession 
@@ -163,17 +168,20 @@ export default function TerminalClient({ support, loggedInEmployee, initialSessi
     setMachineCodes("");
   }
 
-  function handleCompleteSession() {
+  function doCompleteSession() {
     if (!selectedSession) return;
     
     const pCount = Number(producedCount) || 0;
     const dCount = Number(defectCount) || 0;
     
-    if (pCount <= 0 && dCount <= 0) return; // Prevent empty completion
+    if (pCount <= 0 && dCount <= 0) {
+      hotToast.error("Produced or Defect count must be greater than 0");
+      return;
+    }
 
     const payload: ScanOutPayload = {
       timesheetId: selectedSession.id,
-      completedQty: pCount, // Assuming producedCount is the valid completedQty for now
+      completedQty: pCount,
       rejectedQty: dCount > 0 ? dCount : undefined,
       rejectReason: defectReason || undefined,
       machineCodes: machineCodes || undefined,
@@ -193,53 +201,22 @@ export default function TerminalClient({ support, loggedInEmployee, initialSessi
     startTransition(async () => {
       const res = await scanOut(payload);
       if (res.success) {
-        // Move to recent completes
         setRecentCompletes((prev) => [selectedSession, ...prev]);
         setActiveSessions((prev) => prev.filter((s) => s.id !== selectedSession.id));
         setSelectedSessionId("");
         setProducedCount(0);
+        hotToast.success("Session completed successfully");
       } else {
         hotToast.error("Failed to complete session: " + res.error);
       }
     });
   }
 
-  // If no active employee, show Login Screen
-  if (!activeEmployee) {
-    return (
-      <div className="bg-white min-h-[calc(100vh-80px)] rounded-3xl p-10 font-sans flex flex-col items-center justify-center text-slate-900 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-200">
-        <div className="w-[400px] border border-slate-200 rounded-2xl p-8 bg-slate-50 shadow-sm">
-          <div className="flex flex-col items-center justify-center mb-8">
-            <div className="bg-slate-900 rounded-xl p-4 mb-4 shadow-md">
-              <Monitor className="h-8 w-8 text-white" />
-            </div>
-            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Operator Login</h1>
-            <p className="text-sm text-slate-500 mt-2 font-medium">Scan or enter your Employee ID</p>
-          </div>
-          
-          <form onSubmit={handleLogin} className="space-y-5">
-            <div>
-              <input
-                type="text"
-                autoFocus
-                value={loginCode}
-                onChange={(e) => setLoginCode(e.target.value)}
-                className="w-full border-2 border-slate-200 px-4 py-3.5 rounded-xl focus:outline-none focus:ring-4 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all text-center text-lg font-mono font-medium tracking-wider"
-                placeholder="EMP-XXXX"
-              />
-            </div>
-            {loginError && <p className="text-red-500 text-sm text-center font-medium">{loginError}</p>}
-            <button
-              type="submit"
-              className="w-full bg-slate-900 hover:bg-slate-800 text-white py-3.5 rounded-xl font-semibold transition-colors shadow-md"
-            >
-              Sign In
-            </button>
-          </form>
-        </div>
-      </div>
-    );
+  function handleCompleteSession() {
+    setPendingAction("complete");
   }
+
+
 
   return (
     <div className="bg-white min-h-[calc(100vh-80px)] rounded-3xl p-6 font-sans text-slate-900 relative overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-200">
@@ -252,20 +229,11 @@ export default function TerminalClient({ support, loggedInEmployee, initialSessi
           </div>
           <div className="flex items-center gap-4">
             <div>
-              <div className="text-[10px] font-bold tracking-widest text-slate-500 uppercase mb-0.5">Operator</div>
+              <div className="text-[10px] font-bold tracking-widest text-slate-500 uppercase mb-0.5">Terminal</div>
               <div className="text-2xl font-bold text-slate-900 tracking-tight leading-none mb-1">
-                {activeEmployee.name}
+                Shared Production Terminal
               </div>
             </div>
-            {!displayEmployee && (
-              <button 
-                onClick={() => setLocalEmployee(null)}
-                className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-400 hover:text-slate-900"
-                title="Logout"
-              >
-                <LogOut className="h-5 w-5" />
-              </button>
-            )}
           </div>
         </div>
 
@@ -324,6 +292,7 @@ export default function TerminalClient({ support, loggedInEmployee, initialSessi
                           <Box size={20} />
                         </div>
                         <div>
+                          <div className="text-[9px] font-bold text-slate-500 uppercase">{session.employee?.name || 'Unknown Operator'}</div>
                           <div className="font-bold text-sm text-slate-900">{session.routingProcess?.inProcess?.workOrderNo || "Unknown WO"}</div>
                           <div className="text-[9px] text-slate-400 font-bold tracking-wider uppercase mt-0.5">
                             {session.routingProcess?.routingProcess?.routingProcess || "Unknown Process"}
@@ -451,11 +420,19 @@ export default function TerminalClient({ support, loggedInEmployee, initialSessi
                 {/* Action Bar */}
                 <div className="flex gap-4 mb-8 relative z-10">
                   <button
-                    onClick={handleTogglePause}
+                    onClick={() => setPendingAction(selectedSession.isPaused ? "resume" : "pause")}
                     disabled={isPending}
                     className={`px-6 py-3 rounded-xl font-bold transition-colors shadow-sm text-sm border flex items-center gap-2 ${selectedSession.isPaused ? 'bg-amber-100 text-amber-700 border-amber-200 hover:bg-amber-200' : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200'}`}
                   >
                     {selectedSession.isPaused ? "▶ Resume Job" : "⏸ Pause Job"}
+                  </button>
+                  <button
+                    onClick={handleCompleteSession}
+                    disabled={isPending}
+                    className="px-6 py-3 bg-emerald-500 hover:bg-emerald-400 text-white rounded-xl font-bold transition-colors shadow-sm text-sm flex items-center gap-2"
+                  >
+                    <CheckCircle2 size={18} />
+                    Complete Job
                   </button>
                   {selectedSession.isPaused && (
                     <div className="flex items-center text-amber-600 text-sm font-medium">
@@ -751,6 +728,54 @@ export default function TerminalClient({ support, loggedInEmployee, initialSessi
 
       </div>
       
+      {/* Action Confirmation Modal */}
+      {pendingAction && (
+        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl border border-slate-200">
+            <h3 className="text-xl font-bold text-slate-900 mb-2">Operator Verification</h3>
+            <p className="text-sm text-slate-500 mb-6">Scan or enter your Employee ID to confirm this action.</p>
+            
+            <div className="space-y-4">
+              <div>
+                <input
+                  type="text"
+                  autoFocus
+                  value={actionConfirmEmployeeId}
+                  onChange={(e) => setActionConfirmEmployeeId(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      executeAction();
+                    }
+                  }}
+                  className="w-full border-2 border-slate-200 px-4 py-3 rounded-xl focus:outline-none focus:ring-4 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all text-center text-lg font-mono font-medium tracking-wider"
+                  placeholder="EMP-XXXX"
+                />
+              </div>
+              {actionConfirmError && <p className="text-red-500 text-sm text-center font-medium">{actionConfirmError}</p>}
+              
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setPendingAction(null);
+                    setActionConfirmEmployeeId("");
+                    setActionConfirmError("");
+                  }}
+                  className="flex-1 px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={executeAction}
+                  className="flex-1 px-4 py-3 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl font-bold transition-colors"
+                >
+                  Confirm
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Scan In Full Page Overlay */}
       <ProductionIntake 
         isOpen={isScanInOpen} 

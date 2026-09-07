@@ -152,6 +152,8 @@ export const NAV_SECTIONS: NavSection[] = [
     items: [
       { href: '/dashboard/sales/quotation', label: 'Quotations', icon: Clipboard, iconClass: 'text-slate-500', filled: true },
       { href: '/dashboard/sales/invoice', label: 'Invoicing', icon: Receipt, iconClass: 'text-slate-400' },
+      { href: '/dashboard/sales/debit-note', label: 'Debit Note', icon: Receipt, iconClass: 'text-slate-400' },
+      { href: '/dashboard/sales/credit-note', label: 'Credit Note', icon: Receipt, iconClass: 'text-slate-400' },
       { href: '/dashboard/sales/receipt', label: 'Receipt / Payment Record', icon: Banknote, iconClass: 'text-emerald-500' },
       { href: '/dashboard/cost-monitoring', label: 'Cost Monitoring', icon: BarChart2, iconClass: 'text-blue-500', filled: true },
       { href: '/dashboard/qc/ncr', label: 'NCR', icon: AlertTriangle, iconClass: 'text-slate-500' },
@@ -186,6 +188,7 @@ export const NAV_SECTIONS: NavSection[] = [
       { href: '/dashboard/profiles/elcometer', label: 'Elcometer Profile', icon: Gauge, iconClass: 'text-red-500' },
       { href: '/dashboard/master-profile/painting-method', label: 'Painting Method Profile', icon: Brush, iconClass: 'text-pink-500' },
       { href: '/dashboard/master-profile/failure-mode', label: 'Failure Mode Profile', icon: AlertTriangle, iconClass: 'text-rose-600' },
+      { href: '/dashboard/master-profile/terms-condition', label: 'Terms & Conditions Profile', icon: Clipboard, iconClass: 'text-slate-600' },
     ],
   },
   {

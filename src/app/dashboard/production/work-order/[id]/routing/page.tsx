@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import AddInProcessModal from "../../components/AddInProcessModal";
+import EditInProcessModal from "../../components/EditInProcessModal";
 import AddRoutingProcessModal from "../../components/AddRoutingProcessModal";
 import RoutingProcessTable from "../../components/RoutingProcessTable";
 import { getRoutingDropdownData } from "../../actions";
@@ -219,6 +220,13 @@ export default async function WorkOrderRoutingPage({
                         <h4 className="font-semibold text-slate-800">
                           {ip.sn}. {ip.description}
                         </h4>
+                        {editable && ip.derivedStatus === "New" && (
+                          <EditInProcessModal
+                            inProcess={ip}
+                            existingSteps={existingSteps}
+                            disabled={!editable}
+                          />
+                        )}
                         <span
                           className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                             IP_STATUS_BADGE[ip.derivedStatus] ?? "bg-slate-100 text-slate-700"

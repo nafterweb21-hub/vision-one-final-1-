@@ -168,25 +168,27 @@ export default function InvoiceFormPage() {
 
   const handleCurrencyChange = (currencyId: string) => {
     const currency = metadata.currencies.find((c: any) => c.id === currencyId);
-    setFormData((prev: any) => ({
-      ...prev,
-      currencyId,
-      exchangeRate: currency ? Number(currency.exchangeRate) : 1
-    }));
+    setFormData((prev: any) => {
+      const totals = calculateTotals(prev.items, prev.taxRate, currencyId);
+      return {
+        ...prev,
+        currencyId,
+        exchangeRate: currency ? Number(currency.exchangeRate) : 1,
+        ...totals
+      };
+    });
   };
 
   const handleTaxChange = (taxId: string) => {
     const tax = metadata.taxes.find((t: any) => t.id === taxId);
     setFormData((prev: any) => {
       const taxRate = tax ? Number(tax.taxRate) : 0;
-      const amtBefore = prev.amountBeforeTax;
-      const taxAmt = amtBefore * (taxRate / 100);
+      const totals = calculateTotals(prev.items, taxRate, prev.currencyId);
       return {
         ...prev,
         taxTypeId: taxId,
         taxRate,
-        taxAmount: taxAmt,
-        amountAfterTax: amtBefore + taxAmt
+        ...totals
       };
     });
   };
@@ -203,13 +205,29 @@ Branch: ${bank.branchCode || ""}`;
     }
   };
 
-  const calculateTotals = (items: any[], taxRate: number) => {
+  const calculateTotals = (items: any[], taxRate: number, overrideCurrencyId?: string) => {
+    const customer = metadata.customers?.find((c: any) => c.id === formData.customerId);
+    const company = metadata.companies?.find((c: any) => c.id === formData.companyId);
+    const effectiveTaxRate = customer?.isSez ? (Number(company?.sezTaxRate) || 0) : taxRate;
+
     const amtBefore = items.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
-    const taxAmt = amtBefore * (taxRate / 100);
+    const taxAmt = amtBefore * (effectiveTaxRate / 100);
+    
+    let finalTotal = amtBefore + taxAmt;
+    const cid = overrideCurrencyId || formData.currencyId;
+    const currency = metadata.currencies?.find((c: any) => c.id === cid);
+    
+    if (currency?.roundingMode === "UP") {
+      finalTotal = Math.ceil(finalTotal);
+    } else if (currency?.roundingMode === "DOWN") {
+      finalTotal = Math.floor(finalTotal);
+    }
+
     return {
+      taxRate: effectiveTaxRate,
       amountBeforeTax: amtBefore,
       taxAmount: taxAmt,
-      amountAfterTax: amtBefore + taxAmt
+      amountAfterTax: finalTotal
     };
   };
 
@@ -281,8 +299,13 @@ Branch: ${bank.branchCode || ""}`;
   };
 
   const handleSave = async () => {
-    if (!formData.companyId || !formData.customerId || !formData.paymentTermId || !formData.currencyId || !formData.taxTypeId || !formData.preparedById || !formData.vehicleNumber) {
+    if (!formData.companyId || !formData.customerId || !formData.paymentTermId || !formData.currencyId || !formData.preparedById) {
       setErrorMsg("Please fill in all mandatory fields.");
+      return;
+    }
+    const isSez = selectedCustomer?.isSez;
+    if (!isSez && !formData.taxTypeId) {
+      setErrorMsg("Please select a Tax Type.");
       return;
     }
     if (formData.items.length === 0) {
@@ -290,14 +313,19 @@ Branch: ${bank.branchCode || ""}`;
       return;
     }
 
+    const payload = { ...formData };
+    if (isSez && !payload.taxTypeId && metadata.taxes.length > 0) {
+      payload.taxTypeId = metadata.taxes[0].id;
+    }
+
     setLoading(true);
     setErrorMsg("");
     try {
       if (isEdit) {
-        const res = await updateInvoice(id!, formData);
+        const res = await updateInvoice(id!, payload);
         if (!res.success) throw new Error(res.error || "Failed to update invoice");
       } else {
-        const res = await createInvoice(formData);
+        const res = await createInvoice(payload);
         if (!res.success) throw new Error(res.error || "Failed to create invoice");
       }
       router.push("/dashboard/sales/invoice");
@@ -475,8 +503,6 @@ Branch: ${bank.branchCode || ""}`;
               className="w-full px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-60"
             >
               <option value="Customer Invoice">Customer Invoice</option>
-              <option value="Credit Note">Credit Note</option>
-              <option value="Debit Note">Debit Note</option>
             </SearchableSelect>
           </div>
 
@@ -505,7 +531,7 @@ Branch: ${bank.branchCode || ""}`;
             />
           </div>
           <div className="space-y-1">
-            <label className="text-sm font-semibold text-blue-900">Vehicle Number <span className="text-rose-500">*</span></label>
+            <label className="text-sm font-semibold text-blue-900">Vehicle Number</label>
             <input
               type="text"
               value={formData.vehicleNumber || ""}
@@ -676,18 +702,24 @@ Branch: ${bank.branchCode || ""}`;
           </div>
 
           <div className="space-y-1 md:col-span-2">
-            <label className="text-sm font-semibold text-blue-900">Tax Type <span className="text-rose-500">*</span></label>
-            <SearchableSelect
-              value={formData.taxTypeId}
-              onChange={(e) => handleTaxChange(e.target.value)}
-              disabled={!isDraft}
-              className="w-full px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-60"
-            >
-              <option value="">Select Tax...</option>
-              {metadata.taxes.map((t: any) => (
-                <option key={t.id} value={t.id}>{t.taxType} ({t.taxRate}%)</option>
-              ))}
-            </SearchableSelect>
+            <label className="text-sm font-semibold text-blue-900">Tax Type {!selectedCustomer?.isSez && <span className="text-rose-500">*</span>}</label>
+            {selectedCustomer?.isSez ? (
+              <div className="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-lg text-slate-500 text-sm">
+                SEZ Tax ({Number(metadata.companies.find((c: any) => c.id === formData.companyId)?.sezTaxRate) || 0}%) Auto-applied
+              </div>
+            ) : (
+              <SearchableSelect
+                value={formData.taxTypeId}
+                onChange={(e) => handleTaxChange(e.target.value)}
+                disabled={!isDraft}
+                className="w-full px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-60"
+              >
+                <option value="">Select Tax...</option>
+                {metadata.taxes.map((t: any) => (
+                  <option key={t.id} value={t.id}>{t.taxType} ({t.taxRate}%)</option>
+                ))}
+              </SearchableSelect>
+            )}
           </div>
         </div>
       </div>

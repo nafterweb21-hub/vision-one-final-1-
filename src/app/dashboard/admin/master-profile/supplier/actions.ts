@@ -3,8 +3,10 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 
+import { nextDocumentNo, getPreviewNextDocumentNo } from "@/lib/document-numbering";
+
 export interface SupplierProfileInput {
-  supplierCode: string;
+  supplierCode?: string;
   supplierName: string;
   remarks?: string;
 }
@@ -29,6 +31,15 @@ const REVALIDATE_PATH = "/dashboard/admin/master-profile/supplier";
 // ==========================================
 // SUPPLIER PROFILE CRUD
 // ==========================================
+
+export async function getSupplierCodePreview() {
+  try {
+    return await getPreviewNextDocumentNo("SUPPLIER");
+  } catch (error) {
+    console.error("Failed to fetch supplier code preview:", error);
+    return "";
+  }
+}
 
 export async function getSupplierProfiles() {
   try {
@@ -67,23 +78,28 @@ export async function getSupplierDetail(id: string) {
 
 export async function createSupplierProfile(input: SupplierProfileInput) {
   try {
-    const existingCode = await prisma.supplierProfile.findUnique({
-      where: { supplierCode: input.supplierCode },
-    });
-    if (existingCode) return { success: false, error: "Supplier Code already exists." };
-
     const existingName = await prisma.supplierProfile.findUnique({
       where: { supplierName: input.supplierName },
     });
     if (existingName) return { success: false, error: "Supplier Name already exists." };
 
-    await prisma.supplierProfile.create({
-      data: {
-        supplierCode: input.supplierCode.trim(),
-        supplierName: input.supplierName.trim(),
-        remarks: input.remarks?.trim() || null,
-      },
+    await prisma.$transaction(async (tx) => {
+      const isTaken = async (code: string) => {
+        const existing = await tx.supplierProfile.findUnique({ where: { supplierCode: code } });
+        return existing !== null;
+      };
+      
+      const generatedCode = await nextDocumentNo(tx, "SUPPLIER", { isTaken });
+
+      await tx.supplierProfile.create({
+        data: {
+          supplierCode: generatedCode,
+          supplierName: input.supplierName.trim(),
+          remarks: input.remarks?.trim() || null,
+        },
+      });
     });
+
     revalidatePath(REVALIDATE_PATH);
     return { success: true };
   } catch (error: any) {
@@ -97,11 +113,6 @@ export async function createSupplierProfileWithDetails(
   addressData?: AddressInput
 ) {
   try {
-    const existingCode = await prisma.supplierProfile.findUnique({
-      where: { supplierCode: supplierData.supplierCode },
-    });
-    if (existingCode) return { success: false, error: "Supplier Code already exists." };
-
     const existingName = await prisma.supplierProfile.findUnique({
       where: { supplierName: supplierData.supplierName },
     });
@@ -109,9 +120,16 @@ export async function createSupplierProfileWithDetails(
 
     // Create supplier + optional contact person + optional address in one transaction
     await prisma.$transaction(async (tx: any) => {
+      const isTaken = async (code: string) => {
+        const existing = await tx.supplierProfile.findUnique({ where: { supplierCode: code } });
+        return existing !== null;
+      };
+      
+      const generatedCode = await nextDocumentNo(tx, "SUPPLIER", { isTaken });
+
       const supplier = await tx.supplierProfile.create({
         data: {
-          supplierCode: supplierData.supplierCode.trim(),
+          supplierCode: generatedCode,
           supplierName: supplierData.supplierName.trim(),
           remarks: supplierData.remarks?.trim() || null,
         },

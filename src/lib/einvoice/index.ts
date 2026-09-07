@@ -68,6 +68,8 @@ export function breakupForInvoice(invoice: any, company: any, customer: any): Gs
     taxRatePercent: Number(invoice.taxRate) || 0,
     sellerGstin: company?.gstRegistrationNo,
     posStateCode,
+    isSez: customer?.isSez,
+    sezTaxRate: Number(company?.sezTaxRate) || 0,
   });
 }
 

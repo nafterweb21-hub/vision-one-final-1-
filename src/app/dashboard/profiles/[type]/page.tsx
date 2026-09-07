@@ -323,24 +323,45 @@ export default function ProfilePage({
               </div>
             </div>
 
-            {/* Checkbox fields */}
-            {fields.filter((f) => f.type === "checkbox").map((field) => {
-              const isImmutable = !!(editingId && meta.immutableFields.includes(field.name));
-              return (
-                <div key={field.name} className="flex items-center gap-3 p-4 rounded-lg border border-blue-200 bg-blue-50 ">
-                  <input
-                    id={`field-${field.name}`}
-                    type="checkbox"
-                    disabled={isImmutable}
-                    checked={!!formData[field.name]}
-                    onChange={(e) => setFormData({ ...formData, [field.name]: e.target.checked })}
-                    className="w-4 h-4 rounded border-blue-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  <label htmlFor={`field-${field.name}`} className="text-sm font-semibold text-blue-700 cursor-pointer select-none">
-                    {field.label}
-                  </label>
-                </div>
-              );
+            {/* Checkbox and Select fields */}
+            {fields.filter((f) => f.type === "checkbox" || f.type === "select").map((f) => {
+                if (f.type === "checkbox") {
+                  return (
+                    <div key={f.name} className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        id={f.name}
+                        checked={!!formData[f.name]}
+                        onChange={(e) => setFormData({ ...formData, [f.name]: e.target.checked })}
+                        className="w-4 h-4 text-blue-600 rounded border-blue-300 focus:ring-blue-500"
+                      />
+                      <label htmlFor={f.name} className="text-sm font-semibold text-blue-900">
+                        {f.label} {f.required && <span className="text-rose-500">*</span>}
+                      </label>
+                    </div>
+                  );
+                }
+                if (f.type === "select") {
+                  return (
+                    <div key={f.name} className="space-y-1.5">
+                      <label htmlFor={f.name} className="text-sm font-semibold text-blue-900">
+                        {f.label} {f.required && <span className="text-rose-500">*</span>}
+                      </label>
+                      <SearchableSelect
+                        id={f.name}
+                        required={f.required}
+                        value={formData[f.name] || ""}
+                        onChange={(e) => setFormData({ ...formData, [f.name]: e.target.value })}
+                        className="w-full px-4 py-2.5 text-sm rounded-lg border border-blue-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
+                      >
+                        <option value="" disabled>Select {f.label}</option>
+                        {f.options?.map((opt) => (
+                          <option key={opt.value} value={opt.value}>{opt.label}</option>
+                        ))}
+                      </SearchableSelect>
+                    </div>
+                  );
+                }
             })}
 
             {/* Form actions */}

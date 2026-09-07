@@ -159,6 +159,7 @@ export default function RoutingProcessRow({
               routingProcess={rp}
               mainProcesses={mainProcesses}
               processProfiles={processProfiles}
+              employees={employees}
               existingPairs={allRoutingProcesses.map((r: any) => ({
                 mainProcessId: r.mainProcessId,
                 routingProcessId: r.routingProcessId,

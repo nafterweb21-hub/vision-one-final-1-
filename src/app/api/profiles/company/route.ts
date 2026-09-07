@@ -55,6 +55,7 @@ export async function POST(req: NextRequest) {
         footerName: body.footerName,
         allowPoForWo: body.allowPoForWo || false,
         as9100RequirementNote: body.as9100RequirementNote || false,
+        sezTaxRate: body.sezTaxRate !== undefined ? Number(body.sezTaxRate) : 0,
         status: body.status || "Active",
         updatedAt: new Date()
       }

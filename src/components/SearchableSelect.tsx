@@ -15,18 +15,21 @@ export interface SearchableSelectProps extends React.SelectHTMLAttributes<HTMLSe
   dropdownPosition?: "bottom" | "top";
 }
 
-export function SearchableSelect({ 
-  children, 
-  value, 
-  defaultValue,
-  onChange, 
-  className = "", 
-  disabled = false,
-  required = false,
-  name,
-  dropdownPosition = "bottom",
-  ...rest
-}: SearchableSelectProps) {
+export const SearchableSelect = React.forwardRef<HTMLSelectElement, SearchableSelectProps>((
+  { 
+    children, 
+    value, 
+    defaultValue,
+    onChange, 
+    className = "", 
+    disabled = false,
+    required = false,
+    name,
+    dropdownPosition = "bottom",
+    ...rest
+  },
+  ref
+) => {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
@@ -46,9 +49,15 @@ export function SearchableSelect({
     React.Children.forEach(nodes, (child) => {
       if (!React.isValidElement<any>(child)) return;
       if (child.type === "option") {
+        let label = "";
+        if (Array.isArray(child.props.children)) {
+          label = child.props.children.join("");
+        } else {
+          label = child.props.children?.toString() || "";
+        }
         opts.push({
           value: child.props.value ?? "",
-          label: child.props.children?.toString() || "",
+          label,
           disabled: child.props.disabled || false,
         });
       } else if (child.type === React.Fragment) {
@@ -106,15 +115,10 @@ export function SearchableSelect({
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        // We also need to check if click is inside the portal dropdown
         const portalNode = document.getElementById(`searchable-select-portal-${name || 'generic'}`);
         if (portalNode && portalNode.contains(e.target as Node)) {
           return;
         }
-        // Since we don't have a specific ID, let's just close it if clicking outside container
-        // Wait, if they click the portal, it's not inside container. 
-        // A better approach is to check if the target has a specific class or let event bubbling handle it.
-        // We can just rely on the mousedown inside the dropdown stopping propagation.
         setOpen(false);
       }
     };
@@ -140,17 +144,19 @@ export function SearchableSelect({
     setSearch("");
   };
 
+  const isDropUp = dropdownStyle.top === 'auto';
+
   const portalContent = open && typeof document !== "undefined" ? createPortal(
     <div 
       id={`searchable-select-portal-${name || 'generic'}`}
-      className="bg-white border border-blue-200 rounded-lg shadow-xl overflow-hidden flex flex-col"
+      className={`bg-white border border-blue-200 rounded-lg shadow-xl overflow-hidden flex ${isDropUp ? 'flex-col-reverse' : 'flex-col'}`}
       style={{ 
         ...dropdownStyle, 
         maxHeight: dropdownStyle.maxHeight ? `${dropdownStyle.maxHeight}px` : "240px" 
       }}
-      onMouseDown={(e) => e.stopPropagation()} // Prevent handleClickOutside from triggering
+      onMouseDown={(e) => e.stopPropagation()} 
     >
-      <div className="p-2 border-b border-blue-100 bg-slate-50 sticky top-0">
+      <div className={`p-2 bg-slate-50 ${isDropUp ? 'border-t border-blue-100' : 'border-b border-blue-100'}`}>
         <div className="relative">
           <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
@@ -205,8 +211,8 @@ export function SearchableSelect({
         <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 opacity-50 pointer-events-none" />
       </div>
 
-      {/* Hidden native select for form submissions and required validation if needed */}
       <select 
+        ref={ref}
         value={internalValue || ""} 
         name={name} 
         onChange={() => {}} 
@@ -220,4 +226,6 @@ export function SearchableSelect({
       {portalContent}
     </div>
   );
-}
+});
+
+SearchableSelect.displayName = "SearchableSelect";

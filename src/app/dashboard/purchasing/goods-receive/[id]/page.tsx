@@ -109,6 +109,8 @@ export default function GoodsReceiveFormPage() {
   useEffect(() => {
     if (!id) return;
     if (isNew && selectedPO) {
+      setCompanyId(selectedPO.companyId);
+      setSupplierId(selectedPO.supplierId);
       // Find latest currency exchange rate
       const cur = prereq?.currencies?.find((c: any) => c.id === selectedPO.currencyId);
       if (cur) {
@@ -134,7 +136,11 @@ export default function GoodsReceiveFormPage() {
   }, [purchaseOrderId, isNew, prereq]);
 
   const filteredPOs =
-    prereq?.purchaseOrders?.filter((p: any) => p.supplierId === supplierId) || [];
+    prereq?.purchaseOrders?.filter((p: any) => {
+      if (companyId && p.companyId !== companyId) return false;
+      if (supplierId && p.supplierId !== supplierId) return false;
+      return true;
+    }) || [];
 
   async function handleSaveDraft() {
     setSaving(true);

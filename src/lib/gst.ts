@@ -136,8 +136,10 @@ export function computeGstBreakup(params: {
   taxRatePercent: number;
   sellerGstin: string | null | undefined;
   posStateCode: string | null | undefined;
+  isSez?: boolean;
+  sezTaxRate?: number;
 }): GstBreakup {
-  const { lines, taxRatePercent } = params;
+  const { lines, taxRatePercent, isSez } = params;
   const sellerStateCode = stateCodeFromGstin(params.sellerGstin);
   const posStateCode = params.posStateCode ?? null;
 
@@ -149,7 +151,7 @@ export function computeGstBreakup(params: {
       ? "intra"
       : "inter";
 
-  const rate = Number(taxRatePercent) || 0;
+  const rate = isSez ? (Number(params.sezTaxRate) || 0) : (Number(taxRatePercent) || 0);
 
   const breakupLines: GstLineBreakup[] = lines.map((l) => {
     const taxable = Number(l.amount) || 0;

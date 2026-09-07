@@ -52,7 +52,7 @@ export function computeTotals(opts: {
 export type QuotationInput = {
   date: string | Date;
   salespersonId: string;
-  customerId: string;
+  customerId?: string; // fallback
   contactPersonId?: string | null;
   customerPoRef?: string | null;
   refNo?: string | null;
@@ -76,7 +76,7 @@ const cleanStr = (v: any) => (v == null || v === "" ? null : String(v));
 
 export async function createQuotation(input: QuotationInput) {
   if (!input.salespersonId) throw new Error("Salesperson is required");
-  if (!input.customerId) throw new Error("Customer is required");
+  if (!input.customerSelection && !input.customerId) throw new Error("Customer is required");
   if (!input.currencyId) throw new Error("Currency is required");
   if (!input.title?.trim()) throw new Error("Title is required");
   if (!input.items?.length) throw new Error("At least one line item is required");
@@ -85,17 +85,33 @@ export async function createQuotation(input: QuotationInput) {
     ? await prisma.taxProfile.findUnique({ where: { id: input.taxTypeId } })
     : null;
 
-  const totals = computeTotals({
-    items: input.items,
-    lumpSumDisc: input.lumpSumDisc ?? 0,
-    taxRate: tax?.taxRate ?? 0,
-  });
-
   // The number is taken and the quotation written in one transaction: the
   // counter's row lock only holds for as long as the transaction does.
   return prisma.$transaction(async (tx) => {
-    const quotationNo = await nextDocumentNo(tx, "QUOTATION", {
-      isTaken: quotationNoTaken(tx),
+    const { finalCustomerId, finalContactPersonId } = await processCustomerSelection(
+      tx as any,
+      input.customerSelection,
+      {
+        customerId: input.customerId,
+        contactPersonId: cleanId(input.contactPersonId),
+      }
+    );
+
+    if (!finalCustomerId) throw new Error("Customer resolution failed");
+
+    const customer = await tx.customerProfile.findUnique({ where: { id: finalCustomerId } });
+    const company = await tx.companyProfile.findFirst({ where: { status: "Active" } });
+    const isSez = customer?.isSez;
+    const taxRate = isSez ? (Number(company?.sezTaxRate) || 0) : (tax?.taxRate ?? 0);
+
+    const totals = computeTotals({
+      items: input.items,
+      lumpSumDisc: input.lumpSumDisc ?? 0,
+      taxRate,
+    });
+
+    const quotationNo = await nextDocumentNo(tx as any, "QUOTATION", {
+      isTaken: quotationNoTaken(tx as any),
     });
 
     return tx.quotation.create({
@@ -105,8 +121,8 @@ export async function createQuotation(input: QuotationInput) {
       status: "Draft",
       date: new Date(input.date),
       salespersonId: input.salespersonId,
-      customerId: input.customerId,
-      contactPersonId: cleanId(input.contactPersonId),
+      customerId: finalCustomerId,
+      contactPersonId: finalContactPersonId,
       customerPoRef: cleanStr(input.customerPoRef),
       refNo: cleanStr(input.refNo),
       title: input.title.trim(),
@@ -118,9 +134,9 @@ export async function createQuotation(input: QuotationInput) {
       exchangeRate: new Prisma_Decimal(input.exchangeRate),
       subTotal: new Prisma_Decimal(totals.subTotal),
       lumpSumDisc: new Prisma_Decimal(totals.lumpSumDisc),
-      taxTypeId: cleanId(input.taxTypeId),
-      taxRate: tax?.taxRate ?? null,
-      taxAmount: tax ? new Prisma_Decimal(totals.taxAmount) : null,
+      taxTypeId: isSez ? null : cleanId(input.taxTypeId),
+      taxRate: isSez ? taxRate : (tax?.taxRate ?? null),
+      taxAmount: (isSez || tax) ? new Prisma_Decimal(totals.taxAmount) : null,
       totalAmount: new Prisma_Decimal(totals.totalAmount),
       termsAndConditions: cleanStr(input.termsAndConditions),
       remark: cleanStr(input.remark),
@@ -153,21 +169,37 @@ export async function updateQuotation(id: string, input: QuotationInput) {
     ? await prisma.taxProfile.findUnique({ where: { id: input.taxTypeId } })
     : null;
 
-  const totals = computeTotals({
-    items: input.items,
-    lumpSumDisc: input.lumpSumDisc ?? 0,
-    taxRate: tax?.taxRate ?? 0,
-  });
-
   return prisma.$transaction(async (tx) => {
+    const { finalCustomerId, finalContactPersonId } = await processCustomerSelection(
+      tx as any,
+      input.customerSelection,
+      {
+        customerId: input.customerId,
+        contactPersonId: cleanId(input.contactPersonId),
+      }
+    );
+
+    if (!finalCustomerId) throw new Error("Customer resolution failed");
+
+    const customer = await tx.customerProfile.findUnique({ where: { id: finalCustomerId } });
+    const company = await tx.companyProfile.findFirst({ where: { status: "Active" } });
+    const isSez = customer?.isSez;
+    const taxRate = isSez ? (Number(company?.sezTaxRate) || 0) : (tax?.taxRate ?? 0);
+
+    const totals = computeTotals({
+      items: input.items,
+      lumpSumDisc: input.lumpSumDisc ?? 0,
+      taxRate,
+    });
+
     await tx.quotationItem.deleteMany({ where: { quotationId: id } });
     return tx.quotation.update({
       where: { id },
       data: {
         date: new Date(input.date),
         salespersonId: input.salespersonId,
-        customerId: input.customerId,
-        contactPersonId: cleanId(input.contactPersonId),
+        customerId: finalCustomerId,
+        contactPersonId: finalContactPersonId,
         customerPoRef: cleanStr(input.customerPoRef),
         refNo: cleanStr(input.refNo),
         title: input.title.trim(),
@@ -179,9 +211,9 @@ export async function updateQuotation(id: string, input: QuotationInput) {
         exchangeRate: new Prisma_Decimal(input.exchangeRate),
         subTotal: new Prisma_Decimal(totals.subTotal),
         lumpSumDisc: new Prisma_Decimal(totals.lumpSumDisc),
-        taxTypeId: cleanId(input.taxTypeId),
-        taxRate: tax?.taxRate ?? null,
-        taxAmount: tax ? new Prisma_Decimal(totals.taxAmount) : null,
+        taxTypeId: isSez ? null : cleanId(input.taxTypeId),
+        taxRate: isSez ? taxRate : (tax?.taxRate ?? null),
+        taxAmount: (isSez || tax) ? new Prisma_Decimal(totals.taxAmount) : null,
         totalAmount: new Prisma_Decimal(totals.totalAmount),
         termsAndConditions: cleanStr(input.termsAndConditions),
         remark: cleanStr(input.remark),

@@ -105,7 +105,7 @@ export default async function PrintPurchaseOrderPage(
           <div style={{ width: '40%' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px' }}>
               <tbody>
-                <tr><td style={{ width: '35%', paddingBottom: '4px' }}>PO No</td><td style={{ width: '5%', paddingBottom: '4px' }}>:</td><td className="dyn" style={{ paddingBottom: '4px' }}>{po.poNo}-R{po.revision}</td></tr>
+                <tr><td style={{ width: '35%', paddingBottom: '4px' }}>PO No</td><td style={{ width: '5%', paddingBottom: '4px' }}>:</td><td className="dyn" style={{ paddingBottom: '4px' }}>{po.poNo}</td></tr>
                 <tr><td style={{ paddingBottom: '4px' }}>Date</td><td style={{ paddingBottom: '4px' }}>:</td><td className="dyn" style={{ paddingBottom: '4px' }}>{fmtDate(po.date)}</td></tr>
                 <tr><td style={{ paddingBottom: '4px' }}>Purchaser</td><td style={{ paddingBottom: '4px' }}>:</td><td className="dyn" style={{ paddingBottom: '4px' }}>{po.purchaser?.name}</td></tr>
                 <tr><td style={{ paddingBottom: '4px' }}>Email</td><td style={{ paddingBottom: '4px' }}>:</td><td className="dyn" style={{ paddingBottom: '4px' }}>{po.purchaser?.email}</td></tr>
@@ -117,13 +117,15 @@ export default async function PrintPurchaseOrderPage(
         <table className="items-table">
           <thead>
             <tr>
-              <th style={{ width: '5%' }}>Item</th>
-              <th style={{ width: '22%' }}>Material</th>
-              <th style={{ width: '10%' }}>Shape</th>
-              <th style={{ width: '10%' }}>Size</th>
-              <th style={{ width: '13%' }}>Delivery Date</th>
-              <th style={{ width: '8%', textAlign: 'center' }}>Qty</th>
-              <th style={{ width: '8%', textAlign: 'center' }}>UOM</th>
+              <th style={{ width: '4%' }}>Item</th>
+              <th style={{ width: '12%' }}>Material</th>
+              <th style={{ width: '12%' }}>Description</th>
+              <th style={{ width: '8%' }}>HSN Code</th>
+              <th style={{ width: '9%' }}>Shape</th>
+              <th style={{ width: '9%' }}>Size</th>
+              <th style={{ width: '12%' }}>Delivery Date</th>
+              <th style={{ width: '7%', textAlign: 'center' }}>Qty</th>
+              <th style={{ width: '7%', textAlign: 'center' }}>UOM</th>
               <th style={{ width: '12%', textAlign: 'center' }}>Unit<br/>Price</th>
               <th style={{ width: '12%', textAlign: 'center' }}>Amount</th>
             </tr>
@@ -132,7 +134,12 @@ export default async function PrintPurchaseOrderPage(
             {po.items.map((it, idx) => (
               <tr key={it.id} className="dyn">
                 <td style={{ textAlign: 'center' }}>{idx + 1}</td>
-                <td>{it.material || it.description}</td>
+                <td>{it.material}</td>
+                <td>
+                  <div>{it.description}</div>
+                  {it.hsnDescription && <div style={{ fontSize: '9px', color: '#555' }}>{it.hsnDescription}</div>}
+                </td>
+                <td>{it.hsnCode}</td>
                 <td>{it.shape}</td>
                 <td>{it.size}</td>
                 <td style={{ textAlign: 'center' }}>{fmtDate(it.deliveryDate)}</td>
@@ -145,7 +152,7 @@ export default async function PrintPurchaseOrderPage(
           </tbody>
           <tfoot>
             <tr>
-              <td colSpan={5} rowSpan={3} style={{ border: 'none', padding: '15px 10px 0 0', verticalAlign: 'top' }}>
+              <td colSpan={7} rowSpan={3} style={{ border: 'none', padding: '15px 10px 0 0', verticalAlign: 'top' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', color: '#111' }}>
                   <tbody>
                     <tr>
@@ -220,12 +227,12 @@ export default async function PrintPurchaseOrderPage(
             )}
           </div>
           
-          <div style={{ marginTop: '30px' }}>
-            <div style={{ textAlign: 'right', fontSize: '11px', marginBottom: '20px' }}>
-              Approved By : <span className="dyn">{po.purchaser?.name}</span>
-            </div>
-            <div style={{ textAlign: 'center', fontSize: '10px' }}>
-              This is computer-generated document. No signature is required.
+          <div style={{ marginTop: '30px', display: 'flex', justifyContent: 'flex-end' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '200px' }}>
+              <div style={{ fontSize: '11px', marginBottom: '40px', width: '100%', textAlign: 'center' }}>
+                Approved By
+              </div>
+              <div style={{ borderTop: '1px solid #111', width: '100%' }}></div>
             </div>
           </div>
         </div>

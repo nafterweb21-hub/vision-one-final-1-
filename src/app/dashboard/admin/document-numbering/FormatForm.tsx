@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { Check, Loader2, RotateCcw } from "lucide-react";
+import { SearchableSelect } from "@/components/SearchableSelect";
 
 import {
   MAX_SEQUENCE_LENGTH,
@@ -153,7 +154,7 @@ export default function FormatForm({
           <label className={labelClass} htmlFor={`period-${scopeKey}`}>
             Period in the number
           </label>
-          <select
+          <SearchableSelect
             id={`period-${scopeKey}`}
             className={fieldClass}
             value={format.periodFormat}
@@ -165,14 +166,14 @@ export default function FormatForm({
                 {option.example ? ` — ${option.example}` : ""}
               </option>
             ))}
-          </select>
+          </SearchableSelect>
         </div>
 
         <div>
           <label className={labelClass} htmlFor={`separator-${scopeKey}`}>
             Separator
           </label>
-          <select
+          <SearchableSelect
             id={`separator-${scopeKey}`}
             className={fieldClass}
             value={format.separator}
@@ -183,7 +184,7 @@ export default function FormatForm({
                 {option.label}
               </option>
             ))}
-          </select>
+          </SearchableSelect>
         </div>
 
         <div>
@@ -222,7 +223,7 @@ export default function FormatForm({
           <label className={labelClass} htmlFor={`reset-${scopeKey}`}>
             Restart the sequence
           </label>
-          <select
+          <SearchableSelect
             id={`reset-${scopeKey}`}
             className={fieldClass}
             value={format.resetPeriod}
@@ -233,7 +234,7 @@ export default function FormatForm({
                 {option.label}
               </option>
             ))}
-          </select>
+          </SearchableSelect>
           <p className="mt-1 text-[11px] font-medium text-slate-400">
             {RESET_PERIODS.find((r) => r.value === format.resetPeriod)?.hint}
           </p>
