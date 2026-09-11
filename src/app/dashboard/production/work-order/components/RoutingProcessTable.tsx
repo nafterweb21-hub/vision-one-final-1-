@@ -8,6 +8,7 @@ import { reorderRoutingProcesses } from "../actions";
 
 type Props = {
   inProcessId: string;
+  inProcessTargetDate: string;
   rows: any[]; // routing processes, already sequence-ordered & serialized
   woStatus: string;
   employees: any[];
@@ -19,6 +20,7 @@ type Props = {
 
 export default function RoutingProcessTable({
   inProcessId,
+  inProcessTargetDate,
   rows: initialRows,
   woStatus,
   employees,
@@ -119,6 +121,7 @@ export default function RoutingProcessTable({
               key={rp.id}
               rp={rp}
               woStatus={woStatus}
+              inProcessTargetDate={inProcessTargetDate}
               employees={employees}
               supportData={supportData}
               workOrderNo={workOrderNo}

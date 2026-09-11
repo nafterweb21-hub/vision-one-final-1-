@@ -187,7 +187,6 @@ export default function CreditNoteFormPage() {
       return {
         ...prev,
         taxTypeId: taxId,
-        taxRate,
         ...totals
       };
     });
@@ -322,10 +321,10 @@ Branch: ${bank.branchCode || ""}`;
     setErrorMsg("");
     try {
       if (isEdit) {
-        const res = await updateCreditNote(id!, payload);
+        const res = await updateInvoice(id!, payload);
         if (!res.success) throw new Error(res.error || "Failed to update credit note");
       } else {
-        const res = await createCreditNote(payload);
+        const res = await createInvoice(payload);
         if (!res.success) throw new Error(res.error || "Failed to create credit note");
       }
       router.push("/dashboard/sales/invoice");

@@ -20,6 +20,7 @@ type Pair = { mainProcessId: string; routingProcessId: string };
 
 type Props = {
   routingProcess: any; // the existing routing process object
+  inProcessTargetDate?: string;
   mainProcesses: MainProcess[];
   processProfiles: ProcessProfile[];
   existingPairs?: Pair[];
@@ -37,6 +38,7 @@ type FormValues = {
 
 export default function EditRoutingProcessModal({
   routingProcess,
+  inProcessTargetDate,
   mainProcesses,
   processProfiles,
   existingPairs = [],
@@ -183,9 +185,15 @@ export default function EditRoutingProcessModal({
                     </label>
                     <input
                       type="date"
-                      max="2035-12-31"
+                      max={inProcessTargetDate || "2035-12-31"}
                       {...register("targetCompletionDate", {
                         required: "Required",
+                        validate: (val) => {
+                          if (inProcessTargetDate && val > inProcessTargetDate) {
+                            return `Cannot exceed In-Process target date (${inProcessTargetDate})`;
+                          }
+                          return true;
+                        }
                       })}
                       className={inputCls}
                     />

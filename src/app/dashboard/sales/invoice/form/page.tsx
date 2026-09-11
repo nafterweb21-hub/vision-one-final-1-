@@ -187,7 +187,6 @@ export default function InvoiceFormPage() {
       return {
         ...prev,
         taxTypeId: taxId,
-        taxRate,
         ...totals
       };
     });

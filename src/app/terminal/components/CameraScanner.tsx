@@ -51,7 +51,13 @@ export default function CameraScanner({
         (err) => {}
       ).catch((err) => {
         // Ignore errors if we're unmounting
-        if (isMounted) console.error("Camera start error:", err);
+        if (isMounted) {
+          console.error("Camera start error:", err);
+          import("react-hot-toast").then((module) => {
+            module.toast.error("Camera access denied or unavailable.");
+          });
+          onClose();
+        }
       });
     }, 150);
 

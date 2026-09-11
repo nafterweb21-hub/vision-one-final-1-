@@ -141,8 +141,8 @@ export default async function WorkOrderRoutingPage({
 
   console.log("Rendering routing processes. In-processes count:", workOrder?.inProcesses?.length);
 
-  // Roll the in-process status from its routing rows
-  const inProcessRows = (workOrder?.inProcesses || []).map((ip: any) => {
+  // Roll the in-process status from its routing rows and serialize to remove Decimal objects
+  const inProcessRows = JSON.parse(JSON.stringify((workOrder?.inProcesses || []).map((ip: any) => {
     const statuses = (ip?.routingProcesses || []).map((r: any) => r?.status);
     let derived = ip?.status;
     if (statuses.length > 0) {
@@ -151,7 +151,7 @@ export default async function WorkOrderRoutingPage({
       else derived = "New";
     }
     return { ...ip, derivedStatus: derived };
-  });
+  })));
 
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-6">
@@ -268,6 +268,7 @@ export default async function WorkOrderRoutingPage({
                 ) : (
                   <RoutingProcessTable
                     inProcessId={ip.id}
+                    inProcessTargetDate={new Date(ip.targetCompletionDate).toISOString().slice(0, 10)}
                     rows={JSON.parse(JSON.stringify(ip.routingProcesses))}
                     woStatus={workOrder.status}
                     employees={employees}

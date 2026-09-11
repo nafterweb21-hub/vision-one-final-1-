@@ -16,6 +16,7 @@ import {
   setContactPersonDefault,
   deleteContactPerson,
   addAddress,
+  updateAddress,
   toggleAddressStatus,
   setAddressDefault,
   deleteAddress,
@@ -29,7 +30,6 @@ interface CustomerSummary {
   remarks: string | null;
   gstin?: string | null;
   status: string;
-  isSez: boolean;
   isSez: boolean;
   createdAt: Date;
   updatedAt: Date;

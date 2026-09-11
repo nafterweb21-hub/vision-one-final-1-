@@ -25,6 +25,8 @@ export default async function WorkOrdersPage() {
     const session = await auth();
     const userRole = session?.user?.role;
     
+    const userEmployeeId = session?.user?.employeeId;
+    
     // Bypass role filtering for management/admin roles so they can see all work orders
     const bypassRoles = ["Admin", "VIEWER", "Production Manager", "QC", "QC Manager"];
     const shouldFilterByRole = userRole && !bypassRoles.some((r) => r.toLowerCase() === userRole.toLowerCase());
@@ -40,7 +42,8 @@ export default async function WorkOrdersPage() {
                   some: {
                     routingProcess: {
                       allowedRoles: { some: { name: userRole } }
-                    }
+                    },
+                    ...(userEmployeeId ? { assignedEmployeeId: userEmployeeId } : {})
                   }
                 }
               }

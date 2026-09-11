@@ -37,8 +37,6 @@ type Item = {
   remark: string;
   hsnCode: string;
   hsnDescription: string;
-  hsnCode: string;
-  hsnDescription: string;
 };
 
 export default function PurchaseOrderEditPage() {
@@ -131,8 +129,6 @@ export default function PurchaseOrderEditPage() {
               remark: it.remark || "",
               hsnCode: it.hsnCode || "",
               hsnDescription: it.hsnDescription || "",
-              hsnCode: it.hsnCode || "",
-              hsnDescription: it.hsnDescription || "",
             })),
           );
         } else {
@@ -157,8 +153,6 @@ export default function PurchaseOrderEditPage() {
             internalQuantity: "1.00",
             deliveryDate: new Date().toISOString().slice(0, 10),
             remark: "",
-            hsnCode: "",
-            hsnDescription: "",
             hsnCode: "",
             hsnDescription: "",
           }]);
@@ -251,6 +245,8 @@ export default function PurchaseOrderEditPage() {
           internalQuantity: Number(it.quantity - (it.cancelQuantity || 0) - (it.poQuantityIssued || 0)).toFixed(2),
           deliveryDate: new Date().toISOString().slice(0, 10),
           remark: it.remark || "",
+          hsnCode: "",
+          hsnDescription: "",
         })).filter(it => Number(it.quantity) > 0);
         setItems(newItems);
       }
@@ -308,9 +304,9 @@ export default function PurchaseOrderEditPage() {
     
     let finalTotal = totalItems + taxAmt;
     const currency = data?.currencies?.find((c: any) => c.id === currencyId);
-    if (currency?.roundingMode === "UP") {
+    if ((currency as any)?.roundingMode === "UP") {
       finalTotal = Math.ceil(finalTotal);
-    } else if (currency?.roundingMode === "DOWN") {
+    } else if ((currency as any)?.roundingMode === "DOWN") {
       finalTotal = Math.floor(finalTotal);
     }
     
@@ -337,6 +333,8 @@ export default function PurchaseOrderEditPage() {
         internalQuantity: "1.00",
         deliveryDate: new Date().toISOString().slice(0, 10),
         remark: "",
+        hsnCode: "",
+        hsnDescription: "",
       },
     ]);
   }
@@ -413,8 +411,6 @@ export default function PurchaseOrderEditPage() {
           internalQuantity: Number(it.internalQuantity),
           deliveryDate: it.deliveryDate,
           remark: it.remark || null,
-          hsnCode: it.hsnCode || null,
-          hsnDescription: it.hsnDescription || null,
           hsnCode: it.hsnCode || null,
           hsnDescription: it.hsnDescription || null,
         })),

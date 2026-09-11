@@ -130,10 +130,20 @@ export default function ProductionIntake({ isOpen, onClose, support, onSuccess, 
       if (rp && !rpOpts.some((o) => o.id === rp)) rp = "";
       if (!rp && rpOpts.length === 1) rp = rpOpts[0].id;
 
-      if (ip === prev.inProcessId && mp === prev.mainProcessId && rp === prev.routingProcessProfileId) {
+      let employeeId = prev.employeeId;
+      if (rp) {
+        const matchingRp = (chosenIp?.routingProcesses ?? []).find(
+          (r: any) => r.routingProcess?.id === rp && r.mainProcessId === mp && visibleRowIds.has(r.id)
+        );
+        if (matchingRp?.assignedEmployeeId) {
+          employeeId = matchingRp.assignedEmployeeId;
+        }
+      }
+
+      if (ip === prev.inProcessId && mp === prev.mainProcessId && rp === prev.routingProcessProfileId && employeeId === prev.employeeId) {
         return prev;
       }
-      return { ...prev, inProcessId: ip, mainProcessId: mp, routingProcessProfileId: rp };
+      return { ...prev, inProcessId: ip, mainProcessId: mp, routingProcessProfileId: rp, employeeId };
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [wo, inProcessOptions, visibleRowIds]);

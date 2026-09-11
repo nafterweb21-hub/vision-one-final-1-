@@ -21,6 +21,7 @@ type DndProps = {
 type Props = {
   rp: any;
   woStatus: string;
+  inProcessTargetDate?: string;
   employees?: any[];
   supportData?: any;
   workOrderNo?: string;
@@ -46,6 +47,7 @@ const STATUS_BADGE: Record<string, string> = {
 export default function RoutingProcessRow({
   rp,
   woStatus,
+  inProcessTargetDate,
   employees = [],
   supportData = {},
   workOrderNo = "",
@@ -157,6 +159,7 @@ export default function RoutingProcessRow({
           {canEditDetails && (
             <EditRoutingProcessModal
               routingProcess={rp}
+              inProcessTargetDate={inProcessTargetDate}
               mainProcesses={mainProcesses}
               processProfiles={processProfiles}
               employees={employees}

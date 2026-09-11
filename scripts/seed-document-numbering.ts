@@ -21,7 +21,7 @@ import {
 } from '../src/lib/document-numbering.config';
 
 /** Where each document type's existing numbers live. */
-const SOURCES: Record<DocType, { rows: () => Promise<{ no: string | null }[]> }> = {
+const SOURCES: Partial<Record<DocType, { rows: () => Promise<{ no: string | null }[]> }>> = {
   QUOTATION: {
     rows: () =>
       prisma.quotation.findMany({ select: { quotationNo: true } }).then((r) =>
@@ -155,7 +155,7 @@ async function main() {
 
   for (const def of DOC_TYPES) {
     const format = DEFAULT_FORMATS[def.code];
-    const rows = await SOURCES[def.code].rows();
+    const rows = (await SOURCES[def.code]?.rows()) ?? [];
     const numbers = rows.map((r) => r.no).filter((n): n is string => Boolean(n));
 
     // The old generators numbered globally, even for documents that carry a

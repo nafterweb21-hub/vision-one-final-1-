@@ -187,7 +187,6 @@ export default function DebitNoteFormPage() {
       return {
         ...prev,
         taxTypeId: taxId,
-        taxRate,
         ...totals
       };
     });

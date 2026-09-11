@@ -67,6 +67,7 @@ export default function SalesOrderFormPage() {
             ...orderData,
             date: new Date(orderData.date).toISOString().split("T")[0],
             customerId: orderData.customerId || "",
+            customerSelection: { type: "profile", profileId: orderData.customerId || "" },
           });
           setItems(
             orderData.items.map((item: any) => ({
@@ -263,6 +264,7 @@ export default function SalesOrderFormPage() {
 
       const payload = {
         ...order,
+        status, // Update the status to the one passed to handleSave
         taxTypeId: isSez ? null : (order.taxTypeId || null),
         taxRate: effectiveTaxRate,
         amountBeforeTax: Number(amountBeforeTax),

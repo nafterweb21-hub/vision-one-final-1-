@@ -32,7 +32,10 @@
   ],
   "exclude": [
     "node_modules",
-    "scratch",
+    "scratch.ts",
+    "test-gr.ts",
+    "test-api.ts",
+    "query-wo-flow.ts",
     "seed-process-params.ts",
     "seed_params.ts",
     "scratch-clean-db.ts",

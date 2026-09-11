@@ -245,9 +245,9 @@ export default function PurchaseOrderSubconEditPage() {
     
     let finalTotal = totalItems + taxAmt;
     const currency = data?.currencies?.find((c: any) => c.id === currencyId);
-    if (currency?.roundingMode === "UP") {
+    if ((currency as any)?.roundingMode === "UP") {
       finalTotal = Math.ceil(finalTotal);
-    } else if (currency?.roundingMode === "DOWN") {
+    } else if ((currency as any)?.roundingMode === "DOWN") {
       finalTotal = Math.floor(finalTotal);
     }
     
